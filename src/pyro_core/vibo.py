@@ -38,6 +38,7 @@ if __name__ == "__main__":
                             '1pl_simulation', 
                             '2pl_simulation', 
                             '3pl_simulation',
+                            'json',
                         ],
                         help='which dataset to run on (default: 1pl_simulation)')
     parser.add_argument('--ability-dim', type=int, default=1,

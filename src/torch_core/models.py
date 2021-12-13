@@ -5,6 +5,7 @@ import torch
 import numpy as np
 from torch import nn
 from torch.nn import functional as F, init
+import environment
 
 from src.utils import (
     bernoulli_log_pdf, 
@@ -256,6 +257,10 @@ class VIBO_1PL(nn.Module):
             response_dist = 'bernoulli',
             replace_missing_with_prior = True,
             n_norm_flows = 0,
+            embedding_model = None,
+            embed_conpole = False,
+            embed_bert = False,
+            problems=None,
         ):
         super().__init__()
 
@@ -274,6 +279,7 @@ class VIBO_1PL(nn.Module):
         self.response_dist         = response_dist
         self.replace_missing_with_prior = replace_missing_with_prior
         self.n_norm_flows          = n_norm_flows
+        self.embedding_model       = embedding_model
 
         self._set_item_feat_dim()
         self._set_irt_num()
@@ -296,7 +302,13 @@ class VIBO_1PL(nn.Module):
                 replace_missing_with_prior = self.replace_missing_with_prior,
             )
 
-        self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim) 
+        if embedding_model:
+            if embed_conpole:
+                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim)
+            else:
+                self.item_encoder = BertEncoder(embedding_model, problems, self.item_feat_dim)
+        else:
+            self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
@@ -722,6 +734,42 @@ class ItemInferenceNetwork(nn.Module):
         item_index = item_index.squeeze(1)
         mu = self.mu_lookup(item_index.long())
         logvar = self.logvar_lookup(item_index.long())
+
+        return mu, logvar
+
+
+class ConpoleEncoder(nn.Module):
+    def __init__(self, q_fn, problems, item_feat_dim, embedding_dim=512):
+        super().__init__()
+
+        self.q_fn = q_fn
+        self.problems = problems
+        self.mu = nn.Linear(embedding_dim, item_feat_dim)
+        self.logvar = nn.Linear(embedding_dim, item_feat_dim)
+
+    def forward(self, item_index):
+        item_embedding = self.q_fn.embed_states(
+            [environment.State([self.problems[i]], [], 0) for i in item_index.flatten()]).detach()
+
+        mu = self.mu(item_embedding)
+        logvar = self.logvar(item_embedding)
+
+        return mu, logvar
+
+class BertEncoder(nn.Module):
+    def __init__(self, bert, problems, item_feat_dim, embedding_dim=512):
+        super().__init__()
+
+        self.bert = bert
+        self.problems = problems
+        self.mu = nn.Linear(embedding_dim, item_feat_dim)
+        self.logvar = nn.Linear(embedding_dim, item_feat_dim)
+
+    def forward(self, item_index):
+        item_embedding = self.bert.embed_batch([self.problems[i] for i in item_index.flatten()]).detach()
+
+        mu = self.mu(item_embedding)
+        logvar = self.logvar(item_embedding)
 
         return mu, logvar
 

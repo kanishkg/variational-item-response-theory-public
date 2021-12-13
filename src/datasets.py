@@ -2,6 +2,9 @@ import os
 import ast
 import copy
 import torch
+import collections
+import json
+import csv
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -31,6 +34,10 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return IRTSimulation(train=train, irt_model='2pl', nonlinear=True, **kwargs)
     elif dataset_name == '3pl_nonlinear':
         return IRTSimulation(train=train, irt_model='3pl', nonlinear=True, **kwargs)
+    elif dataset_name == 'json':
+        return JSONDataset(train=train, **kwargs)
+    elif dataset_name == 'roar':
+        return ROARDataset(train=train, **kwargs)
     elif dataset_name == 'critlangacq':
         return Children_LanguageAcquisition(train=train, **kwargs)
     elif dataset_name == 'duolingo':
@@ -43,7 +50,7 @@ def load_dataset(dataset_name, train=True, **kwargs):
         raise Exception(f'Dataset {dataset_name} is not supported.')
 
 
-def artificially_mask_dataset(old_dataset, perc):
+def artificially_mask_dataset(old_dataset, perc, mask_items=False):
     dataset = copy.deepcopy(old_dataset)
     assert perc >= 0 and perc <= 1
     response = dataset.response
@@ -55,19 +62,40 @@ def artificially_mask_dataset(old_dataset, perc):
         row, col = np.where(mask[:, :, 0] != 0)
     pool = np.array(list(zip(row, col)))
     num_all = pool.shape[0]
-    num = int(perc * num_all)
-    
     rs = np.random.RandomState(42)
-    indices = np.sort(
-        rs.choice(np.arange(num_all), size=num, replace=False),
-    )
-    label_indices = pool[indices]
     labels = []
-    for idx in label_indices:
-        label = copy.deepcopy(response[idx[0], idx[1]])
-        labels.append(label)
-        mask[idx[0], idx[1]] = 0
-        response[idx[0], idx[1]] = -1
+
+    if not mask_items:
+        # As before, just choose a random subset of the labels.
+        num = int(perc * num_all)
+        indices = np.sort(
+            rs.choice(np.arange(num_all), size=num, replace=False),
+           )
+        label_indices = pool[indices]
+
+        for idx in label_indices:
+            label = copy.deepcopy(response[idx[0], idx[1]])
+            labels.append(label)
+            mask[idx[0], idx[1]] = 0
+            response[idx[0], idx[1]] = -1
+    else:
+        # First choose a random subset of the items, then mask all of their labels.
+        num = int(perc * len(dataset.problems))
+        items = np.sort(
+            rs.choice(np.arange(len(dataset.problems)), size=num, replace=False),
+           )
+
+        for item in items:
+            mask[dataset.problem_id == item] = 0
+
+        (rows, cols, _) = np.nonzero(1 - mask)
+        label_indices = np.stack([rows, cols], axis=1)
+
+        for r, c in zip(rows, cols):
+            label = copy.deepcopy(response[r, c])
+            labels.append(label)
+            response[r, c] = -1
+
     labels = np.array(labels)
 
     dataset.response = response
@@ -938,6 +966,125 @@ class IRTSimulation(torch.utils.data.Dataset):
         mask = torch.from_numpy(mask).bool()
 
         return index, response, item_id, mask
+
+class JSONDataset(torch.utils.data.Dataset):
+    def __init__(self, is_train=True, **kwargs):
+        super().__init__()
+
+        with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
+            observations = json.load(f)
+
+        all_problems = list(set([row['problem'] for row in observations]))
+        problem_id = dict(zip(all_problems, range(len(all_problems))))
+
+        if 'timestamp' in observations[0]:
+            observations.sort(key=lambda row: row['timestamp'])
+
+        data_by_student = collections.defaultdict(list)
+        data_by_problem = collections.defaultdict(list)
+
+        for row in observations:
+            data_by_student[row['student']].append((problem_id[row['problem']],
+                                                    int(row['correct'])))
+            data_by_problem[row['problem']].append((row['student'],
+                                                    int(row['correct'])))
+
+        self.observations = observations
+        self.obs_by_student = data_by_student
+        self.obs_by_problem = data_by_problem
+        self.student_ids = list(data_by_student.keys())
+        self.max_observations = max(len(s_obs) for s_obs in data_by_student.values())
+        self.n_students = len(data_by_student)
+        self.n_problems = len(all_problems)
+
+        self.problems = all_problems
+        self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
+        self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+
+        for i, s_obs in enumerate(data_by_student.values()):
+            for j, (problem, correct) in enumerate(s_obs):
+                self.response[i][j] = float(correct)
+                self.problem_id[i][j] = problem
+                self.response_mask[i][j] = 1
+
+        num_train = int(0.8 * len(self.response))
+        split = slice(0, num_train) if is_train else slice(num_train, -1)
+
+        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.problem_id = self.problem_id[split]
+        self.num_person = len(self.response)
+        self.num_item = self.response.shape[1]
+        self.problems = all_problems
+
+    def __len__(self):
+        return self.response.shape[0]
+
+    def __getitem__(self, index):
+        return index, self.response[index], self.problem_id[index], self.mask[index]
+
+class ROARDataset(torch.utils.data.Dataset):
+    def __init__(self, is_train=True, **kwargs):
+        super().__init__()
+
+        answers = {}
+
+        with open(os.path.join(DATA_DIR, 'lookup_real_pseudo.csv')) as f:
+            for d in csv.DictReader(f):
+                # The typo in "pseudo" is from their CSV.
+                answers[d['word']] = d['realpesudo'] == 'real'
+
+        student_responses = {}
+        all_problems = []
+
+        with open(os.path.join(DATA_DIR, 'roar_resp_patterns.csv')) as f:
+            for d in csv.DictReader(f):
+                words = list(d.keys())[1:]
+                assert 'id' not in words, 'Broken assumption that dict key order is mantained from CSV.'
+                problem_id = dict(zip(all_problems, range(len(all_problems))))
+
+                responses = list(d.values())[1:]
+
+                student_id = d['id']
+                all_problems = words
+                # This is if the data is the student's answer
+                # student_responses[student_id] = [(i, int(int(r) == answers[words[i]])) for i, r in enumerate(responses)]
+                # This is if the data is already correct/incorrect
+                student_responses[student_id] = [(i, int(r)) for i, r in enumerate(responses)]
+
+        self.obs_by_student = student_responses
+        self.student_ids = list(student_responses.keys())
+        self.max_observations = len(all_problems)
+        self.n_students = len(student_responses)
+        self.n_problems = len(all_problems)
+
+        self.problems = all_problems
+        self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
+        self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+
+        for i, s_obs in enumerate(student_responses.values()):
+            for j, (problem, correct) in enumerate(s_obs):
+                self.response[i][j] = float(correct)
+                self.problem_id[i][j] = problem
+                self.response_mask[i][j] = 1
+
+        num_train = int(0.8 * len(self.response))
+        split = slice(0, num_train) if is_train else slice(num_train, -1)
+
+        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.problem_id = self.problem_id[split]
+        self.num_person = len(self.response)
+        self.num_item = self.response.shape[1]
+        self.problems = all_problems
+
+    def __len__(self):
+        return self.response.shape[0]
+
+    def __getitem__(self, index):
+        return index, self.response[index], self.problem_id[index], self.mask[index]
 
 
 class OrderedCounter(Counter, OrderedDict):

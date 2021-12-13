@@ -3,6 +3,7 @@ import time
 import math
 import numpy as np
 from tqdm import tqdm
+import sys
 
 import torch
 from torch import optim
@@ -17,6 +18,8 @@ from src.torch_core.models import (
 from src.datasets import load_dataset, artificially_mask_dataset
 from src.utils import AverageMeter, save_checkpoint
 from src.config import OUT_DIR, IS_REAL_WORLD
+from roar.pretraining import CharBERT, CharBERTClassifier
+import environment
 
 
 if __name__ == "__main__":
@@ -34,6 +37,8 @@ if __name__ == "__main__":
                             'duolingo',
                             'wordbank',
                             'pisa2015_science',
+                            'json',
+                            'roar',
                         ],
                         help='which dataset to run on (default: 1pl_simulation)')
     parser.add_argument('--ability-dim', type=int, default=1,
@@ -52,6 +57,8 @@ if __name__ == "__main__":
     parser.add_argument('--drop-missing', action='store_true', default=False)
     parser.add_argument('--artificial-missing-perc', type=float, default=0.,
                         help='how much to blank out so we can measure acc (default: 0)')
+    parser.add_argument('--mask-items', action='store_true', default=False,
+                        help='mask items in the train/test split (default: masks students)')
     parser.add_argument('--n-norm-flows', type=int, default=0,
                         help='Number of normalizing flows (default: 0)')
 
@@ -90,11 +97,17 @@ if __name__ == "__main__":
                         help='anneal KL divergence (default: False)')
     parser.add_argument('--beta-kl', type=float, default=1.0,
                         help='constant multiplier on KL (default: 1.0)')
+    parser.add_argument('--predict', type=str,
+                        help='File with words/nonwords to predict parameters.')
 
     parser.add_argument('--seed', type=int, default=42, metavar='S',
                         help='random seed (default: 42)')
     parser.add_argument('--gpu-device', type=int, default=0, 
                         help='which CUDA device to use (default: 0)')
+    parser.add_argument('--embed-conpole', type=str, default=False,
+                        help='Use the given pre-trained ConPoLe model to embed problems.')
+    parser.add_argument('--embed-bert', type=str, default=False,
+                        help='Use the given pre-trained BERT model to embed problems.')
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='enables CUDA training (default: False)')
     args = parser.parse_args()
@@ -124,7 +137,7 @@ if __name__ == "__main__":
         args.max_num_person = None
         args.max_num_item = None
 
-    out_file = 'VIBO_{}_{}_{}_{}_{}person_{}item_{}maxperson_{}maxitem_{}maskperc_{}ability_{}_{}_seed{}'.format(
+    out_file = 'VIBO_{}_{}_{}_{}_{}person_{}item_{}maxperson_{}maxitem_{}maskperc_{}ability_{}_{}_{}seed{}'.format(
         args.irt_model, 
         args.dataset,
         args.response_dist,
@@ -136,6 +149,11 @@ if __name__ == "__main__":
         args.artificial_missing_perc,
         args.ability_dim, 
         args.ability_merge,
+        ('conpole_'
+         if args.embed_conpole
+         else ('bert'
+               if args.embed_bert
+               else '')),
         'conditional_q' if args.conditional_posterior else 'unconditional_q',
         args.seed,
     )
@@ -175,6 +193,7 @@ if __name__ == "__main__":
         train_dataset = artificially_mask_dataset(
             train_dataset,
             args.artificial_missing_perc,
+            args.mask_items,
         )
 
     num_person = train_dataset.num_person
@@ -206,6 +225,15 @@ if __name__ == "__main__":
     else:
         raise Exception(f'model {args.irt_model} not recognized')
 
+    if args.embed_conpole:
+        embedding_model = torch.load(args.embed_conpole, map_location=device)
+        embedding_model.to(device)
+    elif args.embed_bert:
+        embedding_model = torch.load(args.embed_bert, map_location=device)
+        embedding_model.to(device)
+    else:
+        embedding_model = None
+
     model = model_class(
         args.ability_dim,
         num_item,
@@ -216,6 +244,10 @@ if __name__ == "__main__":
         response_dist = args.response_dist,
         replace_missing_with_prior = not args.drop_missing,
         n_norm_flows = args.n_norm_flows,
+        embedding_model = embedding_model,
+        embed_conpole=args.embed_conpole,
+        embed_bert=args.embed_bert,
+        problems=train_dataset.problems,
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -234,7 +266,7 @@ if __name__ == "__main__":
         train_loss = AverageMeter()
         pbar = tqdm(total=len(train_loader))
 
-        for batch_idx, (_, response, _, mask) in enumerate(train_loader):
+        for batch_idx, (index, response, problem_ids, mask) in enumerate(train_loader):
             mb = response.size(0)
             response = response.to(device)
             mask = mask.long().to(device)
@@ -523,6 +555,9 @@ if __name__ == "__main__":
                     count += 1
                 missing_imputation_accuracy = correct / float(count)
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
+                model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}", "missing_perc": {args.artificial_missing_perc}, "accuracy": {missing_imputation_accuracy} }},')
+                sys.exit(0)
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
             posterior_mean_samples = sample_posterior_mean(train_loader)

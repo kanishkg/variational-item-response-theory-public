@@ -35,6 +35,7 @@ if __name__ == "__main__":
                             'duolingo',
                             'wordbank',
                             'pisa2015_science',
+                            'json'
                         ],
                         help='which dataset to run on (default: 1pl_simulation)')
     parser.add_argument('--ability-dim', type=int, default=1,
@@ -191,6 +192,7 @@ if __name__ == "__main__":
         
             optimizer.zero_grad()
             response_mu = model(index, response, mask)
+
             loss = F.binary_cross_entropy(response_mu, response.float(), reduction='none')
             loss = loss * mask
             loss = loss.mean()
@@ -330,6 +332,7 @@ if __name__ == "__main__":
                     count += 1
 
                 missing_imputation_accuracy = correct / float(count)
+                print(checkpoint_name, 'imputation accuracy:', missing_imputation_accuracy)
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
 
         torch.save(checkpoint, os.path.join(args.out_dir, checkpoint_name))
