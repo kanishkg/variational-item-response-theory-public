@@ -1251,5 +1251,5 @@ if __name__ == "__main__":
     dataset_name = 'duolingo'
     # dataset_name = 'wordbank'
     # dataset_name = 'pisa2015_science'
-    dset = load_dataset(dataset_name, train=True)
+    dset = load_dataset(dataset_name, is_train=True)
     print(dset.num_person, dset.num_item)

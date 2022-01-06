@@ -18,7 +18,7 @@ from src.torch_core.models import (
     VIBO_STEP_2PL,
     VIBO_STEP_3PL,
 )
-from src.datasets import load_dataset, artificially_mask_dataset
+from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step
 from src.utils import AverageMeter, save_checkpoint
 from src.config import OUT_DIR, IS_REAL_WORLD
 # from roar.pretraining import CharBERT, CharBERTClassifier
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     train_dataset = load_dataset(
         dataset_name, 
-        train = True, 
+        is_train = True,
         num_person = args.num_person, 
         num_item = args.num_item,  
         ability_dim = args.ability_dim,
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     )
     test_dataset  = load_dataset(
         dataset_name, 
-        train = False, 
+        is_train = False,
         num_person = args.num_person, 
         num_item = args.num_item, 
         ability_dim = args.ability_dim,
@@ -205,17 +205,21 @@ if __name__ == "__main__":
     num_person = train_dataset.num_person
     num_item   = train_dataset.num_item
 
+    collate_fn = None if args.dataset != 'jsonstep' else collate_function_step
+
     train_loader = torch.utils.data.DataLoader(
         train_dataset, 
         batch_size = args.batch_size, 
         shuffle = True,
         num_workers = args.num_workers,
+        collate_fn = collate_fn
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset, 
         batch_size = args.batch_size, 
         shuffle = False,
         num_workers = args.num_workers,
+        collate_fn = collate_fn
     )
     N_mini_batches = len(train_loader)
     if args.max_iters != -1:
