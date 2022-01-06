@@ -1101,8 +1101,6 @@ class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
     def forward(self, response, mask, item_feat, step_feat, step_mask):
         num_person, num_item, response_dim = response.size()
         item_feat_dim = item_feat.size(1)
-        print("problem feat", item_feat.size())
-        print("response", response.size())
         response_flat = response.view(num_person * num_item, response_dim)
         item_feat_flat = item_feat.unsqueeze(0).repeat(num_person, 1, 1)
         item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
@@ -1148,7 +1146,6 @@ class ConpoleStepEncoder(nn.Module):
     def forward(self, steps, step_mask):
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
-        print([[steps[i][j]] for i, j, _ in steps_idx][0])
         step_embedding_masked = self.q_fn.embed_states(
             [environment.State([steps[i][j][-1]], [], 0) for i, j, _ in steps_idx]).detach()
         for s, (i, j, _) in enumerate(steps_idx):
