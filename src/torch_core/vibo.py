@@ -18,8 +18,10 @@ from src.torch_core.models import (
 from src.datasets import load_dataset, artificially_mask_dataset
 from src.utils import AverageMeter, save_checkpoint
 from src.config import OUT_DIR, IS_REAL_WORLD
-from roar.pretraining import CharBERT, CharBERTClassifier
+# from roar.pretraining import CharBERT, CharBERTClassifier
 import environment
+
+sys.path.append('../../socratic-tutor/')
 
 
 if __name__ == "__main__":
