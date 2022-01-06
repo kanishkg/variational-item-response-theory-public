@@ -1035,6 +1035,10 @@ class JSONStepDataset(torch.utils.data.Dataset):
             observations = json.load(f)
 
         all_problems = list(set([row['problem'] for row in observations]))
+        for row in observations:
+            if len(row['steps']) == 0:
+                print(f"unavailable steps for row {row['id']} steps: {row['steps']}")
+                row['steps'].append(row['problem'])
         all_final_steps = list(set([row['steps'][-1] for row in observations]))
         problem_id = dict(zip(all_problems, range(len(all_problems))))
         step_id = dict(zip(all_final_steps, range(len(all_final_steps))))
