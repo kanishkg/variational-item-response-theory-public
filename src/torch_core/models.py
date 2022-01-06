@@ -698,11 +698,13 @@ class VIBO_STEP_1PL(nn.Module):
         item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
         item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
-
+        print("item feat", item_feat.size())
         step_domain = torch.arange(self.num_step).unsqueeze(1).to(device)
         step_feat_mu, step_feat_logvar = self.step_encoder(step_domain)
         step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
-        problem_feat = torch.cat([item_feat, step_feat])
+        print("step feat", step_feat.size())
+        problem_feat = torch.cat([item_feat, step_feat], dim=-1)
+        print("problem_feat", problem_feat.size())
         ability_mu, ability_logvar = self.ability_encoder(response, mask, problem_feat)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
@@ -1047,8 +1049,8 @@ class ConditionalAbilityInferenceNetwork(AbilityInferenceNetwork):
     def forward(self, response, mask, item_feat):
         num_person, num_item, response_dim = response.size()
         item_feat_dim = item_feat.size(1)
-        print(item_feat.size())
-        print(response.size())
+        print("problem feat", item_feat.size())
+        print("response", response.size())
         response_flat = response.view(num_person * num_item, response_dim)
         item_feat_flat = item_feat.unsqueeze(0).repeat(num_person, 1, 1)
         item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
