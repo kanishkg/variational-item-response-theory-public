@@ -340,6 +340,7 @@ if __name__ == "__main__":
                     _, response, problem_ids, mask = batch
                 mb = response.size(0)
                 response = response.to(device)
+                step_mask = step_mask.long().to(device)
                 mask = mask.long().to(device)
 
                 if args.n_norm_flows > 0:
