@@ -1052,10 +1052,10 @@ class JSONStepDataset(torch.utils.data.Dataset):
         for row in observations:
             data_by_student[row['student']].append((problem_id[row['problem']],
                                                     int(row['correct']),
-                                                    step_id[row['steps']]))
+                                                    step_id[row['steps'][-1]]))
             data_by_problem[row['problem']].append((row['student'],
                                                     int(row['correct']),
-                                                    step_id[row['steps']]))
+                                                    step_id[row['steps'][-1]]))
 
         self.observations = observations
         self.obs_by_student = data_by_student
