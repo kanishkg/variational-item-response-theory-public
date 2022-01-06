@@ -261,7 +261,6 @@ class VIBO_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
-            final_steps=None
         ):
         super().__init__()
 
@@ -577,7 +576,6 @@ class VIBO_STEP_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
-            final_steps=None
     ):
         super().__init__()
 
@@ -590,7 +588,6 @@ class VIBO_STEP_1PL(nn.Module):
         self.response_dim          = 1
         self.hidden_dim            = hidden_dim
         self.num_item              = num_item
-        self.num_step             = len(final_steps)
         self.ability_merge         = ability_merge
         self.conditional_posterior = conditional_posterior
         self.generative_model      = generative_model
@@ -599,14 +596,16 @@ class VIBO_STEP_1PL(nn.Module):
         self.n_norm_flows          = n_norm_flows
         self.embedding_model       = embedding_model
 
+        self._set_step_feat_dim()
         self._set_item_feat_dim()
         self._set_irt_num()
 
         if self.conditional_posterior:
-            self.ability_encoder = ConditionalAbilityInferenceNetwork(
+            self.ability_encoder = ConditionalAbilityStepInferenceNetwork(
                 self.ability_dim,
                 self.response_dim,
-                self.item_feat_dim*2,
+                self.item_feat_dim,
+                self.step_feat_dim,
                 self.hidden_dim,
                 ability_merge = self.ability_merge,
                 replace_missing_with_prior = self.replace_missing_with_prior,
@@ -628,11 +627,11 @@ class VIBO_STEP_1PL(nn.Module):
         else:
             self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
-        if final_steps:
-            if embed_conpole:
-                self.step_encoder = ConpoleEncoder(embedding_model, final_steps, self.item_feat_dim)
-            else:
-                self.step_encoder = BertEncoder(embedding_model, final_steps, self.item_feat_dim)
+        # TODO Change to generic side info encoder; not same as item
+        if embed_conpole:
+            self.step_encoder = ConpoleStepEncoder(embedding_model, self.step_feat_dim)
+        else:
+            raise NotImplementedError
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
@@ -667,14 +666,17 @@ class VIBO_STEP_1PL(nn.Module):
     def _set_item_feat_dim(self):
         self.item_feat_dim = 1
 
+    def _set_step_feat_dim(self):
+        self.step_feat_dim = 1
+
     def _set_irt_num(self):
         self.irt_num = 1
 
-    def forward(self, response, mask):
+    def forward(self, response, mask, steps, step_mask):
         ability, ability_mu, ability_logvar, \
         item_feat, item_feat_mu, item_feat_logvar, \
         step_feat, step_feat_mu, step_feat_logvar \
-            = self.encode(response, mask)
+            = self.encode(response, mask, steps, step_mask)
 
         if self.n_norm_flows > 0:
             ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
@@ -692,7 +694,7 @@ class VIBO_STEP_1PL(nn.Module):
                    step_feat, step_feat_mu, step_feat_logvar
 
 
-    def encode(self, response, mask):
+    def encode(self, response, mask, steps, step_mask):
         device = response.device
 
         item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
