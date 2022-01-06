@@ -36,6 +36,8 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return IRTSimulation(train=train, irt_model='3pl', nonlinear=True, **kwargs)
     elif dataset_name == 'json':
         return JSONDataset(train=train, **kwargs)
+    elif dataset_name == 'jsonsteps':
+        return JSONStepDataset(train=train, **kwargs)
     elif dataset_name == 'roar':
         return ROARDataset(train=train, **kwargs)
     elif dataset_name == 'critlangacq':
@@ -1023,6 +1025,76 @@ class JSONDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], self.mask[index]
+
+
+class JSONStepDataset(torch.utils.data.Dataset):
+    def __init__(self, is_train=True, **kwargs):
+        super().__init__()
+
+        with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
+            observations = json.load(f)
+
+        all_problems = list(set([row['problem'] for row in observations]))
+        all_final_steps = list(set([row['steps'][-1] for row in observations]))
+        problem_id = dict(zip(all_problems, range(len(all_problems))))
+        step_id = dict(zip(all_final_steps, range(len(all_final_steps))))
+
+        if 'timestamp' in observations[0]:
+            observations.sort(key=lambda row: row['timestamp'])
+
+        data_by_student = collections.defaultdict(list)
+        data_by_problem = collections.defaultdict(list)
+
+        for row in observations:
+            data_by_student[row['student']].append((problem_id[row['problem']],
+                                                    int(row['correct']),
+                                                    step_id[row['steps']]))
+            data_by_problem[row['problem']].append((row['student'],
+                                                    int(row['correct']),
+                                                    step_id[row['steps']]))
+
+        self.observations = observations
+        self.obs_by_student = data_by_student
+        self.obs_by_problem = data_by_problem
+        self.student_ids = list(data_by_student.keys())
+        self.max_observations = max(len(s_obs) for s_obs in data_by_student.values())
+        self.n_students = len(data_by_student)
+        self.n_problems = len(all_problems)
+        self.n_steps = len(all_final_steps)
+
+        self.problems = all_problems
+        self.final_steps = all_final_steps
+        self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
+        self.step_id = np.zeros((self.n_steps, self.max_observations), dtype=int) - 1
+
+        self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+
+        for i, s_obs in enumerate(data_by_student.values()):
+            for j, (problem, correct, step) in enumerate(s_obs):
+                self.response[i][j] = float(correct)
+                self.problem_id[i][j] = problem
+                self.step_id[i][j] = step
+                self.response_mask[i][j] = 1
+
+        num_train = int(0.8 * len(self.response))
+        split = slice(0, num_train) if is_train else slice(num_train, -1)
+
+        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.problem_id = self.problem_id[split]
+        self.step_id = self.step_id[split]
+
+        self.num_person = len(self.response)
+        self.num_item = self.response.shape[1]
+        self.problems = all_problems
+        self.final_steps = all_final_steps
+
+    def __len__(self):
+        return self.response.shape[0]
+
+    def __getitem__(self, index):
+        return index, self.response[index], self.problem_id[index], self.mask[index], self.step_id[index]
 
 class ROARDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):

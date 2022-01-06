@@ -40,6 +40,7 @@ if __name__ == "__main__":
                             'wordbank',
                             'pisa2015_science',
                             'json',
+                            'jsonstep',
                             'roar',
                         ],
                         help='which dataset to run on (default: 1pl_simulation)')

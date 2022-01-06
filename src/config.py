@@ -23,5 +23,6 @@ IS_REAL_WORLD = {
     'wordbank': True,
     'pisa2015_science': True,
     'json': True,
+    'jsonstep': True,
     'roar': True,
 }

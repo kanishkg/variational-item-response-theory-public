@@ -261,6 +261,7 @@ class VIBO_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
+            steps=None
         ):
         super().__init__()
 
