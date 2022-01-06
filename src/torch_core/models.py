@@ -559,6 +559,7 @@ class VIBO_3PL(VIBO_2PL):
         else:
             return self.decoder(ability, item_feat)
 
+
 class VIBO_STEP_1PL(nn.Module):
 
     def __init__(
@@ -701,14 +702,10 @@ class VIBO_STEP_1PL(nn.Module):
         item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
         print("item feat", item_feat.size())
-        step_domain = torch.arange(self.num_step).unsqueeze(1).to(device)
-        step_feat_mu, step_feat_logvar = self.step_encoder(step_domain)
+        step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
         step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
-        # TODO: Add step ids and change everything
         print("step feat", step_feat.size())
-        problem_feat = torch.cat([item_feat, step_feat], dim=-1)
-        print("problem_feat", problem_feat.size())
-        ability_mu, ability_logvar = self.ability_encoder(response, mask, problem_feat)
+        ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
 
@@ -1068,6 +1065,59 @@ class ConditionalAbilityInferenceNetwork(AbilityInferenceNetwork):
             )
 
 
+class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
+
+    def __init__(
+            self,
+            ability_dim,
+            response_dim,
+            item_feat_dim,
+            step_feat_dim,
+            hidden_dim = 64,
+            ability_merge = 'mean',
+            replace_missing_with_prior = True,
+    ):
+        super().__init__(
+            ability_dim,
+            response_dim,
+            hidden_dim = hidden_dim,
+            ability_merge = ability_merge,
+            replace_missing_with_prior = replace_missing_with_prior,
+        )
+        self.ability_dim = ability_dim
+        self.response_dim = response_dim
+        self.item_feat_dim = item_feat_dim
+        self.step_feat_dim = step_feat_dim
+        self.hidden_dim = hidden_dim
+        self.ability_merge = ability_merge
+        self.replace_missing_with_prior = replace_missing_with_prior
+
+        getattr(self, f'_create_models_{self.ability_merge}')(
+            self.response_dim + self.item_feat_dim + self.step_feat_dim,
+            self.hidden_dim,
+            self.ability_dim * 2,
+            )
+
+    def forward(self, response, mask, item_feat, step_feat, step_mask):
+        num_person, num_item, response_dim = response.size()
+        item_feat_dim = item_feat.size(1)
+        print("problem feat", item_feat.size())
+        print("response", response.size())
+        response_flat = response.view(num_person * num_item, response_dim)
+        item_feat_flat = item_feat.unsqueeze(0).repeat(num_person, 1, 1)
+        item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
+        step_feat_flat = step_feat.view(num_person * num_item, self.step_feat_dim)
+
+        mlp_input = torch.cat([response_flat, item_feat_flat, step_feat_flat], dim=1)
+
+        return getattr(self, f'_forward_{self.ability_merge}')(
+            mlp_input,
+            mask,
+            num_person,
+            num_item,
+        )
+
+
 class ItemInferenceNetwork(nn.Module):
 
     def __init__(self, num_item, item_feat_dim):
@@ -1082,6 +1132,34 @@ class ItemInferenceNetwork(nn.Module):
         logvar = self.logvar_lookup(item_index.long())
 
         return mu, logvar
+
+
+class ConpoleStepEncoder(nn.Module):
+    def __init__(self, q_fn, step_feat_dim, embedding_dim=512, replace_missing_with_prior=False):
+        super().__init__()
+
+        self.q_fn = q_fn
+        self.mu = nn.Linear(embedding_dim, step_feat_dim)
+        self.logvar = nn.Linear(embedding_dim, step_feat_dim)
+        self.step_feat_dim = step_feat_dim
+        self.embedding_dim = embedding_dim
+        self.replace_missing_with_prior = replace_missing_with_prior
+
+    def forward(self, steps, step_mask):
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
+        steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+        step_embedding_masked = self.q_fn.embed_states(
+            [environment.State([steps[i][j]], [], 0) for i, j in steps_idx]).detach()
+        for s, (i, j) in enumerate(steps_idx):
+            step_embedding[i, j, :] = step_embedding_masked[s, :]
+        if self.replace_missing_with_prior:
+            raise NotImplementedError
+
+        mu = self.mu(step_embedding)
+        logvar = self.logvar(step_embedding)
+
+        return mu, logvar
+
 
 
 class ConpoleEncoder(nn.Module):
