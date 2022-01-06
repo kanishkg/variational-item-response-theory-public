@@ -1047,7 +1047,8 @@ class ConditionalAbilityInferenceNetwork(AbilityInferenceNetwork):
     def forward(self, response, mask, item_feat):
         num_person, num_item, response_dim = response.size()
         item_feat_dim = item_feat.size(1)
-
+        print(item_feat.size())
+        print(response.size())
         response_flat = response.view(num_person * num_item, response_dim)
         item_feat_flat = item_feat.unsqueeze(0).repeat(num_person, 1, 1)
         item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
