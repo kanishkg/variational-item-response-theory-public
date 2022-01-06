@@ -5,12 +5,11 @@ from tqdm import tqdm
 
 import torch
 from src.torch_core.models import (
-    VIBO_1PL, 
-    VIBO_2PL, 
-    VIBO_3PL,
+    VIBO_1PL,
+    VIBO_2PL,
+    VIBO_3PL, VIBO_STEP_1PL, VIBO_STEP_3PL, VIBO_STEP_2PL,
 )
-from src.datasets import load_dataset
-
+from src.datasets import load_dataset, collate_function_step
 
 if __name__ == "__main__":
     import argparse
@@ -27,14 +26,16 @@ if __name__ == "__main__":
     if args.cuda: torch.cuda.set_device(args.gpu_device)
 
     if args.irt_model == '1pl':
-        model_class = VIBO_1PL
+        model_class = VIBO_1PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
     elif args.irt_model == '2pl':
-        model_class = VIBO_2PL
+        model_class = VIBO_2PL if args.dataset != 'jsonstep' else VIBO_STEP_2PL
     elif args.irt_model == '3pl':
-        model_class = VIBO_3PL
+        model_class = VIBO_3PL if args.dataset != 'jsonstep' else VIBO_STEP_3PL
     else:
         raise Exception(f'model {args.irt_model} not recognized')
 
+
+    collate_fn = None if args.dataset != 'jsonstep' else collate_function_step
     train_dataset = load_dataset(
         args.dataset,
         train = True,
@@ -43,6 +44,7 @@ if __name__ == "__main__":
         ability_dim = args.ability_dim,
         max_num_person = args.max_num_person,
         max_num_item = args.max_num_item,
+        collate_fn = collate_fn
     )
 
     num_person = train_dataset.num_person

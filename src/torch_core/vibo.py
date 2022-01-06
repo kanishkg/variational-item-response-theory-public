@@ -229,9 +229,9 @@ if __name__ == "__main__":
     if args.irt_model == '1pl':
         model_class = VIBO_1PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
     elif args.irt_model == '2pl':
-        model_class = VIBO_2PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
+        model_class = VIBO_2PL if args.dataset != 'jsonstep' else VIBO_STEP_2PL
     elif args.irt_model == '3pl':
-        model_class = VIBO_3PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
+        model_class = VIBO_3PL if args.dataset != 'jsonstep' else VIBO_STEP_3PL
     else:
         raise Exception(f'model {args.irt_model} not recognized')
 
