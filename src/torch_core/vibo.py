@@ -251,6 +251,7 @@ if __name__ == "__main__":
         embed_conpole=args.embed_conpole,
         embed_bert=args.embed_bert,
         problems=train_dataset.problems,
+        final_steps=train_dataset.final_steps
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -269,7 +270,11 @@ if __name__ == "__main__":
         train_loss = AverageMeter()
         pbar = tqdm(total=len(train_loader))
 
-        for batch_idx, (index, response, problem_ids, mask) in enumerate(train_loader):
+        for batch_idx, batch in enumerate(train_loader):
+            if args.dataset == 'jsonstep':
+                index, response, problem_ids, mask, step_ids = batch
+            else:
+                index, response, problem_ids, mask = batch
             mb = response.size(0)
             response = response.to(device)
             mask = mask.long().to(device)
@@ -318,7 +323,11 @@ if __name__ == "__main__":
         pbar = tqdm(total=len(test_loader))
 
         with torch.no_grad():
-            for _, response, _, mask in test_loader:
+            for batch in test_loader:
+                if args.dataset == 'jsonstep':
+                    _, response, problem_ids, mask, step_ids = batch
+                else:
+                    _, response, problem_ids, mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
