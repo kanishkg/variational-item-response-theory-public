@@ -14,6 +14,9 @@ from src.torch_core.models import (
     VIBO_1PL, 
     VIBO_2PL, 
     VIBO_3PL,
+    VIBO_STEP_1PL,
+    VIBO_STEP_2PL,
+    VIBO_STEP_3PL,
 )
 from src.datasets import load_dataset, artificially_mask_dataset
 from src.utils import AverageMeter, save_checkpoint
@@ -220,11 +223,11 @@ if __name__ == "__main__":
         print(f'Found MAX_ITERS={args.max_iters}, setting EPOCHS={args.epochs}')
 
     if args.irt_model == '1pl':
-        model_class = VIBO_1PL
+        model_class = VIBO_1PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
     elif args.irt_model == '2pl':
-        model_class = VIBO_2PL
+        model_class = VIBO_2PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
     elif args.irt_model == '3pl':
-        model_class = VIBO_3PL
+        model_class = VIBO_3PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
     else:
         raise Exception(f'model {args.irt_model} not recognized')
 

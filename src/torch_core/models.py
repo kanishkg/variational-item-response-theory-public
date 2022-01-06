@@ -261,6 +261,7 @@ class VIBO_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
+            final_steps=None
         ):
         super().__init__()
 
@@ -559,7 +560,7 @@ class VIBO_3PL(VIBO_2PL):
         else:
             return self.decoder(ability, item_feat)
 
-class VIBO_1PL_STEP(nn.Module):
+class VIBO_STEP_1PL(nn.Module):
 
     def __init__(
             self,
@@ -589,7 +590,7 @@ class VIBO_1PL_STEP(nn.Module):
         self.response_dim          = 1
         self.hidden_dim            = hidden_dim
         self.num_item              = num_item
-        self.num_steps             = num_item
+        self.num_step             = len(final_steps)
         self.ability_merge         = ability_merge
         self.conditional_posterior = conditional_posterior
         self.generative_model      = generative_model
@@ -605,7 +606,7 @@ class VIBO_1PL_STEP(nn.Module):
             self.ability_encoder = ConditionalAbilityInferenceNetwork(
                 self.ability_dim,
                 self.response_dim,
-                self.item_feat_dim,
+                self.item_feat_dim*2,
                 self.hidden_dim,
                 ability_merge = self.ability_merge,
                 replace_missing_with_prior = self.replace_missing_with_prior,
@@ -698,7 +699,7 @@ class VIBO_1PL_STEP(nn.Module):
         item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
 
-        step_domain = torch.arange(self.step_item).unsqueeze(1).to(device)
+        step_domain = torch.arange(self.num_step).unsqueeze(1).to(device)
         step_feat_mu, step_feat_logvar = self.step_encoder(step_domain)
         step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
         problem_feat = torch.cat([item_feat, step_feat])
@@ -858,6 +859,36 @@ class VIBO_1PL_STEP(nn.Module):
         elif isinstance(m, nn.BatchNorm1d):
             pass
 
+
+
+class VIBO_STEP_2PL(VIBO_STEP_1PL):
+
+    def _set_item_feat_dim(self):
+        self.item_feat_dim = self.latent_dim + 1
+
+    def _set_irt_num(self):
+        self.irt_num = 2
+
+    def decode(self, ability, item_feat):
+        if self.generative_model == 'irt':
+            return irt_model_2pl(ability, item_feat)
+        else:
+            return self.decoder(ability, item_feat)
+
+
+class VIBO_STEP_3PL(VIBO_STEP_2PL):
+
+    def _set_item_feat_dim(self):
+        self.item_feat_dim = self.latent_dim + 2
+
+    def _set_irt_num(self):
+        self.irt_num = 3
+
+    def decode(self, ability, item_feat):
+        if self.generative_model == 'irt':
+            return irt_model_3pl(ability, item_feat)
+        else:
+            return self.decoder(ability, item_feat)
 
 class AbilityInferenceNetwork(nn.Module):
 
