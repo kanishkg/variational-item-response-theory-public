@@ -254,7 +254,6 @@ if __name__ == "__main__":
         embed_conpole=args.embed_conpole,
         embed_bert=args.embed_bert,
         problems=train_dataset.problems,
-        final_steps=train_dataset.final_steps
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -275,12 +274,13 @@ if __name__ == "__main__":
 
         for batch_idx, batch in enumerate(train_loader):
             if args.dataset == 'jsonstep':
-                index, response, problem_ids, mask, step_ids = batch
+                index, response, problem_ids, mask, steps, step_mask = batch
             else:
                 index, response, problem_ids, mask = batch
             mb = response.size(0)
             response = response.to(device)
             mask = mask.long().to(device)
+            step_mask = step_mask.long().to(device)
             annealing_factor = get_annealing_factor(epoch, batch_idx)
         
             optimizer.zero_grad()
@@ -304,7 +304,10 @@ if __name__ == "__main__":
                     item_logabsdetjac = item_feat_logabsdetjac,
                 )
             else:
-                outputs = model(response, mask)
+                if args.dataset == 'jsonstep':
+                    outputs = model(response, mask, steps, step_mask)
+                else:
+                    outputs = model(response, mask)
                 loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                 use_kl_divergence=True)
             loss.backward()
@@ -328,7 +331,7 @@ if __name__ == "__main__":
         with torch.no_grad():
             for batch in test_loader:
                 if args.dataset == 'jsonstep':
-                    _, response, problem_ids, mask, step_ids = batch
+                    index, response, problem_ids, mask, steps, step_mask = batch
                 else:
                     _, response, problem_ids, mask = batch
                 mb = response.size(0)
@@ -354,7 +357,10 @@ if __name__ == "__main__":
                         item_logabsdetjac = item_feat_logabsdetjac,
                     )
                 else:
-                    outputs = model(response, mask)
+                    if args.dataset == 'jsonstep':
+                        outputs = model(response, mask, steps, step_mask)
+                    else:
+                        outputs = model(response, mask)
                     loss = model.elbo(*outputs)
                 test_loss.update(loss.item(), mb)
 
