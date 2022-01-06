@@ -702,6 +702,7 @@ class VIBO_STEP_1PL(nn.Module):
         step_domain = torch.arange(self.num_step).unsqueeze(1).to(device)
         step_feat_mu, step_feat_logvar = self.step_encoder(step_domain)
         step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
+        # TODO: Add step ids and change everything
         print("step feat", step_feat.size())
         problem_feat = torch.cat([item_feat, step_feat], dim=-1)
         print("problem_feat", problem_feat.size())
