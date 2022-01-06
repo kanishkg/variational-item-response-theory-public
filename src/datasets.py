@@ -36,7 +36,7 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return IRTSimulation(train=train, irt_model='3pl', nonlinear=True, **kwargs)
     elif dataset_name == 'json':
         return JSONDataset(train=train, **kwargs)
-    elif dataset_name == 'jsonsteps':
+    elif dataset_name == 'jsonstep':
         return JSONStepDataset(train=train, **kwargs)
     elif dataset_name == 'roar':
         return ROARDataset(train=train, **kwargs)
