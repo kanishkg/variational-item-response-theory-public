@@ -20,7 +20,6 @@ from src.config import (
     DATA_DIR,
 )
 
-
 def load_dataset(dataset_name, train=True, **kwargs):
     if dataset_name == '1pl_simulation':
         return IRTSimulation(train=train, irt_model='1pl', **kwargs)
@@ -1027,6 +1026,16 @@ class JSONDataset(torch.utils.data.Dataset):
         return index, self.response[index], self.problem_id[index], self.mask[index]
 
 
+def collate_function_step(batch):
+    indices = torch.stack([item[0] for item in batch])
+    responses = torch.stack([item[1] for item in batch])
+    problem_ids = torch.stack([item[2] for item in batch])
+    mask = torch.stack([item[2] for item in batch])
+    steps = [item[2] for item in batch]
+    step_mask = torch.stack([item[2] for item in batch])
+    return [indices, responses, problem_ids, mask, steps, step_mask]
+
+
 class JSONStepDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
@@ -1035,13 +1044,7 @@ class JSONStepDataset(torch.utils.data.Dataset):
             observations = json.load(f)
 
         all_problems = list(set([row['problem'] for row in observations]))
-        for row in observations:
-            if len(row['steps']) == 0:
-                print(f"unavailable steps for row {row['id']} steps: {row['steps']}")
-                row['steps'].append(row['problem'])
-        all_final_steps = list(set([row['steps'][-1] for row in observations]))
         problem_id = dict(zip(all_problems, range(len(all_problems))))
-        step_id = dict(zip(all_final_steps, range(len(all_final_steps))))
 
         if 'timestamp' in observations[0]:
             observations.sort(key=lambda row: row['timestamp'])
@@ -1052,10 +1055,10 @@ class JSONStepDataset(torch.utils.data.Dataset):
         for row in observations:
             data_by_student[row['student']].append((problem_id[row['problem']],
                                                     int(row['correct']),
-                                                    step_id[row['steps'][-1]]))
+                                                    row['steps']))
             data_by_problem[row['problem']].append((row['student'],
                                                     int(row['correct']),
-                                                    step_id[row['steps'][-1]]))
+                                                    row['steps']))
 
         self.observations = observations
         self.obs_by_student = data_by_student
@@ -1064,22 +1067,24 @@ class JSONStepDataset(torch.utils.data.Dataset):
         self.max_observations = max(len(s_obs) for s_obs in data_by_student.values())
         self.n_students = len(data_by_student)
         self.n_problems = len(all_problems)
-        self.n_steps = len(all_final_steps)
 
         self.problems = all_problems
-        self.final_steps = all_final_steps
         self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
         self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
-        self.step_id = np.zeros((self.n_steps, self.max_observations), dtype=int) - 1
 
         self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
 
+        self.steps = np.empty((self.n_students, self.max_observations)).tolist()
+        self.step_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+
         for i, s_obs in enumerate(data_by_student.values()):
-            for j, (problem, correct, step) in enumerate(s_obs):
+            for j, (problem, correct, steps) in enumerate(s_obs):
                 self.response[i][j] = float(correct)
                 self.problem_id[i][j] = problem
-                self.step_id[i][j] = step
                 self.response_mask[i][j] = 1
+                self.steps[i][j] = steps
+                if len(steps) != 0:
+                    self.step_mask[i][j] = 1
 
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if is_train else slice(num_train, -1)
@@ -1087,18 +1092,19 @@ class JSONStepDataset(torch.utils.data.Dataset):
         self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
         self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
-        self.step_id = self.step_id[split]
+        self.steps = self.steps[split]
+        self.step_mask = np.expand_dims(self.step_mask[split], axis=2).astype(np.int)
 
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.problems = all_problems
-        self.final_steps = all_final_steps
 
     def __len__(self):
         return self.response.shape[0]
 
     def __getitem__(self, index):
-        return index, self.response[index], self.problem_id[index], self.mask[index], self.step_id[index]
+        return index, self.response[index], self.problem_id[index], self.mask[index],\
+               self.steps[index], self.step_mask[index]
 
 class ROARDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
