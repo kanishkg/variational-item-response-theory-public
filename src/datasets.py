@@ -1028,11 +1028,11 @@ class JSONDataset(torch.utils.data.Dataset):
 
 def collate_function_step(batch):
     indices = [item[0] for item in batch]
-    responses = torch.stack([item[1] for item in batch])
-    problem_ids = torch.stack([item[2] for item in batch])
-    mask = torch.stack([item[2] for item in batch])
-    steps = [item[2] for item in batch]
-    step_mask = torch.stack([item[2] for item in batch])
+    responses = torch.stack([torch.tensor(item[1]) for item in batch])
+    problem_ids = torch.stack([torch.tensor(item[2]) for item in batch])
+    mask = torch.stack([torch.tensor(item[3]) for item in batch])
+    steps = [item[4] for item in batch]
+    step_mask = torch.stack([torch.tensor(item[5]) for item in batch])
     return [indices, responses, problem_ids, mask, steps, step_mask]
 
 
