@@ -507,6 +507,7 @@ if __name__ == "__main__":
             for batch in loader:
                 if args.dataset == 'jsonstep':
                     _, response, _, mask, steps, step_mask = batch
+                    step_mask = step_mask.long().to(device)
                 else:
                     _, response, _, mask = batch
                 mb = response.size(0)
