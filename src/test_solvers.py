@@ -28,7 +28,7 @@ if __name__ == "__main__":
     def evaluate_solver(checkpoint, dataset):
         model = torch.load(checkpoint, map_location=device)
         model.to(device)
-        env = environment.RacketEnvironment("127.0.0.1:9898", "equations")
+        env = environment.RacketEnvironment("http://127.0.0.1:6007", "equations")
         n_problems = train_dataset.n_problems  # How many problems to use.
         max_steps = 30  # Maximum length of an episode.
         beam_size = 2  # Size of the beam in beam search.
