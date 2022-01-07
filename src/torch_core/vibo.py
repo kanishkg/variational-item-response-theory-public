@@ -627,7 +627,7 @@ if __name__ == "__main__":
                     model_name = "Side-info A-VIBO"
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}", "missing_perc": {args.artificial_missing_perc}, "accuracy": {missing_imputation_accuracy} }},')
                 with open('results_algebra.csv', 'a') as f:
-                    f.write(f'{args.seed}, {model_name}, {missing_perc}, {args.artificial_missing_perc}, {missing_imputation_accuracy}')
+                    f.write(f'{args.seed}, {model_name}, {args.artificial_missing_perc}, {missing_imputation_accuracy}')
                 sys.exit(0)
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
