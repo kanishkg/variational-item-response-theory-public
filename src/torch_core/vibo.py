@@ -413,13 +413,23 @@ if __name__ == "__main__":
             
             response_sample_set = []
 
-            for _, response, _, mask in loader:
+            for batch in loader:
+                if args.dataset == 'jsonstep':
+                    index, response, problem_ids, mask, steps, step_mask = batch
+                    step_mask = step_mask.long().to(device)
+                else:
+                    _, response, problem_ids, mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
 
-                _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
-                    model.encode(response, mask)
+                if args.dataset == 'jsonstep':
+                    _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
+                        model.encode(response, mask, steps, step_mask)
+                else:
+                    _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
+                        model.encode(response, mask)
+
                 
                 ability_scale = torch.exp(0.5 * ability_logvar)
                 item_feat_scale = torch.exp(0.5 * item_feat_logvar)
@@ -456,13 +466,23 @@ if __name__ == "__main__":
             
             response_sample_set = []
 
-            for _, response, _, mask in loader:
+            for batch in loader:
+                if args.dataset == 'jsonstep':
+                    index, response, problem_ids, mask, steps, step_mask = batch
+                    step_mask = step_mask.long().to(device)
+                else:
+                    _, response, problem_ids, mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
 
-                _, ability_mu, _, _, item_feat_mu, _ = \
-                    model.encode(response, mask)
+                if args.dataset == 'jsonstep':
+                    _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
+                        model.encode(response, mask, steps, step_mask)
+                else:
+                    _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
+                        model.encode(response, mask)
+
                 
                 response_sample = model.decode(ability_mu, item_feat_mu).cpu()
                 response_sample_set.append(response_sample.unsqueeze(0))
