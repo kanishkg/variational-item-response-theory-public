@@ -23,10 +23,12 @@ if __name__ == "__main__":
     )
     cuda = True
     device = torch.device("cuda" if cuda else "cpu")
-    max_steps = 30  # Maximum length of an episode.
+    max_steps = 50  # Maximum length of an episode.
     beam_size = 5  # Size of the beam in beam search.
     debug = False# Whether to print all steps during evaluation.
 
+    ckpt_path = '/mnt/fs3/poesia/aws-output/a1b2c/NCE+H/equations-ct/run0/checkpoints/'
+    ckpt = 100
 
     def evaluate_solver(checkpoint, dataset):
         model = torch.load(checkpoint, map_location=device)
@@ -57,8 +59,7 @@ if __name__ == "__main__":
             'successes': successes,
             'failures': failures,
         }
-    ckpt_path = '/mnt/fs3/poesia/aws-output/a1b2c/NCE+H/equations-ct/run0/checkpoints/'
-    ckpt = 100
+
     results = evaluate_solver(os.path.join(ckpt_path, f'{ckpt}.pt'), train_dataset)
     print(results)
 
