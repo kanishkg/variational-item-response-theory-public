@@ -23,6 +23,9 @@ if __name__ == "__main__":
     )
     cuda = True
     device = torch.device("cuda" if cuda else "cpu")
+    max_steps = 30  # Maximum length of an episode.
+    beam_size = 5  # Size of the beam in beam search.
+    debug = False# Whether to print all steps during evaluation.
 
 
     def evaluate_solver(checkpoint, dataset):
@@ -30,9 +33,6 @@ if __name__ == "__main__":
         model.to(device)
         env = environment.RustEnvironment("equations-ct")
         n_problems = train_dataset.n_problems  # How many problems to use.
-        max_steps = 30  # Maximum length of an episode.
-        beam_size = 2  # Size of the beam in beam search.
-        debug = False# Whether to print all steps during evaluation.
 
         successes = []
         solution_lengths = []
