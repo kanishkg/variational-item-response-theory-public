@@ -623,6 +623,8 @@ if __name__ == "__main__":
                 missing_imputation_accuracy = correct / float(count)
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
+                if args.dataset == 'jsonstep':
+                    model_name = "Side-info A-VIBO"
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}", "missing_perc": {args.artificial_missing_perc}, "accuracy": {missing_imputation_accuracy} }},')
                 sys.exit(0)
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
