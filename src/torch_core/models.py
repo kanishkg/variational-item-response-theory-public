@@ -1151,6 +1151,7 @@ class ConpoleStepEncoder(nn.Module):
         if self.replace_missing_with_prior:
             raise NotImplementedError
 
+        step_embedding = step_embedding.detach()
         mu = self.mu(step_embedding)
         logvar = self.logvar(step_embedding)
 
