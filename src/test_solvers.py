@@ -38,7 +38,7 @@ if __name__ == "__main__":
         solution_lengths = []
         failures = []
         for i, state in enumerate(states):
-            success, history = model.rollout(env, state[0],
+            success, history = model.rollout(env, state,
                                          max_steps, beam_size, debug)
 
             if success:
