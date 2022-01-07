@@ -32,7 +32,7 @@ if __name__ == "__main__":
         n_problems = train_dataset.n_problems  # How many problems to use.
         max_steps = 30  # Maximum length of an episode.
         beam_size = 2  # Size of the beam in beam search.
-        debug = True # Whether to print all steps during evaluation.
+        debug =  False# Whether to print all steps during evaluation.
         states = [environment.State([train_dataset.problems[i]], [], 0) for i in range(dataset.n_problems)]
         successes = []
         solution_lengths = []
