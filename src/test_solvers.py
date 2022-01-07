@@ -28,15 +28,17 @@ if __name__ == "__main__":
     def evaluate_solver(checkpoint, dataset):
         model = torch.load(checkpoint, map_location=device)
         model.to(device)
-        env = environment.RacketEnvironment("http://127.0.0.1:6007", "equations")
+        env = environment.RacketEnvironment("http://127.0.0.1:6007", "equations-ct")
         n_problems = train_dataset.n_problems  # How many problems to use.
         max_steps = 30  # Maximum length of an episode.
         beam_size = 2  # Size of the beam in beam search.
-        debug =  False# Whether to print all steps during evaluation.
-        states = [environment.State([train_dataset.problems[i]], [], 0) for i in range(dataset.n_problems)]
+        debug = False# Whether to print all steps during evaluation.
+
         successes = []
         solution_lengths = []
         failures = []
+        states = [environment.State([train_dataset.problems[i]], [], 0) for i in range(dataset.n_problems)]
+
         for i, state in enumerate(states):
             success, history = model.rollout(env, state,
                                          max_steps, beam_size, debug)
