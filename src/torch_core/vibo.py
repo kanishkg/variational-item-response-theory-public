@@ -592,6 +592,7 @@ if __name__ == "__main__":
             train_dataset,
             batch_size = args.batch_size, 
             shuffle = False,
+            collate_fn=collate_fn
         )
 
         if not args.no_infer_dict:
