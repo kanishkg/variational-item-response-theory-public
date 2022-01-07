@@ -57,6 +57,6 @@ if __name__ == "__main__":
         }
     root = '/mnt/fs3/poesia/aws-output/a1b2c/NCE+H/equations-ct/run0/checkpoints/'
     ckpt = 100
-    results = evaluate_solver(os.path.join(root,f'{ckpt}.pt'), train_dataset)
+    results = evaluate_solver(os.path.join(root, f'{ckpt}.pt'), train_dataset)
     print(results)
 
