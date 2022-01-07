@@ -279,12 +279,12 @@ if __name__ == "__main__":
         for batch_idx, batch in enumerate(train_loader):
             if args.dataset == 'jsonstep':
                 index, response, problem_ids, mask, steps, step_mask = batch
+                step_mask = step_mask.long().to(device)
             else:
                 index, response, problem_ids, mask = batch
             mb = response.size(0)
             response = response.to(device)
             mask = mask.long().to(device)
-            step_mask = step_mask.long().to(device)
             annealing_factor = get_annealing_factor(epoch, batch_idx)
         
             optimizer.zero_grad()
@@ -336,11 +336,11 @@ if __name__ == "__main__":
             for batch in test_loader:
                 if args.dataset == 'jsonstep':
                     index, response, problem_ids, mask, steps, step_mask = batch
+                    step_mask = step_mask.long().to(device)
                 else:
                     _, response, problem_ids, mask = batch
                 mb = response.size(0)
                 response = response.to(device)
-                step_mask = step_mask.long().to(device)
                 mask = mask.long().to(device)
 
                 if args.n_norm_flows > 0:
@@ -480,23 +480,38 @@ if __name__ == "__main__":
         infer_dict = {}
 
         with torch.no_grad(): 
-            ability_mus, item_feat_mus = [], []
-            ability_logvars, item_feat_logvars = [], []
+            ability_mus, item_feat_mus, step_feat_mus  = [], [], []
+            ability_logvars, item_feat_logvars, step_feat_logvars = [], [], []
 
             pbar = tqdm(total=len(loader))
-            for _, response, _, mask in loader:
+            for batch in loader:
+                if args.dataset == 'jsonstep':
+                    _, response, _, mask, steps, step_mask = batch
+                else:
+                    _, response, _, mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
 
-                _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
-                    model.encode(response, mask)
+
+                if args.dataset == 'jsonstep':
+                    _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
+                        model.encode(response, mask, steps, step_mask)
+                    step_feat_mus.append(step_feat_mu)
+                    step_feat_logvars.append(step_feat_logvar)
+                else:
+                    _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
+                        model.encode(response, mask)
 
                 ability_mus.append(ability_mu.cpu())
                 ability_logvars.append(ability_logvar.cpu())
 
                 item_feat_mus.append(item_feat_mu.cpu())
                 item_feat_logvars.append(item_feat_logvar.cpu())
+
+                if args.dataset == 'jsonstep':
+                    step_feat_mus.append(step_feat_mu.cpu())
+                    step_feat_logvars.append(step_feat_logvar.cpu())
 
                 pbar.update()
 
@@ -508,6 +523,10 @@ if __name__ == "__main__":
         infer_dict['ability_logvar'] = ability_logvars
         infer_dict['item_feat_mu'] = item_feat_mu
         infer_dict['item_feat_logvar'] = item_feat_logvar
+        if args.dataset == 'jsonstep':
+            infer_dict['step_feat_mu'] = step_feat_mu
+            infer_dict['step_feat_logvar'] = step_feat_logvar
+
 
         return infer_dict
 
