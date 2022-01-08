@@ -23,8 +23,8 @@ if __name__ == "__main__":
     )
     cuda = True
     device = torch.device("cuda" if cuda else "cpu")
-    max_steps = 50  # Maximum length of an episode.
-    beam_size = 10  # Size of the beam in beam search.
+    max_steps = 100  # Maximum length of an episode.
+    beam_size = 20  # Size of the beam in beam search.
     debug = False# Whether to print all steps during evaluation.
 
     ckpt_path = '/mnt/fs3/poesia/aws-output/a1b2c/NCE+H/equations-ct/run0/checkpoints/'
