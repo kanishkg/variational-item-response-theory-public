@@ -628,8 +628,8 @@ if __name__ == "__main__":
             checkpoint['posterior_predict_samples'] = posterior_predict_samples
 
             if args.test_artificial_perc > 0:
-                missing_indices = train_dataset.missing_indices
-                missing_labels = train_dataset.missing_labels
+                missing_indices = test_dataset.missing_indices
+                missing_labels = test_dataset.missing_labels
 
                 if np.ndim(missing_labels) == 1:
                     missing_labels = missing_labels[:, np.newaxis]
