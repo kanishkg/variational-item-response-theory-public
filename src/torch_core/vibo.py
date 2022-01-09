@@ -63,6 +63,8 @@ if __name__ == "__main__":
     parser.add_argument('--drop-missing', action='store_true', default=False)
     parser.add_argument('--artificial-missing-perc', type=float, default=0.,
                         help='how much to blank out so we can measure acc (default: 0)')
+    parser.add_argument('--test-artificial-perc', type=float, default=0.,
+                        help='how much to blank out so we can measure acc (default: 0)')
     parser.add_argument('--mask-items', action='store_true', default=False,
                         help='mask items in the train/test split (default: masks students)')
     parser.add_argument('--n-norm-flows', type=int, default=0,
@@ -75,7 +77,11 @@ if __name__ == "__main__":
     parser.add_argument('--no-test', action='store_true', default=False,
                         help='if true, skip test (default: False)')
     parser.add_argument('--no-predictive', action='store_true', default=False,
-                        help='if true, skip posterior predictive computation (default: False)') 
+                        help='if true, skip posterior predictive computation (default: False)')
+
+    parser.add_argument('--no-test-predictive', action='store_true', default=False,
+                        help='if true, skip posterior predictive computation (default: False)')
+
     parser.add_argument('--num-person', type=int, default=1000,
                         help='number of people in data (default: 1000)')
     parser.add_argument('--num-item', type=int, default=100,
@@ -198,6 +204,13 @@ if __name__ == "__main__":
     if args.artificial_missing_perc > 0:
         train_dataset = artificially_mask_dataset(
             train_dataset,
+            args.artificial_missing_perc,
+            args.mask_items,
+        )
+
+    if args.test_artificial_perc > 0:
+        test_dataset = artificially_mask_dataset(
+            test_dataset,
             args.artificial_missing_perc,
             args.mask_items,
         )
@@ -596,12 +609,51 @@ if __name__ == "__main__":
             collate_fn=collate_fn
         )
 
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size = args.batch_size,
+            shuffle = False,
+            collate_fn=collate_fn
+        )
         if not args.no_infer_dict:
             infer_dict = get_infer_dict(train_loader)
             checkpoint['infer_dict'] = infer_dict
-        
+
+
+        if not args.no_test_predictive:
+            posterior_predict_samples = sample_posterior_predictive(test_loader)
+            checkpoint['posterior_predict_samples'] = posterior_predict_samples
+
+            if args.test_artificial_perc > 0:
+                missing_indices = train_dataset.missing_indices
+                missing_labels = train_dataset.missing_labels
+
+                if np.ndim(missing_labels) == 1:
+                    missing_labels = missing_labels[:, np.newaxis]
+
+                inferred_response = posterior_predict_samples['response'].mean(0)
+                inferred_response = torch.round(inferred_response)
+
+                correct, count = 0, 0
+                for missing_index, missing_label in zip(missing_indices, missing_labels):
+                    inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                    if inferred_label.item() == missing_label[0]:
+                        correct += 1
+                    count += 1
+                missing_imputation_accuracy = correct / float(count)
+                checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
+                model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
+                if args.dataset == 'jsonstep':
+                    model_name = "Side-info A-VIBO"
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}", "missing_perc": {args.test_artificial_perc}, "accuracy": {missing_imputation_accuracy} }},')
+                with open('results_algebra.csv', 'a') as f:
+                    f.write(f'{args.seed}, {model_name}, {args.test_artificial_perc}, {missing_imputation_accuracy}')
+                sys.exit(0)
+                print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
+
+
         if not args.no_predictive:
-            posterior_predict_samples = sample_posterior_predictive(train_loader)
+            posterior_predict_samples = sample_posterior_predictive(test_loader)
             checkpoint['posterior_predict_samples'] = posterior_predict_samples
 
             if args.artificial_missing_perc > 0:
