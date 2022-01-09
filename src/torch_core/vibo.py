@@ -131,6 +131,9 @@ if __name__ == "__main__":
     if args.artificial_missing_perc > 0:
         args.no_predictive = False
 
+    if args.test_artificial_perc > 0:
+        args.no_predictive = False
+
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
