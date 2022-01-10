@@ -51,6 +51,34 @@ def load_dataset(dataset_name, train=True, **kwargs):
         raise Exception(f'Dataset {dataset_name} is not supported.')
 
 
+def artificially_mask_side_info(old_dataset, perc):
+    dataset = copy.deepcopy(old_dataset)
+    assert perc >= 0 and perc <= 1
+    steps = dataset.steps
+    step_mask = dataset.step_mask
+    if np.ndim(step_mask) == 2:
+        row, col = np.where(step_mask != 0)
+    elif np.ndim(step_mask) == 3:
+        row, col = np.where(step_mask[:, :, 0] != 0)
+    pool = np.array(list(zip(row, col)))
+    num_all = pool.shape[0]
+    rs = np.random.RandomState(42)
+
+    num = int(perc * len(num_all))
+    indices = np.sort(
+        rs.choice(np.arange(num_all), size=num, replace=False),
+    )
+    label_indices = pool[indices]
+
+    for idx in label_indices:
+        step_mask[idx[0], idx[1]] = 0
+        steps[idx[0], idx[1]] = []
+
+    dataset.steps = steps
+    dataset.step_mask = step_mask
+    return dataset
+
+
 def artificially_mask_dataset(old_dataset, perc, mask_items=False):
     dataset = copy.deepcopy(old_dataset)
     assert perc >= 0 and perc <= 1

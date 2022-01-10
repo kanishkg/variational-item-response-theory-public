@@ -18,7 +18,7 @@ from src.torch_core.models import (
     VIBO_STEP_2PL,
     VIBO_STEP_3PL,
 )
-from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step
+from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, artificially_mask_side_info
 from src.utils import AverageMeter, save_checkpoint
 from src.config import OUT_DIR, IS_REAL_WORLD
 # from roar.pretraining import CharBERT, CharBERTClassifier
@@ -64,7 +64,11 @@ if __name__ == "__main__":
     parser.add_argument('--artificial-missing-perc', type=float, default=0.,
                         help='how much to blank out so we can measure acc (default: 0)')
     parser.add_argument('--test-artificial-perc', type=float, default=0.,
-                        help='how much to blank out so we can measure acc (default: 0)')
+                        help='how much to blank out so we can measure acc in test(default: 0)')
+
+    parser.add_argument('--side-artificial-perc', type=float, default=0.,
+                        help='how much to blank out so we can measure acc in test(default: 0)')
+
     parser.add_argument('--mask-items', action='store_true', default=False,
                         help='mask items in the train/test split (default: masks students)')
     parser.add_argument('--n-norm-flows', type=int, default=0,
@@ -217,7 +221,18 @@ if __name__ == "__main__":
             args.test_artificial_perc,
             args.mask_items,
         )
-
+        # mask some responses in the train set
+        # train_dataset = artificially_mask_dataset(
+        #     train_dataset,
+        #     0.1,
+        #     args.mask_items,
+        # )
+        # mask some side-info in the train set
+        if args.side_artificial_perc:
+            train_dataset = artificially_mask_side_info(
+                train_dataset,
+                args.side_artificial_perc,
+            )
     num_person = train_dataset.num_person
     num_item   = train_dataset.num_item
 
@@ -648,9 +663,9 @@ if __name__ == "__main__":
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
                 if args.dataset == 'jsonstep':
                     model_name = "Side-info A-VIBO"
-                print(f'{{ "seed": {args.seed}, "model": "{model_name}", "missing_perc": {args.test_artificial_perc}, "accuracy": {missing_imputation_accuracy} }},')
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "accuracy": {missing_imputation_accuracy} }},')
                 with open('results_algebra.csv', 'a') as f:
-                    f.write(f'{args.seed}, {model_name}, {args.test_artificial_perc}, {missing_imputation_accuracy}')
+                    f.write(f'{args.seed}, {model_name}, {args.side_artificial_perc}, {args.test_artificial_perc},  {missing_imputation_accuracy}')
                 sys.exit(0)
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
