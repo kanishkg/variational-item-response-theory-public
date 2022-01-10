@@ -71,8 +71,8 @@ def artificially_mask_side_info(old_dataset, perc):
     label_indices = pool[indices]
 
     for idx in label_indices:
-        step_mask[idx[0]][idx[1]] = 0
-        steps[idx[0], idx[1]] = []
+        step_mask[idx[0], idx[1]] = 0
+        steps[idx[0]][idx[1]] = []
 
     dataset.steps = steps
     dataset.step_mask = step_mask
