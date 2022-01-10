@@ -214,7 +214,7 @@ if __name__ == "__main__":
     if args.test_artificial_perc > 0:
         test_dataset = artificially_mask_dataset(
             test_dataset,
-            args.artificial_missing_perc,
+            args.test_artificial_perc,
             args.mask_items,
         )
 
