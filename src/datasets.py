@@ -64,7 +64,7 @@ def artificially_mask_side_info(old_dataset, perc):
     num_all = pool.shape[0]
     rs = np.random.RandomState(42)
 
-    num = int(perc * len(num_all))
+    num = int(perc * num_all)
     indices = np.sort(
         rs.choice(np.arange(num_all), size=num, replace=False),
     )
