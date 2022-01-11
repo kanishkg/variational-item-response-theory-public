@@ -347,14 +347,15 @@ if __name__ == "__main__":
                 loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                 use_kl_divergence=True)
             loss.backward()
-            optimizer.step()
-
             total_norm = 0
             if args.dataset == 'jsonstep':
                 for p in model.step_encoder.parameters():
                     param_norm = p.grad.detach().data.norm(2)
                     total_norm += param_norm.item() ** 2
                 total_norm = total_norm ** 0.5
+
+            optimizer.step()
+
             train_loss.update(loss.item(), mb)
             grad_norm.update(total_norm)
 
