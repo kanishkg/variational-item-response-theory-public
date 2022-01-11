@@ -348,6 +348,7 @@ if __name__ == "__main__":
                                 use_kl_divergence=True)
             loss.backward()
             total_norm = -1
+            weight_norm = 1
             if args.dataset == 'jsonstep':
                 for p in model.step_encoder.parameters():
                     if p.grad is not None:
@@ -356,6 +357,7 @@ if __name__ == "__main__":
                 total_norm = total_norm ** 0.5
 
             optimizer.step()
+
 
             train_loss.update(loss.item(), mb)
             grad_norm.update(total_norm)
