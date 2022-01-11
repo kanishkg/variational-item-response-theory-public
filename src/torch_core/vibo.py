@@ -305,6 +305,7 @@ if __name__ == "__main__":
     def train(epoch):
         model.train()
         train_loss = AverageMeter()
+        grad_norm = AverageMeter()
         pbar = tqdm(total=len(train_loader))
 
         for batch_idx, batch in enumerate(train_loader):
@@ -348,10 +349,17 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
+            total_norm = 0
+            if args.dataset == 'jsonstep':
+                for p in model.step_encoder.parameters():
+                    param_norm = p.grad.detach().data.norm(2)
+                    total_norm += param_norm.item() ** 2
+                total_norm = total_norm ** 0.5
             train_loss.update(loss.item(), mb)
+            grad_norm.update(total_norm)
 
             pbar.update()
-            pbar.set_postfix({'Loss': train_loss.avg})
+            pbar.set_postfix({'Loss': train_loss.avg, 'grad_step': grad_norm.avg})
 
         pbar.close()
         print('====> Train Epoch: {} Loss: {:.4f}'.format(epoch, train_loss.avg))
