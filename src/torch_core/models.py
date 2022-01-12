@@ -297,7 +297,7 @@ class VIBO_1PL(nn.Module):
             self.ability_encoder = AbilityInferenceNetwork(
                 self.ability_dim, 
                 self.response_dim, 
-                self.hidden_dim, 
+                self.hidden_dim,
                 ability_merge = self.ability_merge,
                 replace_missing_with_prior = self.replace_missing_with_prior,
             )
@@ -346,10 +346,10 @@ class VIBO_1PL(nn.Module):
     def _set_irt_num(self):
         self.irt_num = 1
 
-    def forward(self, response, mask):
+    def forward(self, response, mask, encoder_mask):
         ability, ability_mu, ability_logvar, \
         item_feat, item_feat_mu, item_feat_logvar \
-            = self.encode(response, mask)
+            = self.encode(response, encoder_mask)
 
         if self.n_norm_flows > 0:
             ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
@@ -373,9 +373,9 @@ class VIBO_1PL(nn.Module):
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
 
         if self.conditional_posterior:
-            ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat) 
+            ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat)
         else:
-            ability_mu, ability_logvar = self.ability_encoder(response, mask) 
+            ability_mu, ability_logvar = self.ability_encoder(response, mask)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
 
@@ -629,10 +629,7 @@ class VIBO_STEP_1PL(nn.Module):
             self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
         # TODO Change to generic side info encoder; not same as item
-        if embed_conpole:
-            self.step_encoder = ConpoleStepEncoder(embedding_model, self.step_feat_dim)
-        else:
-            raise NotImplementedError
+        self.step_encoder = ConpoleStepEncoder(embedding_model, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
@@ -668,16 +665,16 @@ class VIBO_STEP_1PL(nn.Module):
         self.item_feat_dim = 1
 
     def _set_step_feat_dim(self):
-        self.step_feat_dim = 1
+        self.step_feat_dim = 16
 
     def _set_irt_num(self):
         self.irt_num = 1
 
-    def forward(self, response, mask, steps, step_mask):
+    def forward(self, response, mask, steps, step_mask, encoder_mask):
         ability, ability_mu, ability_logvar, \
         item_feat, item_feat_mu, item_feat_logvar, \
         step_feat, step_feat_mu, step_feat_logvar \
-            = self.encode(response, mask, steps, step_mask)
+            = self.encode(response, encoder_mask, steps, step_mask)
 
         if self.n_norm_flows > 0:
             ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
@@ -870,7 +867,6 @@ class VIBO_STEP_1PL(nn.Module):
             pass
 
 
-
 class VIBO_STEP_2PL(VIBO_STEP_1PL):
 
     def _set_item_feat_dim(self):
@@ -899,6 +895,7 @@ class VIBO_STEP_3PL(VIBO_STEP_2PL):
             return irt_model_3pl(ability, item_feat)
         else:
             return self.decoder(ability, item_feat)
+
 
 class AbilityInferenceNetwork(nn.Module):
 

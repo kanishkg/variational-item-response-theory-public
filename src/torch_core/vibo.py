@@ -18,7 +18,8 @@ from src.torch_core.models import (
     VIBO_STEP_2PL,
     VIBO_STEP_3PL,
 )
-from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, artificially_mask_side_info
+from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, artificially_mask_side_info, \
+    create_encoder_mask
 from src.utils import AverageMeter, save_checkpoint
 from src.config import OUT_DIR, IS_REAL_WORLD
 # from roar.pretraining import CharBERT, CharBERTClassifier
@@ -65,7 +66,8 @@ if __name__ == "__main__":
                         help='how much to blank out so we can measure acc (default: 0)')
     parser.add_argument('--test-artificial-perc', type=float, default=0.,
                         help='how much to blank out so we can measure acc in test(default: 0)')
-
+    parser.add_argument('--num-encode', type=int, default=-1,
+                        help='number of responses to train with')
     parser.add_argument('--side-artificial-perc', type=float, default=0.,
                         help='how much to blank out so we can measure acc in test(default: 0)')
 
@@ -221,18 +223,16 @@ if __name__ == "__main__":
             args.test_artificial_perc,
             args.mask_items,
         )
-        # mask some responses in the train set
-        # train_dataset = artificially_mask_dataset(
-        #     train_dataset,
-        #     0.1,
-        #     args.mask_items,
-        # )
-        # mask some side-info in the train set
+
         if args.side_artificial_perc:
             train_dataset = artificially_mask_side_info(
                 train_dataset,
                 args.side_artificial_perc,
             )
+    train_dataset = create_encoder_mask(
+        train_dataset,
+        args.num_encode
+    )
     num_person = train_dataset.num_person
     num_item   = train_dataset.num_item
 
@@ -310,13 +310,14 @@ if __name__ == "__main__":
 
         for batch_idx, batch in enumerate(train_loader):
             if args.dataset == 'jsonstep':
-                index, response, problem_ids, mask, steps, step_mask = batch
+                index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                 step_mask = step_mask.long().to(device)
             else:
-                index, response, problem_ids, mask = batch
+                index, response, problem_ids, mask, encoder_mask = batch
             mb = response.size(0)
             response = response.to(device)
             mask = mask.long().to(device)
+            encoder_mask = encoder_mask.long().to(device)
             annealing_factor = get_annealing_factor(epoch, batch_idx)
         
             optimizer.zero_grad()
@@ -341,9 +342,9 @@ if __name__ == "__main__":
                 )
             else:
                 if args.dataset == 'jsonstep':
-                    outputs = model(response, mask, steps, step_mask)
+                    outputs = model(response, mask, steps, step_mask, encoder_mask)
                 else:
-                    outputs = model(response, mask)
+                    outputs = model(response, mask, encoder_mask)
                 loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                 use_kl_divergence=True)
             loss.backward()
@@ -378,13 +379,14 @@ if __name__ == "__main__":
         with torch.no_grad():
             for batch in test_loader:
                 if args.dataset == 'jsonstep':
-                    index, response, problem_ids, mask, steps, step_mask = batch
+                    index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
-                    _, response, problem_ids, mask = batch
+                    _, response, problem_ids, mask, encoder_mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
+                encoder_mask = encoder_mask.long().to(device)
 
                 if args.n_norm_flows > 0:
                     (
@@ -406,9 +408,9 @@ if __name__ == "__main__":
                     )
                 else:
                     if args.dataset == 'jsonstep':
-                        outputs = model(response, mask, steps, step_mask)
+                        outputs = model(response, mask, steps, step_mask, encoder_mask)
                     else:
-                        outputs = model(response, mask)
+                        outputs = model(response, mask, encoder_mask)
                     loss = model.elbo(*outputs)
                 test_loss.update(loss.item(), mb)
 
@@ -458,20 +460,21 @@ if __name__ == "__main__":
 
             for batch in loader:
                 if args.dataset == 'jsonstep':
-                    index, response, problem_ids, mask, steps, step_mask = batch
+                    index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
-                    _, response, problem_ids, mask = batch
+                    _, response, problem_ids, mask, encoder_mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
+                encoder_mask = encoder_mask.long().to(device)
 
                 if args.dataset == 'jsonstep':
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
-                        model.encode(response, mask, steps, step_mask)
+                        model.encode(response, mask, steps, step_mask, encoder_mask)
                 else:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
-                        model.encode(response, mask)
+                        model.encode(response, mask, encoder_mask)
 
                 
                 ability_scale = torch.exp(0.5 * ability_logvar)
@@ -511,20 +514,21 @@ if __name__ == "__main__":
 
             for batch in loader:
                 if args.dataset == 'jsonstep':
-                    index, response, problem_ids, mask, steps, step_mask = batch
+                    index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
-                    _, response, problem_ids, mask = batch
+                    _, response, problem_ids, mask, encoder_mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
+                encoder_mask = encoder_mask.long().to(device)
 
                 if args.dataset == 'jsonstep':
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
-                        model.encode(response, mask, steps, step_mask)
+                        model.encode(response, mask, steps, step_mask, encoder_mask)
                 else:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
-                        model.encode(response, mask)
+                        model.encode(response, mask, encoder_mask)
 
                 
                 response_sample = model.decode(ability_mu, item_feat_mu).cpu()
@@ -549,23 +553,24 @@ if __name__ == "__main__":
             pbar = tqdm(total=len(loader))
             for batch in loader:
                 if args.dataset == 'jsonstep':
-                    _, response, _, mask, steps, step_mask = batch
+                    _, response, _, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
-                    _, response, _, mask = batch
+                    _, response, _, mask, encoder_mask = batch
                 mb = response.size(0)
                 response = response.to(device)
                 mask = mask.long().to(device)
+                encoder_mask = encoder_mask.long().to(device)
 
 
                 if args.dataset == 'jsonstep':
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
-                        model.encode(response, mask, steps, step_mask)
+                        model.encode(response, mask, steps, step_mask, encoder_mask)
                     step_feat_mus.append(step_feat_mu)
                     step_feat_logvars.append(step_feat_logvar)
                 else:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
-                        model.encode(response, mask)
+                        model.encode(response, mask, encoder_mask)
 
                 ability_mus.append(ability_mu.cpu())
                 ability_logvars.append(ability_logvar.cpu())

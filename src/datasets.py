@@ -51,6 +51,27 @@ def load_dataset(dataset_name, train=True, **kwargs):
         raise Exception(f'Dataset {dataset_name} is not supported.')
 
 
+def create_encoder_mask(old_dataset, num_encode):
+    dataset = copy.deepcopy(old_dataset)
+    mask = dataset.mask
+    encoder_mask = np.zeros(mask.shape[0], mask.shape[1])
+    if num_encode == -1:
+        dataset.encoder_mask = mask
+        return dataset
+    if np.ndim(mask) == 3:
+        mask = mask [:, :, 0]
+
+    rs = np.random.RandomState(42)
+    # iterate over students and randomly choose num encode samples
+    for i in range(mask.shape[0]):
+        cols = np.where(mask[i, :] != 0)
+        if cols.shape[0] < num_encode:
+            continue
+        items = rs.choice(cols, size=num_encode, replace=False)
+        encoder_mask[i, items] = 1
+    dataset.encoder_mask = encoder_mask
+    return dataset
+
 def artificially_mask_side_info(old_dataset, perc):
     dataset = copy.deepcopy(old_dataset)
     assert perc >= 0 and perc <= 1
@@ -1046,12 +1067,13 @@ class JSONDataset(torch.utils.data.Dataset):
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.problems = all_problems
+        self.encoder_mask = None
 
     def __len__(self):
         return self.response.shape[0]
 
     def __getitem__(self, index):
-        return index, self.response[index], self.problem_id[index], self.mask[index]
+        return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
 
 
 def collate_function_step(batch):
@@ -1061,7 +1083,8 @@ def collate_function_step(batch):
     mask = torch.stack([torch.tensor(item[3]) for item in batch])
     steps = [item[4] for item in batch]
     step_mask = torch.stack([torch.tensor(item[5]) for item in batch])
-    return [indices, responses, problem_ids, mask, steps, step_mask]
+    encoder_mask = torch.stack([torch.tensor(item[6]) for item in batch])
+    return [indices, responses, problem_ids, mask, steps, step_mask, encoder_mask]
 
 
 class JSONStepDataset(torch.utils.data.Dataset):
@@ -1126,13 +1149,14 @@ class JSONStepDataset(torch.utils.data.Dataset):
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.problems = all_problems
+        self.encoder_mask = None
 
     def __len__(self):
         return self.response.shape[0]
 
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], self.mask[index],\
-               self.steps[index], self.step_mask[index]
+               self.steps[index], self.step_mask[index], self.encoder_mask[index]
 
 class ROARDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
