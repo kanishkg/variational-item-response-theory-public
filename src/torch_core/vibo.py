@@ -276,6 +276,9 @@ if __name__ == "__main__":
         embedding_model.to(device)
     else:
         embedding_model = None
+    if args.side_info_model:
+        side_info_model = torch.load(args.side_info_model, map_location=device)
+        side_info_model.to(device)
 
     model = model_class(
         args.ability_dim,
@@ -291,7 +294,7 @@ if __name__ == "__main__":
         embed_conpole=args.embed_conpole,
         embed_bert=args.embed_bert,
         problems=train_dataset.problems,
-        side_info_model=args.side_info_model
+        side_info_model=side_info_model
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
