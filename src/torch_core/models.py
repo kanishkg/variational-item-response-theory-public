@@ -1128,15 +1128,20 @@ class ItemInferenceNetwork(nn.Module):
 
 
 class ConpoleStepEncoder(nn.Module):
-    def __init__(self, q_fn, step_feat_dim, embedding_dim=512, replace_missing_with_prior=False):
+    def __init__(self, q_fn, step_feat_dim, embedding_dim=512, hidden_dim=16):
         super().__init__()
 
         self.q_fn = q_fn
-        self.mu = nn.Linear(embedding_dim, step_feat_dim)
-        self.logvar = nn.Linear(embedding_dim, step_feat_dim)
+
+        self.mlp = nn.Sequential(
+            nn.Linear(embedding_dim, hidden_dim),
+            nn.ELU(inplace=True),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ELU(inplace=True),
+            nn.Linear(hidden_dim, step_feat_dim*2),
+        )
         self.step_feat_dim = step_feat_dim
         self.embedding_dim = embedding_dim
-        self.replace_missing_with_prior = replace_missing_with_prior
 
     def forward(self, steps, step_mask):
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
@@ -1146,13 +1151,11 @@ class ConpoleStepEncoder(nn.Module):
             [environment.State([steps[i][j][-1]], [], 0) for i, j, _ in steps_idx]).detach()
         for s, (i, j, _) in enumerate(steps_idx):
             step_embedding[i, j, :] = step_embedding_masked[s, :]
-        if self.replace_missing_with_prior:
-            raise NotImplementedError
 
         step_embedding = step_embedding.detach()
-        mu = self.mu(step_embedding)
-        logvar = self.logvar(step_embedding)
-
+        step_mulogvar = self.mlp(step_embedding)
+        mu = step_mulogvar[:, :, :self.step_feat_dim]
+        logvar = step_mulogvar[:, :, self.step_feat_dim:]
         return mu, logvar
 
 
