@@ -960,6 +960,7 @@ class AbilityInferenceNetwork(nn.Module):
             for i in range(num_person):
                 if mask[i].sum().item() != num_item:
                     mask_i = mask[i].bool().repeat(1, self.ability_dim)
+                    print(mask_i.size(), mu_set.size())
                     mu_set_i = mu_set[i][mask_i].view(-1, self.ability_dim)
                     logvar_set_i = logvar_set[i][mask_i].view(-1, self.ability_dim)
                     # replace all missing items with a prior score
