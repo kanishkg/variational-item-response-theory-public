@@ -101,8 +101,11 @@ if __name__ == "__main__":
 
     parser.add_argument('--out-dir', type=str, default=OUT_DIR,
                         help='where to save chkpts (default: OUT_DIR)')
+
     parser.add_argument('--lr', type=float, default=5e-3,
                         help='default learning rate: 5e-3')
+    parser.add_argument('--clip', type=float, default=10,
+                        help='default gradient clip: 10')
     parser.add_argument('--batch-size', type=int, default=16, metavar='N',
                         help='input batch size for training (default: 16)')
     parser.add_argument('--epochs', type=int, default=100, metavar='N',
@@ -369,7 +372,7 @@ if __name__ == "__main__":
                         total_norm += param_norm.item() ** 2
                 total_norm = total_norm ** 0.5
 
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 10)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
             optimizer.step()
 
 
