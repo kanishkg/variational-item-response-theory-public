@@ -702,7 +702,6 @@ class VIBO_STEP_1PL(nn.Module):
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
         step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
         step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
-        print(mask.size(), step_feat.size(), step_mask.size())
         ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
@@ -960,7 +959,6 @@ class AbilityInferenceNetwork(nn.Module):
             for i in range(num_person):
                 if mask[i].sum().item() != num_item:
                     mask_i = mask[i].bool().repeat(1, self.ability_dim)
-                    print(mask_i.size(), mu_set.size())
                     mu_set_i = mu_set[i][mask_i.T].view(-1, self.ability_dim)
                     logvar_set_i = logvar_set[i][mask_i.T].view(-1, self.ability_dim)
                     # replace all missing items with a prior score

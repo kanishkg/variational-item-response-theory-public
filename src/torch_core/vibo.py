@@ -235,6 +235,11 @@ if __name__ == "__main__":
         train_dataset,
         args.num_encode
     )
+
+    test_dataset = create_encoder_mask(
+        test_dataset,
+        args.num_encode
+    )
     num_person = train_dataset.num_person
     num_item   = train_dataset.num_item
 
