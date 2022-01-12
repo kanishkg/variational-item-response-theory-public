@@ -755,7 +755,7 @@ if __name__ == "__main__":
                 test_logp = get_log_marginal_density(test_loader)
                 checkpoint['test_logp'] = test_logp
 
-        if not args.no_test_predictive:
+        if not args.no_test_predictive and args.no_predictive:
             posterior_predict_samples = sample_posterior_predictive(test_loader)
             checkpoint['posterior_predict_samples'] = posterior_predict_samples
 
