@@ -54,7 +54,7 @@ def load_dataset(dataset_name, train=True, **kwargs):
 def create_encoder_mask(old_dataset, num_encode):
     dataset = copy.deepcopy(old_dataset)
     mask = dataset.mask
-    encoder_mask = np.zeros(mask.shape[0], mask.shape[1])
+    encoder_mask = np.zeros((mask.shape[0], mask.shape[1]))
     if num_encode == -1:
         dataset.encoder_mask = mask
         return dataset
