@@ -124,6 +124,8 @@ if __name__ == "__main__":
                         help='which CUDA device to use (default: 0)')
     parser.add_argument('--embed-conpole', type=str, default=False,
                         help='Use the given pre-trained ConPoLe model to embed problems.')
+    parser.add_argument('--side-info-model', type=str, default=False,
+                        help='Use the given pre-trained  model to embed side-info.')
     parser.add_argument('--embed-bert', type=str, default=False,
                         help='Use the given pre-trained BERT model to embed problems.')
     parser.add_argument('--cuda', action='store_true', default=False,
@@ -289,6 +291,7 @@ if __name__ == "__main__":
         embed_conpole=args.embed_conpole,
         embed_bert=args.embed_bert,
         problems=train_dataset.problems,
+        side_info_model=args.side_info_model
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)

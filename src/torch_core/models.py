@@ -258,6 +258,7 @@ class VIBO_1PL(nn.Module):
             replace_missing_with_prior = True,
             n_norm_flows = 0,
             embedding_model = None,
+            side_info_model = None,
             embed_conpole = False,
             embed_bert = False,
             problems=None,
@@ -574,6 +575,7 @@ class VIBO_STEP_1PL(nn.Module):
             replace_missing_with_prior = True,
             n_norm_flows = 0,
             embedding_model = None,
+            side_info_model = None,
             embed_conpole = False,
             embed_bert = False,
             problems=None,
@@ -629,7 +631,7 @@ class VIBO_STEP_1PL(nn.Module):
             self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
         # TODO Change to generic side info encoder; not same as item
-        self.step_encoder = ConpoleStepEncoder(embedding_model, self.step_feat_dim)
+        self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
