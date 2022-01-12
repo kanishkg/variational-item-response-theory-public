@@ -673,7 +673,6 @@ class VIBO_STEP_1PL(nn.Module):
         self.irt_num = 1
 
     def forward(self, response, mask, steps, step_mask, encoder_mask):
-        print(mask.size(), encoder_mask.size())
         ability, ability_mu, ability_logvar, \
         item_feat, item_feat_mu, item_feat_logvar, \
         step_feat, step_feat_mu, step_feat_logvar \
@@ -703,6 +702,7 @@ class VIBO_STEP_1PL(nn.Module):
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
         step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
         step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
+        print(mask.size(), step_feat.size(), step_mask.size())
         ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
