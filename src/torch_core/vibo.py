@@ -698,7 +698,7 @@ if __name__ == "__main__":
 
 
         if not args.no_predictive:
-            posterior_predict_samples = sample_posterior_predictive(test_loader)
+            posterior_predict_samples = sample_posterior_predictive(train_loader)
             checkpoint['posterior_predict_samples'] = posterior_predict_samples
 
             if args.artificial_missing_perc > 0:
