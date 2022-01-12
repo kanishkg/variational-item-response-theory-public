@@ -957,7 +957,6 @@ class AbilityInferenceNetwork(nn.Module):
         if has_missing:
             mu, logvar = [], []
             for i in range(num_person):
-                print(mask[i].sum().item())
                 if mask[i].sum().item() != num_item:
                     mask_i = mask[i].bool().repeat(1, self.ability_dim)
                     mu_set_i = mu_set[i][mask_i.T].view(-1, self.ability_dim)
