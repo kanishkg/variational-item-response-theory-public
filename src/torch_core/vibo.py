@@ -369,6 +369,7 @@ if __name__ == "__main__":
                         total_norm += param_norm.item() ** 2
                 total_norm = total_norm ** 0.5
 
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 10)
             optimizer.step()
 
 
