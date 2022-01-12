@@ -696,7 +696,7 @@ if __name__ == "__main__":
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
                 if args.dataset == 'jsonstep':
                     model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
-                print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "accuracy": {missing_imputation_accuracy} }},')
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "test_accuracy": {missing_imputation_accuracy} }},')
                 sys.exit(0)
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
