@@ -671,34 +671,6 @@ if __name__ == "__main__":
             checkpoint['infer_dict'] = infer_dict
 
 
-        if not args.no_test_predictive:
-            posterior_predict_samples = sample_posterior_predictive(test_loader)
-            checkpoint['posterior_predict_samples'] = posterior_predict_samples
-
-            if args.test_artificial_perc > 0:
-                missing_indices = test_dataset.missing_indices
-                missing_labels = test_dataset.missing_labels
-
-                if np.ndim(missing_labels) == 1:
-                    missing_labels = missing_labels[:, np.newaxis]
-
-                inferred_response = posterior_predict_samples['response'].mean(0)
-                inferred_response = torch.round(inferred_response)
-
-                correct, count = 0, 0
-                for missing_index, missing_label in zip(missing_indices, missing_labels):
-                    inferred_label = inferred_response[missing_index[0], missing_index[1]]
-                    if inferred_label.item() == missing_label[0]:
-                        correct += 1
-                    count += 1
-                missing_imputation_accuracy = correct / float(count)
-                checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
-                model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
-                if args.dataset == 'jsonstep':
-                    model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
-                print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "test_accuracy": {missing_imputation_accuracy} }},')
-                sys.exit(0)
-                print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
 
         if not args.no_predictive:
@@ -727,7 +699,29 @@ if __name__ == "__main__":
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
                 if args.dataset == 'jsonstep':
                     model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
-                print(f'{{ "seed": {args.seed}, "model": "{model_name}", "missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy} }},')
+                if not args.no_test_predictive:
+                    posterior_predict_samples = sample_posterior_predictive(test_loader)
+                    checkpoint['posterior_predict_samples'] = posterior_predict_samples
+
+                    if args.test_artificial_perc > 0:
+                        missing_indices = test_dataset.missing_indices
+                        missing_labels = test_dataset.missing_labels
+
+                        if np.ndim(missing_labels) == 1:
+                            missing_labels = missing_labels[:, np.newaxis]
+
+                        inferred_response = posterior_predict_samples['response'].mean(0)
+                        inferred_response = torch.round(inferred_response)
+
+                        correct, count = 0, 0
+                        for missing_index, missing_label in zip(missing_indices, missing_labels):
+                            inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                            if inferred_label.item() == missing_label[0]:
+                                correct += 1
+                            count += 1
+                        test_missing_imputation_accuracy = correct / float(count)
+
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}", "missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} }},')
                 sys.exit(0)
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
@@ -760,6 +754,35 @@ if __name__ == "__main__":
             if not args.no_test:
                 test_logp = get_log_marginal_density(test_loader)
                 checkpoint['test_logp'] = test_logp
+
+        if not args.no_test_predictive:
+            posterior_predict_samples = sample_posterior_predictive(test_loader)
+            checkpoint['posterior_predict_samples'] = posterior_predict_samples
+
+            if args.test_artificial_perc > 0:
+                missing_indices = test_dataset.missing_indices
+                missing_labels = test_dataset.missing_labels
+
+                if np.ndim(missing_labels) == 1:
+                    missing_labels = missing_labels[:, np.newaxis]
+
+                inferred_response = posterior_predict_samples['response'].mean(0)
+                inferred_response = torch.round(inferred_response)
+
+                correct, count = 0, 0
+                for missing_index, missing_label in zip(missing_indices, missing_labels):
+                    inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                    if inferred_label.item() == missing_label[0]:
+                        correct += 1
+                    count += 1
+                missing_imputation_accuracy = correct / float(count)
+                checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
+                model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
+                if args.dataset == 'jsonstep':
+                    model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "test_accuracy": {missing_imputation_accuracy} }},')
+                sys.exit(0)
+                print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
         torch.save(checkpoint, os.path.join(args.out_dir, checkpoint_name))
         print(f'Train time: {np.abs(train_times[:100]).sum()}') 
