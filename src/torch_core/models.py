@@ -673,6 +673,7 @@ class VIBO_STEP_1PL(nn.Module):
         self.irt_num = 1
 
     def forward(self, response, mask, steps, step_mask, encoder_mask):
+        print(mask.size(), encoder_mask.size())
         ability, ability_mu, ability_logvar, \
         item_feat, item_feat_mu, item_feat_logvar, \
         step_feat, step_feat_mu, step_feat_logvar \
