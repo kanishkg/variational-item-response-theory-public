@@ -54,21 +54,19 @@ def load_dataset(dataset_name, train=True, **kwargs):
 def create_encoder_mask(old_dataset, num_encode):
     dataset = copy.deepcopy(old_dataset)
     mask = dataset.mask
-    encoder_mask = np.zeros((mask.shape[0], mask.shape[1]))
+    encoder_mask = np.zeros((mask.shape[0], mask.shape[1], 1))
     if num_encode == -1:
         dataset.encoder_mask = mask
         return dataset
-    if np.ndim(mask) == 3:
-        mask = mask[:, :, 0]
 
     rs = np.random.RandomState(42)
     # iterate over students and randomly choose num encode samples
     for i in range(mask.shape[0]):
-        cols = np.where(mask[i, :] != 0)[0]
+        cols = np.where(mask[i, :, 0] != 0)[0]
         if cols.shape[0] < num_encode:
             continue
         items = rs.choice(cols, size=num_encode, replace=False)
-        encoder_mask[i, items] = 1
+        encoder_mask[i, items, 0] = 1
     dataset.encoder_mask = encoder_mask
     return dataset
 
