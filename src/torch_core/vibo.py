@@ -483,10 +483,10 @@ if __name__ == "__main__":
 
                 if args.dataset == 'jsonstep':
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
-                        model.encode(response, mask, steps, step_mask, encoder_mask)
+                        model.encode(response, encoder_mask, steps, step_mask)
                 else:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
-                        model.encode(response, mask, encoder_mask)
+                        model.encode(response, encoder_mask)
 
                 
                 ability_scale = torch.exp(0.5 * ability_logvar)
