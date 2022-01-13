@@ -360,7 +360,6 @@ if __name__ == "__main__":
                     outputs = model(response, mask, steps, step_mask, encoder_mask)
                 else:
                     outputs = model(response, mask, encoder_mask)
-                print(encoder_mask, response)
                 loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                 use_kl_divergence=True)
             loss.backward()
