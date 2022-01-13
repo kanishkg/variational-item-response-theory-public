@@ -262,7 +262,6 @@ class VIBO_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
-            embed_model_params=None
         ):
         super().__init__()
 
@@ -306,7 +305,7 @@ class VIBO_1PL(nn.Module):
 
         if embedding_model:
             if embed_conpole:
-                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim, embed_model_params)
+                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim)
             else:
                 self.item_encoder = BertEncoder(embedding_model, problems, self.item_feat_dim)
         else:
@@ -580,7 +579,6 @@ class VIBO_STEP_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
-            embed_model_params=None
     ):
         super().__init__()
 
@@ -626,14 +624,14 @@ class VIBO_STEP_1PL(nn.Module):
 
         if embedding_model:
             if embed_conpole:
-                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim, embed_model_params)
+                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim)
             else:
                 self.item_encoder = BertEncoder(embedding_model, problems, self.item_feat_dim)
         else:
             self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
         # TODO Change to generic side info encoder; not same as item
-        self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim, embed_model_params)
+        self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
@@ -1140,11 +1138,11 @@ class ItemInferenceNetwork(nn.Module):
 
 
 class ConpoleStepEncoder(nn.Module):
-    def __init__(self, q_fn, step_feat_dim, params=None, embedding_dim=512, hidden_dim=16):
+    def __init__(self, q_fn, step_feat_dim, embedding_dim=512, hidden_dim=16):
         super().__init__()
 
         self.q_fn = q_fn
-        self.params = params
+
         self.mlp = nn.Sequential(
             nn.Linear(embedding_dim, hidden_dim),
             nn.ELU(inplace=True),
@@ -1158,9 +1156,6 @@ class ConpoleStepEncoder(nn.Module):
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         step_embedding_masked = self.q_fn.embed_states(
             [environment.State([steps[i][j][-1]], [], 0) for i, j, _ in steps_idx]).detach()
-        # if self.params is not None:
-        #     step_embedding_masked = (step_embedding_masked - self.params[0])/(self.params[1]+1e-5)
-        # print(step_embedding_masked)
         for s, (i, j, _) in enumerate(steps_idx):
             step_embedding[i, j, :] = step_embedding_masked[s, :]
 
@@ -1173,12 +1168,11 @@ class ConpoleStepEncoder(nn.Module):
 
 
 class ConpoleEncoder(nn.Module):
-    def __init__(self, q_fn, problems, item_feat_dim, params=None, embedding_dim=512):
+    def __init__(self, q_fn, problems, item_feat_dim, embedding_dim=512):
         super().__init__()
 
         self.q_fn = q_fn
         self.problems = problems
-        self.params = params
         self.mu = nn.Linear(embedding_dim, item_feat_dim)
         self.logvar = nn.Linear(embedding_dim, item_feat_dim)
 
@@ -1186,8 +1180,6 @@ class ConpoleEncoder(nn.Module):
         item_embedding = self.q_fn.embed_states(
             [environment.State([self.problems[i]], [], 0) for i in item_index.flatten()]).detach()
 
-        # if self.params is not None:
-        #     item_embedding = (item_embedding - self.params[0])/(self.params[1]+1e-5)
         mu = self.mu(item_embedding)
         logvar = self.logvar(item_embedding)
 
