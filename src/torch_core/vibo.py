@@ -294,7 +294,6 @@ if __name__ == "__main__":
         embedding_model.eval()
         item_embedding = embedding_model.embed_states(
             [environment.State([p], [], 0) for p in train_dataset.problems]).detach()
-        print(item_embedding.shape)
         item_mean = torch.mean(item_embedding, dim=0)
         item_std = torch.std(item_embedding, dim=0)
 
