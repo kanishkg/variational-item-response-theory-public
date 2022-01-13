@@ -132,7 +132,7 @@ def artificially_mask_dataset(old_dataset, perc, mask_items=False):
         items = np.sort(
             rs.choice(np.arange(len(dataset.problems)), size=num, replace=False),
            )
-
+        print(items)
         for item in items:
             mask[dataset.problem_id == item] = 0
 
