@@ -1187,6 +1187,7 @@ class ConpoleEncoder(nn.Module):
 
         if self.params is not None:
             item_embedding = (item_embedding - self.params[0])/(self.params[1]+1e-5)
+            print(item_embedding)
         mu = self.mu(item_embedding)
         logvar = self.logvar(item_embedding)
 
