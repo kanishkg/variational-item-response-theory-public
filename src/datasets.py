@@ -132,7 +132,6 @@ def artificially_mask_dataset(old_dataset, perc, mask_items=False):
         items = np.sort(
             rs.choice(np.arange(len(dataset.problems)), size=num, replace=False),
            )
-        print(items)
         for item in items:
             mask[dataset.problem_id == item] = 0
 
@@ -185,7 +184,7 @@ def load_2pl_simulation(
 
 
 def load_3pl_simulation(
-        num_person = 1000, 
+        num_person = 1000,
         num_item = 100, 
         ability_dim = 1, 
         nonlinear = False,

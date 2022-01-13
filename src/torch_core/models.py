@@ -262,7 +262,7 @@ class VIBO_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
-            params=None
+            embed_model_params=None
         ):
         super().__init__()
 
@@ -306,7 +306,7 @@ class VIBO_1PL(nn.Module):
 
         if embedding_model:
             if embed_conpole:
-                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim)
+                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim, embed_model_params)
             else:
                 self.item_encoder = BertEncoder(embedding_model, problems, self.item_feat_dim)
         else:
