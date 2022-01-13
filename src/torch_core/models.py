@@ -957,7 +957,17 @@ class AbilityInferenceNetwork(nn.Module):
         if has_missing:
             mu, logvar = [], []
             for i in range(num_person):
-                if mask[i].sum().item() != num_item:
+                # if no responses are available, replace with prior
+                if mask[i].sum().item() == 0:
+                    mask_i = mask[i].bool().repeat(1, self.ability_dim)
+                    mu_set_i = mu_set[i][mask_i].view(-1, self.ability_dim)
+                    logvar_set_i = logvar_set[i][mask_i].view(-1, self.ability_dim)
+                    # replace all missing items with a prior score
+                    p_mu_set_i = p_mu_set[i][~mask_i].view(-1, self.ability_dim)
+                    p_logvar_set_i = p_logvar_set[i][~mask_i].view(-1, self.ability_dim)
+                    mu_set_i = torch.cat([mu_set_i, p_mu_set_i], dim=0)
+                    logvar_set_i = torch.cat([logvar_set_i, p_logvar_set_i], dim=0)
+                elif mask[i].sum().item() != num_item:
                     mask_i = mask[i].bool().repeat(1, self.ability_dim)
                     mu_set_i = mu_set[i][mask_i].view(-1, self.ability_dim)
                     logvar_set_i = logvar_set[i][mask_i].view(-1, self.ability_dim)
