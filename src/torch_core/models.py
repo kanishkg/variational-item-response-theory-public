@@ -1158,8 +1158,8 @@ class ConpoleStepEncoder(nn.Module):
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         step_embedding_masked = self.q_fn.embed_states(
             [environment.State([steps[i][j][-1]], [], 0) for i, j, _ in steps_idx]).detach()
-        if self.params is not None:
-            step_embedding_masked = (step_embedding_masked - self.params[0])/(self.params[1]+1e-5)
+        # if self.params is not None:
+            # step_embedding_masked = (step_embedding_masked - self.params[0])/(self.params[1]+1e-5)
         for s, (i, j, _) in enumerate(steps_idx):
             step_embedding[i, j, :] = step_embedding_masked[s, :]
 
