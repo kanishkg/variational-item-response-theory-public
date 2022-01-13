@@ -292,7 +292,7 @@ if __name__ == "__main__":
     # normalize embeddings
     if args.embed_conpole:
         embedding_model.eval()
-        item_embedding = embedding_model.q_fn.embed_states(
+        item_embedding = embedding_model.embed_states(
             [environment.State([p], [], 0) for p in train_dataset.problems]).detach()
         item_mean = torch.mean(item_embedding, dim=-1)
         item_std = torch.std(item_embedding, dim=-1)
