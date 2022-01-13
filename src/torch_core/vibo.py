@@ -29,8 +29,6 @@ sys.path.append('../../socratic-tutor/')
 
 
 if __name__ == "__main__":
-    sys.stdout = open('error.log', 'w')
-
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--irt-model', type=str, default='1pl',
@@ -382,7 +380,7 @@ if __name__ == "__main__":
             grad_norm.update(total_norm)
 
             pbar.update()
-            pbar.set_postfix({'Loss': train_loss.avg })
+            pbar.set_postfix({'Loss': train_loss.avg, 'grad_step': grad_norm.avg})
 
         pbar.close()
         print('====> Train Epoch: {} Loss: {:.4f}'.format(epoch, train_loss.avg))
@@ -690,6 +688,7 @@ if __name__ == "__main__":
                 inferred_response = torch.round(inferred_response)
 
                 correct, count = 0, 0
+                print(inferred_response.size())
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
                     inferred_label = inferred_response[missing_index[0], missing_index[1]]
                     if inferred_label.item() == missing_label[0]:
@@ -723,7 +722,7 @@ if __name__ == "__main__":
                         test_missing_imputation_accuracy = correct / float(count)
 
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},')
-                # sys.exit(0)
+                sys.exit(0)
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
             posterior_mean_samples = sample_posterior_mean(train_loader)
@@ -787,4 +786,3 @@ if __name__ == "__main__":
 
         torch.save(checkpoint, os.path.join(args.out_dir, checkpoint_name))
         print(f'Train time: {np.abs(train_times[:100]).sum()}')
-        sys.stdout.close()
