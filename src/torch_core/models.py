@@ -1186,9 +1186,7 @@ class ConpoleEncoder(nn.Module):
             [environment.State([self.problems[i]], [], 0) for i in item_index.flatten()]).detach()
 
         if self.params is not None:
-            print(self.params[0].shape, self.params[1].shape, item_embedding.shape
-            )
-            item_embedding = (item_embedding - self.params[0])/self.params[1]
+            item_embedding = (item_embedding - self.params[0])/(self.params[1]+1e-5)
         mu = self.mu(item_embedding)
         logvar = self.logvar(item_embedding)
 
