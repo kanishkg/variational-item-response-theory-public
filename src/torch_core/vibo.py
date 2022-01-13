@@ -29,6 +29,8 @@ sys.path.append('../../socratic-tutor/')
 
 
 if __name__ == "__main__":
+    sys.stdout = open('error.log', 'w')
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--irt-model', type=str, default='1pl',
@@ -784,4 +786,5 @@ if __name__ == "__main__":
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
         torch.save(checkpoint, os.path.join(args.out_dir, checkpoint_name))
-        print(f'Train time: {np.abs(train_times[:100]).sum()}') 
+        print(f'Train time: {np.abs(train_times[:100]).sum()}')
+        sys.stdout.close()
