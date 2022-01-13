@@ -289,6 +289,15 @@ if __name__ == "__main__":
         side_info_model = torch.load(args.side_info_model, map_location=device)
         side_info_model.to(device)
 
+    # normalize embeddings
+    if args.embed_conpole:
+        embedding_model.eval()
+        item_embedding = embedding_model.q_fn.embed_states(
+            [environment.State([p], [], 0) for p in train_dataset.problems]).detach()
+        item_mean = torch.mean(item_embedding, dim=-1)
+        item_std = torch.std(item_embedding, dim=-1)
+
+
     model = model_class(
         args.ability_dim,
         num_item,
@@ -303,7 +312,8 @@ if __name__ == "__main__":
         embed_conpole=args.embed_conpole,
         embed_bert=args.embed_bert,
         problems=train_dataset.problems,
-        side_info_model=side_info_model
+        side_info_model=side_info_model,
+        embed_model_params = [item_mean, item_std]
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)

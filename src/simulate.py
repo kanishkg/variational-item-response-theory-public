@@ -5,7 +5,9 @@ check our models to make sure things are reasonable.
 
 import os
 import torch
+import pyro.distributions as dist
 import numpy as np
+import json
 
 from src.config import DATA_DIR
 from src.pyro_core.models import (
@@ -14,6 +16,8 @@ from src.pyro_core.models import (
     irt_model_3pl,
 )
 
+def ability_to_side(ability):
+    return ability
 
 if __name__ == "__main__":
     import argparse
@@ -52,7 +56,8 @@ if __name__ == "__main__":
         raise Exception('irt_model {} not supported'.format(args.irt_model))
 
     response, ability, item_feat = irt_model(args.ability_dim, args.num_person, args.num_item, device)
-    dataset = {'response': response, 'ability': ability, 'item_feat': item_feat}
+    side_info = ability_to_side(ability)
+    dataset = {'response': response, 'ability': ability, 'item_feat': item_feat, 'side_info':side_info}
 
     print('Saving to {}'.format(OUT_DIR))
     torch.save(dataset, os.path.join(OUT_DIR, 'simulation.pth'))
