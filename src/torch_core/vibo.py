@@ -380,7 +380,7 @@ if __name__ == "__main__":
             grad_norm.update(total_norm)
 
             pbar.update()
-            pbar.set_postfix({'Loss': train_loss.avg, 'grad_step': grad_norm.avg})
+            pbar.set_postfix({'Loss': train_loss.avg })
 
         pbar.close()
         print('====> Train Epoch: {} Loss: {:.4f}'.format(epoch, train_loss.avg))
@@ -688,7 +688,6 @@ if __name__ == "__main__":
                 inferred_response = torch.round(inferred_response)
 
                 correct, count = 0, 0
-                print(inferred_response.size())
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
                     inferred_label = inferred_response[missing_index[0], missing_index[1]]
                     if inferred_label.item() == missing_label[0]:
