@@ -649,7 +649,7 @@ if __name__ == "__main__":
         if not args.no_test:
             np.save(os.path.join(args.out_dir, 'test_losses.npy'),  test_losses)
 
-    for checkpoint_name in ['model_best.pth.tar']:
+    for checkpoint_name in ['checkpoint.pth.tar', 'model_best.pth.tar']:
         checkpoint = torch.load(os.path.join(args.out_dir, checkpoint_name))
         model.load_state_dict(checkpoint['model_state_dict'])
 
