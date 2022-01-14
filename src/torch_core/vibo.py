@@ -649,7 +649,7 @@ if __name__ == "__main__":
         if not args.no_test:
             np.save(os.path.join(args.out_dir, 'test_losses.npy'),  test_losses)
 
-    for checkpoint_name in ['checkpoint.pth.tar', 'model_best.pth.tar']:
+    for checkpoint_name in ['model_best.pth.tar']:
         checkpoint = torch.load(os.path.join(args.out_dir, checkpoint_name))
         model.load_state_dict(checkpoint['model_state_dict'])
 
@@ -669,8 +669,6 @@ if __name__ == "__main__":
         if not args.no_infer_dict:
             infer_dict = get_infer_dict(train_loader)
             checkpoint['infer_dict'] = infer_dict
-
-
 
 
         if not args.no_predictive:
@@ -721,6 +719,8 @@ if __name__ == "__main__":
                             count += 1
                         test_missing_imputation_accuracy = correct / float(count)
 
+                with open('results_algebra','a') as f:
+                    f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},')
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},')
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
