@@ -719,8 +719,9 @@ if __name__ == "__main__":
                             count += 1
                         test_missing_imputation_accuracy = correct / float(count)
 
-                with open('results_algebra','a') as f:
-                    f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},\n')
+                if 'best' in checkpoint_name:
+                    with open('results_algebra','a') as f:
+                        f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},\n')
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},')
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
 
