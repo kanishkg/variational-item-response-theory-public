@@ -1009,6 +1009,7 @@ class IRTSimulation(torch.utils.data.Dataset):
         self.side_info = side_info
         self.side_info_feat = None
         self.side_info_mask = None
+        self.problems = None
         self.encoder_mask = None
         if side_info:
             self.side_info_feat = side_info_feat
