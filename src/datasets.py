@@ -1032,7 +1032,7 @@ class IRTSimulation(torch.utils.data.Dataset):
         if self.side_info is None:
             return index, response, item_id, mask, self.encoder_mask[index]
         else:
-            return index, response, item_id, mask, self.steps[index], self.step_mask[index], self.encoder_mask[index]
+            return index, response, item_id, mask, self.side_info[index], self.side_info_mask[index], self.encoder_mask[index]
 
 class JSONDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
