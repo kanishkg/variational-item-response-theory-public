@@ -276,11 +276,11 @@ if __name__ == "__main__":
         print(f'Found MAX_ITERS={args.max_iters}, setting EPOCHS={args.epochs}')
 
     if args.irt_model == '1pl':
-        model_class = VIBO_1PL if 'step' in args.dataset else VIBO_STEP_1PL
+        model_class = VIBO_1PL if 'step' not in args.dataset else VIBO_STEP_1PL
     elif args.irt_model == '2pl':
-        model_class = VIBO_2PL if 'step' in args.dataset else VIBO_STEP_2PL
+        model_class = VIBO_2PL if 'step' not in args.dataset else VIBO_STEP_2PL
     elif args.irt_model == '3pl':
-        model_class = VIBO_3PL if 'step' in args.dataset else VIBO_STEP_3PL
+        model_class = VIBO_3PL if 'step' not in args.dataset else VIBO_STEP_3PL
     else:
         raise Exception(f'model {args.irt_model} not recognized')
 
