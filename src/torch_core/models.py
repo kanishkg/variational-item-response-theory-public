@@ -600,6 +600,8 @@ class VIBO_STEP_1PL(nn.Module):
         self.embedding_model       = embedding_model
 
         self._set_step_feat_dim()
+        if 'simulate' in side_info_model:
+            self.step_feat_dim = 1
         self._set_item_feat_dim()
         self._set_irt_num()
 
@@ -632,7 +634,7 @@ class VIBO_STEP_1PL(nn.Module):
 
         # TODO Change to generic side info encoder; not same as item
         if 'simulate' in side_info_model:
-            self.step_encoder = StepEncoder(self.ability_dim, 1)
+            self.step_encoder = StepEncoder(self.ability_dim, self.step_feat_dim)
         else:
             self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
 
