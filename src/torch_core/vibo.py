@@ -137,7 +137,8 @@ if __name__ == "__main__":
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='enables CUDA training (default: False)')
     args = parser.parse_args()
-    
+
+    side_info = None
     if args.n_norm_flows > 0:
         args.no_infer_dict = True
         args.no_predictive = True
