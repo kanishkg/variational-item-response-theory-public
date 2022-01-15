@@ -294,8 +294,11 @@ if __name__ == "__main__":
         embedding_model = None
     side_info_model = None
     if args.side_info_model:
-        side_info_model = torch.load(args.side_info_model, map_location=device)
-        side_info_model.to(device)
+        if args.side_info_mode != 'simulate':
+            side_info_model = torch.load(args.side_info_model, map_location=device)
+            side_info_model.to(device)
+        else:
+            side_info_model = 'simulate'
 
     model = model_class(
         args.ability_dim,
