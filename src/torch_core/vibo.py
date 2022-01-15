@@ -255,7 +255,7 @@ if __name__ == "__main__":
     num_person = train_dataset.num_person
     num_item   = train_dataset.num_item
 
-    collate_fn = None if 'step' in args.dataset else collate_function_step
+    collate_fn = None if 'step' not in args.dataset else collate_function_step
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, 
