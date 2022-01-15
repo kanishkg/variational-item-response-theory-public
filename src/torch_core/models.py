@@ -1162,6 +1162,7 @@ class StepEncoder(nn.Module):
 
         step_embedding = step_embedding.detach()
         step_mulogvar = self.mlp(step_embedding)
+        print(step_mulogvar.size())
         mu = step_mulogvar[:, :, :self.step_feat_dim]
         logvar = step_mulogvar[:, :, self.step_feat_dim:]
         return mu, logvar
