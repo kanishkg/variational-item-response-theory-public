@@ -27,6 +27,13 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return IRTSimulation(train=train, irt_model='2pl', **kwargs)
     elif dataset_name == '3pl_simulation':
         return IRTSimulation(train=train, irt_model='3pl', **kwargs)
+
+    elif dataset_name == '1pl_simulationstep':
+        return IRTSimulation(train=train, irt_model='1pl', **kwargs)
+    elif dataset_name == '2pl_simulationstep':
+        return IRTSimulation(train=train, irt_model='2pl', **kwargs)
+    elif dataset_name == '3pl_simulationstep':
+        return IRTSimulation(train=train, irt_model='3pl', **kwargs)
     elif dataset_name == '1pl_nonlinear':
         return IRTSimulation(train=train, irt_model='1pl', nonlinear=True, **kwargs)
     elif dataset_name == '2pl_nonlinear':
