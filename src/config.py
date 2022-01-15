@@ -15,7 +15,9 @@ MISSING_DATA = -1  # use -1 to represent missing
 
 IS_REAL_WORLD = {
     '1pl_simulation': False, 
-    '2pl_simulation': False, 
+    '2pl_simulation': False,
+    '1pl_simulationstep': False,
+    '2pl_simulationstep': False,
     '1pl_nonlinear': False,
     '2pl_nonlinear': False,
     'critlangacq': True,

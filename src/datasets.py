@@ -947,6 +947,7 @@ class IRTSimulation(torch.utils.data.Dataset):
             num_item = 100, 
             ability_dim = 1, 
             nonlinear = False,
+            side_info = None,
             **kwargs
         ):
         super().__init__()
@@ -969,6 +970,8 @@ class IRTSimulation(torch.utils.data.Dataset):
             raise Exception('irt_model {} not supported'.format(irt_model))
         response = response.numpy()
         true_ability = true_ability.numpy()
+        if side_info is not None:
+            side_info_feat = true_ability + np.random.normal(scale=0.1, size=true_ability.shape)
         true_item_feat = true_item_feat.numpy()
 
         num_person = response.shape[0]
@@ -996,6 +999,13 @@ class IRTSimulation(torch.utils.data.Dataset):
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
+        self.side_info = side_info
+        self.side_info_feat = None
+        self.side_info_mask = None
+        self.encoder_mask = None
+        if side_info:
+            self.side_info_feat = side_info_feat
+            self.side_info_mask = response_mask
 
     def __len__(self):
         return self.length
@@ -1011,8 +1021,10 @@ class IRTSimulation(torch.utils.data.Dataset):
         response = torch.from_numpy(response).float()
         item_id = torch.from_numpy(item_id).long()
         mask = torch.from_numpy(mask).bool()
-
-        return index, response, item_id, mask
+        if self.side_info is None:
+            return index, response, item_id, mask, self.encoder_mask[index]
+        else:
+            return index, response, item_id, mask, self.steps[index], self.step_mask[index], self.encoder_mask[index]
 
 class JSONDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):

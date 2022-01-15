@@ -39,6 +39,9 @@ if __name__ == "__main__":
                             '1pl_simulation', 
                             '2pl_simulation', 
                             '3pl_simulation',
+                            '1pl_simulationstep',
+                            '2pl_simulationstep',
+                            '3pl_simulationstep',
                             'critlangacq',
                             'duolingo',
                             'wordbank',
@@ -196,6 +199,9 @@ if __name__ == "__main__":
     else:
         dataset_name = f'{args.dataset}_continuous'
 
+    if 'step' in args.dataset:
+        side_info = True
+
     train_dataset = load_dataset(
         dataset_name, 
         is_train = True,
@@ -204,6 +210,7 @@ if __name__ == "__main__":
         ability_dim = args.ability_dim,
         max_num_person = args.max_num_person,
         max_num_item = args.max_num_item,
+        side_info = side_info
     )
     test_dataset  = load_dataset(
         dataset_name, 
@@ -213,6 +220,7 @@ if __name__ == "__main__":
         ability_dim = args.ability_dim,
         max_num_person = args.max_num_person,
         max_num_item = args.max_num_item,
+        side_info = side_info
     )
 
     if args.artificial_missing_perc > 0:
@@ -246,7 +254,7 @@ if __name__ == "__main__":
     num_person = train_dataset.num_person
     num_item   = train_dataset.num_item
 
-    collate_fn = None if args.dataset != 'jsonstep' else collate_function_step
+    collate_fn = None if 'step' in args.dataset else collate_function_step
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, 
@@ -268,11 +276,11 @@ if __name__ == "__main__":
         print(f'Found MAX_ITERS={args.max_iters}, setting EPOCHS={args.epochs}')
 
     if args.irt_model == '1pl':
-        model_class = VIBO_1PL if args.dataset != 'jsonstep' else VIBO_STEP_1PL
+        model_class = VIBO_1PL if 'step' in args.dataset else VIBO_STEP_1PL
     elif args.irt_model == '2pl':
-        model_class = VIBO_2PL if args.dataset != 'jsonstep' else VIBO_STEP_2PL
+        model_class = VIBO_2PL if 'step' in args.dataset else VIBO_STEP_2PL
     elif args.irt_model == '3pl':
-        model_class = VIBO_3PL if args.dataset != 'jsonstep' else VIBO_STEP_3PL
+        model_class = VIBO_3PL if 'step' in args.dataset else VIBO_STEP_3PL
     else:
         raise Exception(f'model {args.irt_model} not recognized')
 
@@ -324,7 +332,7 @@ if __name__ == "__main__":
         pbar = tqdm(total=len(train_loader))
 
         for batch_idx, batch in enumerate(train_loader):
-            if args.dataset == 'jsonstep':
+            if 'step' in args.dataset:
                 index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                 step_mask = step_mask.long().to(device)
             else:
@@ -356,16 +364,16 @@ if __name__ == "__main__":
                     item_logabsdetjac = item_feat_logabsdetjac,
                 )
             else:
-                if args.dataset == 'jsonstep':
+               if 'step' in args.dataset:
                     outputs = model(response, mask, steps, step_mask, encoder_mask)
-                else:
+               else:
                     outputs = model(response, mask, encoder_mask)
-                loss = model.elbo(*outputs, annealing_factor=annealing_factor,
+               loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                 use_kl_divergence=True)
             loss.backward()
             total_norm = -1
             weight_norm = 1
-            if args.dataset == 'jsonstep':
+            if 'step' in args.dataset:
                 for p in model.step_encoder.parameters():
                     if p.grad is not None:
                         param_norm = p.grad.detach().data.norm(2)
@@ -394,7 +402,7 @@ if __name__ == "__main__":
 
         with torch.no_grad():
             for batch in test_loader:
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
@@ -423,7 +431,7 @@ if __name__ == "__main__":
                         item_logabsdetjac = item_feat_logabsdetjac,
                     )
                 else:
-                    if args.dataset == 'jsonstep':
+                    if 'step' in args.dataset:
                         outputs = model(response, mask, steps, step_mask, encoder_mask)
                     else:
                         outputs = model(response, mask, encoder_mask)
@@ -475,7 +483,7 @@ if __name__ == "__main__":
             response_sample_set = []
 
             for batch in loader:
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
@@ -485,7 +493,7 @@ if __name__ == "__main__":
                 mask = mask.long().to(device)
                 encoder_mask = encoder_mask.long().to(device)
 
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
                         model.encode(response, encoder_mask, steps, step_mask)
                 else:
@@ -529,7 +537,7 @@ if __name__ == "__main__":
             response_sample_set = []
 
             for batch in loader:
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     index, response, problem_ids, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
@@ -539,7 +547,7 @@ if __name__ == "__main__":
                 mask = mask.long().to(device)
                 encoder_mask = encoder_mask.long().to(device)
 
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
                         model.encode(response, encoder_mask, steps, step_mask)
                 else:
@@ -568,7 +576,7 @@ if __name__ == "__main__":
 
             pbar = tqdm(total=len(loader))
             for batch in loader:
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     _, response, _, mask, steps, step_mask, encoder_mask = batch
                     step_mask = step_mask.long().to(device)
                 else:
@@ -579,7 +587,7 @@ if __name__ == "__main__":
                 encoder_mask = encoder_mask.long().to(device)
 
 
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
                         model.encode(response, encoder_mask, steps, step_mask)
                     step_feat_mus.append(step_feat_mu)
@@ -594,7 +602,7 @@ if __name__ == "__main__":
                 item_feat_mus.append(item_feat_mu.cpu())
                 item_feat_logvars.append(item_feat_logvar.cpu())
 
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     step_feat_mus.append(step_feat_mu.cpu())
                     step_feat_logvars.append(step_feat_logvar.cpu())
 
@@ -608,7 +616,7 @@ if __name__ == "__main__":
         infer_dict['ability_logvar'] = ability_logvars
         infer_dict['item_feat_mu'] = item_feat_mu
         infer_dict['item_feat_logvar'] = item_feat_logvar
-        if args.dataset == 'jsonstep':
+        if 'step' in args.dataset:
             infer_dict['step_feat_mu'] = step_feat_mu
             infer_dict['step_feat_logvar'] = step_feat_logvar
 
@@ -695,7 +703,7 @@ if __name__ == "__main__":
                 missing_imputation_accuracy = correct / float(count)
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
                 if not args.no_test_predictive:
                     posterior_predict_samples = sample_posterior_predictive(test_loader)
@@ -778,7 +786,7 @@ if __name__ == "__main__":
                 missing_imputation_accuracy = correct / float(count)
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
-                if args.dataset == 'jsonstep':
+                if 'step' in args.dataset:
                     model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "test_accuracy": {missing_imputation_accuracy} }},')
                 print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')

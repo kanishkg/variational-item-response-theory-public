@@ -16,9 +16,6 @@ from src.pyro_core.models import (
     irt_model_3pl,
 )
 
-def ability_to_side(ability):
-    return ability
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
@@ -56,8 +53,7 @@ if __name__ == "__main__":
         raise Exception('irt_model {} not supported'.format(args.irt_model))
 
     response, ability, item_feat = irt_model(args.ability_dim, args.num_person, args.num_item, device)
-    side_info = ability_to_side(ability)
-    dataset = {'response': response, 'ability': ability, 'item_feat': item_feat, 'side_info':side_info}
+    dataset = {'response': response, 'ability': ability, 'item_feat': item_feat}
 
     print('Saving to {}'.format(OUT_DIR))
     torch.save(dataset, os.path.join(OUT_DIR, 'simulation.pth'))

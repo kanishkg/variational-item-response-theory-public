@@ -631,7 +631,10 @@ class VIBO_STEP_1PL(nn.Module):
             self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
         # TODO Change to generic side info encoder; not same as item
-        self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
+        if 'simulate' in side_info_model:
+            self.step_encoder = StepEncoder(self.ability_dim, 1)
+        else:
+            self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
@@ -1134,6 +1137,33 @@ class ItemInferenceNetwork(nn.Module):
         mu = self.mu_lookup(item_index.long())
         logvar = self.logvar_lookup(item_index.long())
 
+        return mu, logvar
+
+
+
+
+class StepEncoder(nn.Module):
+    def __init__(self, ability_dim, step_feat_dim, hidden_dim=16):
+        super().__init__()
+
+        self.mlp = nn.Sequential(
+            nn.Linear(ability_dim, hidden_dim),
+            nn.ELU(inplace=True),
+            nn.Linear(hidden_dim, step_feat_dim*2),
+        )
+        self.step_feat_dim = step_feat_dim
+        self.embedding_dim = ability_dim
+
+    def forward(self, steps, step_mask):
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
+        steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+        for s, (i, j, _) in enumerate(steps_idx):
+            step_embedding[i, j, :] = steps[i, j, :]
+
+        step_embedding = step_embedding.detach()
+        step_mulogvar = self.mlp(step_embedding)
+        mu = step_mulogvar[:, :, :self.step_feat_dim]
+        logvar = step_mulogvar[:, :, self.step_feat_dim:]
         return mu, logvar
 
 
