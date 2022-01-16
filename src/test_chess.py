@@ -27,11 +27,11 @@ def get_chess_data(data_file):
     return puzzles
 
 
-def test_engine(engine, data):
+def test_engine(engine, data, num_puzzles=-1):
     responses = []
     scores = 0.
     total = 0.
-    pbar = tqdm(data)
+    pbar = tqdm(data[:num_puzzles])
 
     for p in pbar:
         total +=1
@@ -69,6 +69,7 @@ if __name__ == "__main__":
     stochfish_path = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
     engine_name = 'stockfish'
     population_type = 'level'
+    num_puzzles = 100
 
     if engine_name == 'stockfish':
         engine = Stockfish(path=stochfish_path)
@@ -78,5 +79,5 @@ if __name__ == "__main__":
     data = get_chess_data(data_file)
     for p in population_parameters[population_type]:
         engine.set_skill_level(p)
-        responses = test_engine(engine, data)
+        responses = test_engine(engine, data, num_puzzles)
         print(p, sum(responses)/len(responses))
