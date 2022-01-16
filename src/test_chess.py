@@ -1,9 +1,10 @@
 import copy
+import os
 from tqdm import tqdm
 
+import torch
 import chess
 from stockfish import Stockfish
-
 
 def get_chess_data(data_file):
     # PuzzleId,FEN,Moves,Rating,RatingDeviation,Popularity,NbPlays,Themes,GameUrl
@@ -77,7 +78,14 @@ if __name__ == "__main__":
             population_parameters = {'level': [i + 1 for i in range(20)]}
 
     data = get_chess_data(data_file)
+    responses = []
+    ability = []
+    item_difficulty = [d['Rating'] for d in data[:num_puzzles]]
     for p in population_parameters[population_type]:
         engine.set_skill_level(p)
-        responses = test_engine(engine, data, num_puzzles)
+        responses.append(test_engine(engine, data, num_puzzles))
+        ability.append(p)
         print(p, sum(responses)/len(responses))
+    dataset = {'response': responses, 'ability': ability, 'item_feat': item_difficulty}
+
+    torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess', 'chess.pth'))
