@@ -48,6 +48,7 @@ if __name__ == "__main__":
                             'pisa2015_science',
                             'json',
                             'jsonstep',
+                            'chessai',
                             'roar',
                         ],
                         help='which dataset to run on (default: 1pl_simulation)')

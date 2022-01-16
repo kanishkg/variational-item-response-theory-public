@@ -26,5 +26,6 @@ IS_REAL_WORLD = {
     'pisa2015_science': True,
     'json': True,
     'jsonstep': True,
+    'chessai': True,
     'roar': True,
 }

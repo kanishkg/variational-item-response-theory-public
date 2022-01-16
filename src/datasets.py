@@ -27,7 +27,6 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return IRTSimulation(train=train, irt_model='2pl', **kwargs)
     elif dataset_name == '3pl_simulation':
         return IRTSimulation(train=train, irt_model='3pl', **kwargs)
-
     elif dataset_name == '1pl_simulationstep':
         return IRTSimulation(train=train, irt_model='1pl', **kwargs)
     elif dataset_name == '2pl_simulationstep':
@@ -44,6 +43,8 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return JSONDataset(train=train, **kwargs)
     elif dataset_name == 'jsonstep':
         return JSONStepDataset(train=train, **kwargs)
+    elif dataset_name == 'chessai':
+        return ChessAIDataset(train=train, **kwargs)
     elif dataset_name == 'roar':
         return ROARDataset(train=train, **kwargs)
     elif dataset_name == 'critlangacq':
@@ -1091,6 +1092,35 @@ class JSONDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
+
+
+class ChessAIDataset(torch.utils.data.Dataset):
+    def __init__(self, is_train=True, **kwargs):
+        super().__init__()
+
+        dataset = torch.load(os.path.join(DATA_DIR, 'chess/chess.pth'))
+
+        self.n_students = len(dataset['ability'])
+        self.n_problems = len(dataset['item_feat'])
+
+        self.response = np.array(dataset['response'], dtype=int)
+        self.problem_id = np.arange(self.n_problems)
+        self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
+
+        num_train = int(0.8 * len(self.response))
+        split = slice(0, num_train) if is_train else slice(num_train, -1)
+
+        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.num_person = len(self.response)
+        self.num_item = self.response.shape[1]
+        self.encoder_mask = None
+
+    def __len__(self):
+        return self.response.shape[0]
+
+    def __getitem__(self, index):
+        return index, self.response[index], self.problem_id, self.mask[index], self.encoder_mask[index]
 
 
 def collate_function_step(batch):
