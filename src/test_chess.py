@@ -31,10 +31,10 @@ def test_engine(engine, data):
     responses = []
     for p in tqdm(data):
         fen = p['FEN']
-        moves = p['moves']
+        moves = p['Moves']
         board = chess.Board(fen)
         opponent, query = moves[::2], moves[1::2]
-        score = True
+        score = 1
 
         for q in query:
             opp_move = opponent[0]
@@ -48,7 +48,7 @@ def test_engine(engine, data):
                 board_test = copy.deepcopy(board)
                 board_test.push(chess.Move.from_uci(predicted_move))
                 if not board_test.is_checkmate():
-                    score = False
+                    score = 0
                     break
             board.push(chess.Move.from_uci(q))
         responses.append(score)
@@ -71,4 +71,5 @@ if __name__ == "__main__":
 
     data = get_chess_data(data_file)
     for p in population_parameters[population_type]:
-        engine.set_level(1)
+        responses = engine.set_skill_level(p)
+        print(sum(responses)/len(responses))
