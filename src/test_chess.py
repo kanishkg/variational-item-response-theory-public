@@ -86,7 +86,7 @@ if __name__ == "__main__":
         print(engine.get_parameters())
         responses.append(test_engine(engine, data, num_puzzles))
         ability.append(p)
-        print(p, sum(responses)/len(responses))
+        print(p, sum(responses[-1])/len(responses[-1]))
     dataset = {'response': responses, 'ability': ability, 'item_feat': item_difficulty}
 
     torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess', 'chess.pth'))
