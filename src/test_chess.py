@@ -29,7 +29,12 @@ def get_chess_data(data_file):
 
 def test_engine(engine, data):
     responses = []
-    for p in tqdm(data):
+    scores = 0.
+    total = 0.
+    pbar = tqdm(data)
+
+    for p in pbar:
+        total +=1
         fen = p['FEN']
         moves = p['Moves']
         board = chess.Board(fen)
@@ -51,6 +56,8 @@ def test_engine(engine, data):
                     break
             board.push(chess.Move.from_uci(q))
         responses.append(score)
+        scores += score
+        pbar.set_description(f"current score {scores/total}")
     return responses
 
 
