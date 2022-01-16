@@ -12,7 +12,9 @@ def get_chess_data(data_file):
         raw_problems = f.read().split('\n')
     for problem in tqdm(raw_problems):
         puzzle = {}
+        print(problem)
         problem_list = problem.split(',')
+        print(problem_list)
         puzzle['PuzzleId'] = problem_list[0]
         puzzle['FEN'] = problem_list[1]
         puzzle['Moves'] = problem_list[2].split()
