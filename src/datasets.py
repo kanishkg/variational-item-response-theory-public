@@ -1115,7 +1115,7 @@ class ChessAIDataset(torch.utils.data.Dataset):
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.encoder_mask = None
-        self.problems = self.item_feat
+        self.problems = dataset['item_feat']
 
     def __len__(self):
         return self.response.shape[0]
