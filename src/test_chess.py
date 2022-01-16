@@ -59,7 +59,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    data_file = '/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess/lichess_db_puzzle.csv.bz2'
+    data_file = '/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess/lichess_db_puzzle.csv'
     stochfish_path = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
     engine_name = 'stockfish'
     population_type = 'level'
