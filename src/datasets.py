@@ -1104,7 +1104,7 @@ class ChessAIDataset(torch.utils.data.Dataset):
         self.n_problems = len(dataset['item_feat'])
 
         self.response = np.array(dataset['response'], dtype=int)
-        self.problem_id = np.arange(self.n_problems)
+        self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
         self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
 
         num_train = int(0.8 * len(self.response))
@@ -1121,7 +1121,7 @@ class ChessAIDataset(torch.utils.data.Dataset):
         return self.response.shape[0]
 
     def __getitem__(self, index):
-        return index, self.response[index], self.problem_id, self.mask[index], self.encoder_mask[index]
+        return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
 
 
 def collate_function_step(batch):
