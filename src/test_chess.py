@@ -10,7 +10,7 @@ def get_chess_data(data_file):
     puzzles = []
     with open(data_file, 'r') as f:
         raw_problems = f.read().split('\n')
-    for problem in raw_problems:
+    for problem in tqdm(raw_problems):
         puzzle = {}
         problem_list = problem.split(',')
         puzzle['PuzzleId'] = problem_list[0]
@@ -70,3 +70,5 @@ if __name__ == "__main__":
             population_parameters = {'level': [i + 1 for i in range(20)]}
 
     data = get_chess_data(data_file)
+    for p in population_parameters[population_type]:
+        engine.set_level(1)
