@@ -1112,6 +1112,7 @@ class ChessAIDataset(torch.utils.data.Dataset):
 
         self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
         self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.problem_id = self.problem_id[split]
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.encoder_mask = None
