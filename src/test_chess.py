@@ -9,12 +9,10 @@ def get_chess_data(data_file):
     # PuzzleId,FEN,Moves,Rating,RatingDeviation,Popularity,NbPlays,Themes,GameUrl
     puzzles = []
     with open(data_file, 'r') as f:
-        raw_problems = f.read().split('\n')
+        raw_problems = f.read().split('\n')[:-1]
     for problem in tqdm(raw_problems):
         puzzle = {}
-        print(problem)
         problem_list = problem.split(',')
-        print(problem_list)
         puzzle['PuzzleId'] = problem_list[0]
         puzzle['FEN'] = problem_list[1]
         puzzle['Moves'] = problem_list[2].split()
