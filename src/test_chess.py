@@ -70,7 +70,7 @@ if __name__ == "__main__":
     stochfish_path = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
     engine_name = 'stockfish'
     population_type = 'level'
-    num_puzzles = 100
+    num_puzzles = 1000
 
     if engine_name == 'stockfish':
         engine = Stockfish(path=stochfish_path)
