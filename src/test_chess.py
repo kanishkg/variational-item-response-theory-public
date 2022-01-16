@@ -83,6 +83,7 @@ if __name__ == "__main__":
     item_difficulty = [d['Rating'] for d in data[:num_puzzles]]
     for p in population_parameters[population_type]:
         engine.set_skill_level(p)
+        print(engine.get_parameters())
         responses.append(test_engine(engine, data, num_puzzles))
         ability.append(p)
         print(p, sum(responses)/len(responses))
