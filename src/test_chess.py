@@ -43,7 +43,6 @@ def test_engine(engine, data):
             fen = board.fen()
             engine.set_fen_position(fen)
             predicted_move = engine.get_best_move()
-            print(predicted_move)
             if predicted_move != q:
                 board_test = copy.deepcopy(board)
                 board_test.push(chess.Move.from_uci(predicted_move))
