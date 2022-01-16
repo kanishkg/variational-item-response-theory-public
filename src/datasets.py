@@ -138,7 +138,7 @@ def artificially_mask_dataset(old_dataset, perc, mask_items=False):
         # First choose a random subset of the items, then mask all of their labels.
         num = int(perc * len(dataset.problems))
         items = np.sort(
-            rs.choice(np.arange(len(dataset.problems)), size=num, replace=False),
+            rs.choice(np.arange(len(dataset.num)), size=num, replace=False),
            )
         for item in items:
             mask[dataset.problem_id == item] = 0
@@ -1115,6 +1115,7 @@ class ChessAIDataset(torch.utils.data.Dataset):
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.encoder_mask = None
+        self.problems = self.item_feat
 
     def __len__(self):
         return self.response.shape[0]
