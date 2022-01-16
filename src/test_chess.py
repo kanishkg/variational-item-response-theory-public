@@ -72,4 +72,4 @@ if __name__ == "__main__":
     data = get_chess_data(data_file)
     for p in population_parameters[population_type]:
         responses = engine.set_skill_level(p)
-        print(sum(responses)/len(responses))
+        print(p, sum(responses)/len(responses))
