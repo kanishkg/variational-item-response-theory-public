@@ -374,7 +374,7 @@ if __name__ == "__main__":
                else:
                     outputs = model(response, mask, encoder_mask)
                loss = model.elbo(*outputs, annealing_factor=annealing_factor,
-                                use_kl_divergence=True)
+                                use_kl_divergence=True)/args.batch_size
             loss.backward()
             total_norm = -1
             weight_norm = 1
