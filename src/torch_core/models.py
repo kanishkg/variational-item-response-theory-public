@@ -633,10 +633,11 @@ class VIBO_STEP_1PL(nn.Module):
             self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
         # TODO Change to generic side info encoder; not same as item
-        if 'simulate' in side_info_model:
-            self.step_encoder = StepEncoder(self.ability_dim, self.step_feat_dim)
-        else:
-            self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
+        if side_info_model:
+            if 'simulate' in side_info_model:
+                self.step_encoder = StepEncoder(self.ability_dim, self.step_feat_dim)
+            else:
+                self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(

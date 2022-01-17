@@ -294,7 +294,7 @@ if __name__ == "__main__":
         embedding_model.to(device)
     else:
         embedding_model = None
-    side_info_model = None
+    side_info_model = ''
     if args.side_info_model:
         if args.side_info_model != 'simulate':
             side_info_model = torch.load(args.side_info_model, map_location=device)
