@@ -1150,9 +1150,7 @@ class StepEncoder(nn.Module):
         super().__init__()
 
         self.mlp = nn.Sequential(
-            nn.Linear(ability_dim, hidden_dim),
-            nn.ELU(inplace=True),
-            nn.Linear(hidden_dim, step_feat_dim*2),
+            nn.Linear(ability_dim, step_feat_dim*2),
         )
         self.step_feat_dim = step_feat_dim
         self.embedding_dim = ability_dim
