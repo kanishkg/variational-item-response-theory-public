@@ -979,7 +979,7 @@ class IRTSimulation(torch.utils.data.Dataset):
         response = response.numpy()
         true_ability = true_ability.numpy()
         if side_info is not None:
-            side_info_feat = true_ability + np.random.normal(scale=0.1, size=true_ability.shape)
+            side_info_feat = true_ability + np.random.normal(scale=0.01, size=true_ability.shape)
         true_item_feat = true_item_feat.numpy()
 
         num_person = response.shape[0]
