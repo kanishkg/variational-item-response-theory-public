@@ -707,7 +707,8 @@ class VIBO_STEP_1PL(nn.Module):
         item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
         step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
-        step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
+        # step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
+        step_feat = step_feat_mu
         ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
@@ -782,7 +783,7 @@ class VIBO_STEP_1PL(nn.Module):
                 elbo = log_p_r_j_given_d_u \
                        - annealing_factor * kl_q_u_p_u \
                        - annealing_factor * kl_q_d_p_d\
-                       - annealing_factor * kl_q_s_p_s
+                       - 0 * annealing_factor * kl_q_s_p_s
 
             else:
                 log_p_u = standard_normal_log_pdf(ability).sum()
@@ -792,8 +793,8 @@ class VIBO_STEP_1PL(nn.Module):
                 log_q_u = normal_log_pdf(ability, ability_mu, ability_logvar).sum()
                 log_q_d = normal_log_pdf(item_feat, item_feat_mu, item_feat_logvar).sum()
                 log_q_s = normal_log_pdf(step_feat, step_feat_mu, step_feat_logvar).sum()
-                model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d + log_p_s
-                guide_log_prob_sum = log_q_u + log_q_d + log_q_s
+                model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d + 0*log_p_s
+                guide_log_prob_sum = log_q_u + log_q_d + 0*log_q_s
 
                 elbo = model_log_prob_sum - guide_log_prob_sum
 
