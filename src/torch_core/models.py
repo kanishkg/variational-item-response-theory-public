@@ -782,7 +782,7 @@ class VIBO_STEP_1PL(nn.Module):
                 elbo = log_p_r_j_given_d_u \
                        - annealing_factor * kl_q_u_p_u \
                        - annealing_factor * kl_q_d_p_d\
-                       - annealing_factor * kl_q_s_p_s
+                       - 0 * annealing_factor * kl_q_s_p_s
 
             else:
                 log_p_u = standard_normal_log_pdf(ability).sum()
