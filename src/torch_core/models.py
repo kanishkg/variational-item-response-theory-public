@@ -782,7 +782,7 @@ class VIBO_STEP_1PL(nn.Module):
                 elbo = log_p_r_j_given_d_u \
                        - annealing_factor * kl_q_u_p_u \
                        - annealing_factor * kl_q_d_p_d\
-                       - 0 * annealing_factor * kl_q_s_p_s
+                       - annealing_factor * kl_q_s_p_s
 
             else:
                 log_p_u = standard_normal_log_pdf(ability).sum()
@@ -1117,7 +1117,7 @@ class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
         item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
         step_feat_flat = step_feat.view(num_person * num_item, self.step_feat_dim)
 
-        mlp_input = torch.cat([response_flat, item_feat_flat*0, step_feat_flat], dim=1)
+        mlp_input = torch.cat([response_flat*0, item_feat_flat*0, step_feat_flat], dim=1)
 
         return getattr(self, f'_forward_{self.ability_merge}')(
             mlp_input,
