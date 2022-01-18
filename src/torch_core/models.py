@@ -778,23 +778,19 @@ class VIBO_STEP_1PL(nn.Module):
             if use_kl_divergence:
                 kl_q_u_p_u = kl_divergence_standard_normal_prior(ability_mu, ability_logvar).sum()
                 kl_q_d_p_d = kl_divergence_standard_normal_prior(item_feat_mu, item_feat_logvar).sum()
-                kl_q_s_p_s = kl_divergence_standard_normal_prior(step_feat_mu, step_feat_logvar).sum()
 
                 elbo = log_p_r_j_given_d_u \
                        - annealing_factor * kl_q_u_p_u \
-                       - annealing_factor * kl_q_d_p_d\
-                       - 0 * annealing_factor * kl_q_s_p_s
+                       - annealing_factor * kl_q_d_p_d
 
             else:
                 log_p_u = standard_normal_log_pdf(ability).sum()
                 log_p_d = standard_normal_log_pdf(item_feat).sum()
-                log_p_s = standard_normal_log_pdf(step_feat).sum()
 
                 log_q_u = normal_log_pdf(ability, ability_mu, ability_logvar).sum()
                 log_q_d = normal_log_pdf(item_feat, item_feat_mu, item_feat_logvar).sum()
-                log_q_s = normal_log_pdf(step_feat, step_feat_mu, step_feat_logvar).sum()
-                model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d + 0*log_p_s
-                guide_log_prob_sum = log_q_u + log_q_d + 0*log_q_s
+                model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d
+                guide_log_prob_sum = log_q_u + log_q_d
 
                 elbo = model_log_prob_sum - guide_log_prob_sum
 
@@ -1118,7 +1114,7 @@ class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
         item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
         step_feat_flat = step_feat.view(num_person * num_item, self.step_feat_dim)
 
-        mlp_input = torch.cat([response_flat*0, item_feat_flat*0, step_feat_flat], dim=1)
+        mlp_input = torch.cat([response_flat, item_feat_flat, step_feat_flat], dim=1)
 
         return getattr(self, f'_forward_{self.ability_merge}')(
             mlp_input,
