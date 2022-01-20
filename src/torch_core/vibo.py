@@ -168,7 +168,7 @@ if __name__ == "__main__":
         args.max_num_person = None
         args.max_num_item = None
 
-    out_file = 'VIBO_{}_{}_{}_{}_{}person_{}item_{}maxperson_{}maxitem_{}maskperc_{}ability_{}_{}_{}seed{}'.format(
+    out_file = 'VIBO_{}_{}_{}_{}_{}person_{}item_{}maxperson_{}maxitem_{}maskperc_{}ability_{}_{}_{}seed{}_encode{}'.format(
         args.irt_model, 
         args.dataset,
         args.response_dist,
@@ -187,6 +187,7 @@ if __name__ == "__main__":
                else '')),
         'conditional_q' if args.conditional_posterior else 'unconditional_q',
         args.seed,
+        args.num_encode
     )
     args.out_dir = os.path.join(args.out_dir, out_file) 
     
