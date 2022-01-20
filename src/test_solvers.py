@@ -50,10 +50,10 @@ if __name__ == "__main__":
     beam_size = 60  # Size of the beam in beam search.
     debug = False# Whether to print all steps during evaluation.
     ckpt_path = '/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/'
-    beam_size = 2
+    beam_size = 3
     max_depth = 50
     ckpt = 88
-    population_type = "beam-size"
+    population_type = "epoc"
     num_states = None
 
     if population_type == 'beam-size':
