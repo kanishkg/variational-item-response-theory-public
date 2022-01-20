@@ -1166,7 +1166,7 @@ class StepEncoder(nn.Module):
 
 
 class ConpoleStepEncoder(nn.Module):
-    def __init__(self, q_fn, step_feat_dim, embedding_dim=512, hidden_dim=16):
+    def __init__(self, q_fn, step_feat_dim, embedding_dim=1024, hidden_dim=16):
         super().__init__()
 
         self.q_fn = q_fn
