@@ -51,9 +51,9 @@ if __name__ == "__main__":
     debug = False# Whether to print all steps during evaluation.
     ckpt_path = '/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/'
     beam_size = 2
-    max_depth = 30
+    max_depth = 50
     ckpt = 88
-    population_type = "depth"
+    population_type = "beam-size"
     num_states = None
 
     if population_type == 'beam-size':
