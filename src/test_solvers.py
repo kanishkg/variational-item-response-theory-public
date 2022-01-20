@@ -9,59 +9,77 @@ import torch
 
 from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step
 import environment
+import argparse
 
 sys.path.append('../../socratic-tutor/')
 
+
+def get_algebra_data(num_states=None):
+    train_dataset = load_dataset('json', is_train = True)
+    if num_states is None:
+        num_states = train_dataset.n_problems
+    problem_states = [environment.State([p], [], 0) for p in train_dataset.problems[:num_states]]
+    return problem_states
+
+def evaluate_solver(problems, checkpoint, beam_size, max_steps):
+    model = torch.load(checkpoint, map_location=device)
+    model.to(device)
+    env = environment.RustEnvironment("equations-ct")
+    responses = []
+    scores = 0.
+    total = 0.
+    pbar = tqdm(problems)
+
+    for state in pbar:
+        total += 1
+        success, history = model.rollout(env, state,
+                                     max_steps, beam_size, debug)
+        if success:
+            scores += 1
+            responses.append(1)
+        else:
+            responses.append(0)
+        pbar.set_description(f"current score {scores/total}")
+    return responses
+
 if __name__ == "__main__":
 
-    import argparse
     parser = argparse.ArgumentParser()
-
-    train_dataset = load_dataset(
-        'json',
-        is_train = True,
-    )
     cuda = True
     max_steps = 40  # Maximum length of an episode.
     beam_size = 60  # Size of the beam in beam search.
     debug = False# Whether to print all steps during evaluation.
+    ckpt_path = '/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/'
+    beam_size = 2
+    max_depth = 30
+    ckpt = 88
+    population_type = "depth"
+    num_states = None
 
-    ckpt_path = '/mnt/fs3/poesia/aws-output/a1b2c/NCE+H/equations-ct/run0/checkpoints/'
-    ckpt = 100
+    if population_type == 'beam-size':
+        population_parameters = {'beam-size': [i + 1 for i in range(20)]}
+    elif population_type == 'epoch':
+        best_epoch = 88
+        population_parameters = {'epoch': [best_epoch-i for i in range(40)]}
+    elif population_type == 'depth':
+        population_parameters = {'epoch': [i+1 for i in range(70)]}
 
     device = torch.device("cuda" if cuda else "cpu")
-    def evaluate_solver(checkpoint, dataset):
-        model = torch.load(checkpoint, map_location=device)
-        model.to(device)
-        env = environment.RustEnvironment("equations-ct")
-        n_problems = train_dataset.n_problems  # How many problems to use.
 
-        successes = []
-        solution_lengths = []
-        failures = []
-        states = [environment.State([train_dataset.problems[i]], [], 0) for i in range(dataset.n_problems)]
+    train_dataset = load_dataset('json', is_train = True)
+    problem_states = get_algebra_data(num_states)
+    responses = []
+    for p in population_parameters[population_type]:
+        if population_type == 'beam-size':
+            res = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), p, max_depth)
+        elif population_type == 'epoch':
+            res = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{p}.pt'), beam_size, max_depth)
+        elif population_type == 'depth':
+            res = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), beam_size, p)
+        responses.append(res)
+    dataset = {'response': responses, 'param': population_parameters[p] , 'population-type': population_type,
+               'problems': train_dataset.problems}
 
-        for i, state in enumerate(states):
-            success, history = model.rollout(env, state,
-                                         max_steps, beam_size, debug)
-
-            if success:
-                successes.append((i, train_dataset.problems[i]))
-            else:
-                failures.append((i, train_dataset.problems[i]))
-            solution_lengths.append(len(history) - 1 if success else -1)
-            print(i, train_dataset.problems[i], '-- success?', success)
-
-        return {
-            'success_rate': len(successes) / n_problems,
-            'solution_lengths': solution_lengths,
-            'max_solution_length': max(solution_lengths),
-            'successes': successes,
-            'failures': failures,
-            'beam': beam_size,
-            'max_steps': max_steps
-        }
-
-    results = evaluate_solver(os.path.join(ckpt_path, f'{ckpt}.pt'), train_dataset)
-    print(results)
+    torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
+                                     'algebra.pth'))
 
