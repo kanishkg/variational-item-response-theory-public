@@ -55,7 +55,7 @@ if __name__ == "__main__":
     beam_size = 3
     max_depth = 50
     ckpt = 88
-    population_type = "epoch"
+    population_type = "beam-size"
     num_states = None
 
     if population_type == 'beam-size':
