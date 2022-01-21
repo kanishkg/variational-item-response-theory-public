@@ -1,5 +1,7 @@
 import copy
 import os
+from subprocess import Popen, PIPE, run
+
 from tqdm import tqdm
 
 import torch
@@ -26,6 +28,37 @@ def get_chess_data(data_file):
         puzzles.append(puzzle)
     print(f"found {len(puzzles)}")
     return puzzles
+
+class Leela(object):
+    def __init__(self, weights, nodes):
+        super().__init__()
+        self.weights = weights
+        self.nodes = nodes
+        self.fen = None
+        self.set_engine_specs()
+
+    def set_engine_specs(self):
+        command = ['lc0', 'describenet', f'--weights={self.weights}']
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True)
+        assert result.returncode == 0
+        out = result.stdout.split()
+        self.train_steps = out[out.index('steps:')+1]
+        self.policy_loss = out[out.index('Policy')+2]
+        self.mse_loss = out[out.index('MSE')+2]
+        self.accuracy = out[out.index('Accuracy:')+1]
+
+    def set_fen_position(self, fen):
+        self.fen = fen
+
+    def get_best_move_time(self, time):
+        assert self.fen is not None
+        command = ['lc0', 'benchmark', f'--weights={self.weights}',
+                   f'--fen={self.fen}', f'--movetime={time}', f'--nodes={self.nodes}']
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True)
+        assert result.returncode == 0
+        out = result.stdout.split()
+        best_move = out[out.index('bestmove')+1]
+        return best_move
 
 
 def test_engine(engine, data, num_puzzles=-1):
@@ -67,16 +100,17 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     data_file = '/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess/lichess_db_puzzle.csv'
-    stochfish_path = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
+    engine_path = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
     engine_name = 'stockfish'
     population_type = 'level'
     num_puzzles = 1000
 
     if engine_name == 'stockfish':
-        engine = Stockfish(path=stochfish_path)
+        engine = Stockfish(path=engine_path)
         if population_type == 'level':
             population_parameters = {'level': [i + 1 for i in range(20)]}
-
+    elif engine_name == 'leela':
+        engine = Leela
     data = get_chess_data(data_file)
     responses = []
     ability = []
