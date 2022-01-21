@@ -94,4 +94,4 @@ if __name__ == "__main__":
         dataset['score'].append(sum(res)/len(res))
         print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}")
         torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
-                                     'algebra.pth'))
+                                     'algebra2.pth'))
