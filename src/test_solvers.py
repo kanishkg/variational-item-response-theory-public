@@ -59,7 +59,7 @@ if __name__ == "__main__":
     num_states = None
 
     if population_type == 'beam-size':
-        population_parameters = {'beam-size': [i + 1 for i in range(20)]}
+        population_parameters = {'beam-size': reversed([i + 1 for i in range(20)])}
     elif population_type == 'epoch':
         best_epoch = 88
         population_parameters = {'epoch': [best_epoch - i for i in range(40)]}
