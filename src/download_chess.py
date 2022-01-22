@@ -17,7 +17,7 @@ with open("/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/da
     data_nets = json.load(f)
 random.shuffle(data_nets)
 
-elo_ranges = [1100, 1150, 1650, 1250]
+elo_ranges = [1650, 1250]
 dlinks = []
 for e in elo_ranges:
     for d in data_nets:
