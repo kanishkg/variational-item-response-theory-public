@@ -48,14 +48,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     cuda = True
-    max_steps = 40  # Maximum length of an episode.
-    beam_size = 60  # Size of the beam in beam search.
+    max_steps = 70  # Maximum length of an episode.
+    beam_size = 20  # Size of the beam in beam search.
     debug = False  # Whether to print all steps during evaluation.
     ckpt_path = '/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/'
-    beam_size = 10
-    max_depth = 50
     ckpt = 88
-    population_type = "beam-size"
+    population_type = "depth"
     num_states = None
 
     if population_type == 'beam-size':
@@ -94,4 +92,4 @@ if __name__ == "__main__":
         dataset['score'].append(sum(res)/len(res))
         print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}")
         torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
-                                     'algebra3.pth'))
+                                     'algebra4.pth'))
