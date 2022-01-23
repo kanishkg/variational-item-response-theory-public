@@ -63,7 +63,7 @@ if __name__ == "__main__":
         best_epoch = 88
         population_parameters = {'epoch': [best_epoch - i for i in range(40)]}
     elif population_type == 'depth':
-        population_parameters = {'epoch': [i + 1 for i in range(90)]}
+        population_parameters = {'depth': [i + 1 for i in range(90)]}
 
     device = torch.device("cuda" if cuda else "cpu")
 
