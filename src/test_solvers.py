@@ -52,7 +52,7 @@ if __name__ == "__main__":
     beam_size = 60  # Size of the beam in beam search.
     debug = False  # Whether to print all steps during evaluation.
     ckpt_path = '/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/'
-    beam_size = 3
+    beam_size = 10
     max_depth = 50
     ckpt = 88
     population_type = "beam-size"
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         best_epoch = 88
         population_parameters = {'epoch': [best_epoch - i for i in range(40)]}
     elif population_type == 'depth':
-        population_parameters = {'epoch': [i + 1 for i in range(70)]}
+        population_parameters = {'epoch': [i + 1 for i in range(90)]}
 
     device = torch.device("cuda" if cuda else "cpu")
 
