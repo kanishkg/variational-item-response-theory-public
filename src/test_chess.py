@@ -134,7 +134,7 @@ if __name__ == "__main__":
     ability = []
     item_difficulty = [d['Rating'] for d in data[:num_puzzles]]
 
-    dataset = {'response': [], 'train_steps': [], 'accuracy': [], 'policy_loss': [], 'mse_loss':[], 'elo': [],
+    dataset = {'response': [], 'train_steps': [], 'accuracy': [], 'policy_loss': [], 'mse_loss':[], 'elo': [], 'nodes': []
                'item_feat': item_difficulty}
     for p in population_parameters[population_type]:
         engine.set_skill_level(p)
