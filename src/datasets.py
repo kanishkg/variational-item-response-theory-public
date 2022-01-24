@@ -1129,7 +1129,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
             self.encoder_mask = None
-            print(f"loaded chess ai dataset with responses {self.response.shape}, students: {self.n_students}, problems: {self.problem_id.shape}")
+            print(f"loaded algebra ai dataset with responses {self.response.shape}, students: {self.n_students}, problems: {self.problem_id.shape}")
         else:
             with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
                 observations = json.load(f)
@@ -1168,7 +1168,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                     self.response_mask[i][j] = 1
 
             num_train = int(0.8 * len(self.response))
-            split = slice(0, num_train) if is_train else slice(num_train, -1)
+            split = slice(0, -1)
 
             self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
             self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
@@ -1177,7 +1177,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.num_item = self.response.shape[1]
             self.problems = all_problems
             self.encoder_mask = None
-            print(f"loaded chess ai dataset with responses {self.response.shape}, students: {self.n_students}, problems: {self.problem_id.shape}")
+            print(f"loaded algebra dataset with responses {self.response.shape}, students: {self.n_students}, problems: {self.problem_id.shape}")
 
 
     def __len__(self):
