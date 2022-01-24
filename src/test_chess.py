@@ -112,7 +112,7 @@ if __name__ == "__main__":
     engine_name = 'leela'
 
     engine_path_stockfish = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
-    engine_path_leela = "/mnt/fs6/kanishkg/lc0/weights"
+    engine_path_leela = "/mnt/fs6/kanishkg/lc0/maia"
 
     population_type = 'level'
     nodes = -1
@@ -150,4 +150,4 @@ if __name__ == "__main__":
             dataset['mse_loss'].append(engine.mse_loss)
 
         torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess',
-                                     'leela.pth'))
+                                     'maia.pth'))
