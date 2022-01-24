@@ -65,7 +65,6 @@ class Leela(object):
                    f'--fen={self.fen}', f'--movetime={time}', f'--nodes={self.nodes}']
         result = run(command, stdout=PIPE, stderr=PIPE, text=True)
         assert result.returncode == 0
-        print(result.stdout, result.stderr)
         out = result.stdout.split()
         best_move = out[out.index('bestmove')+1]
         return best_move
@@ -139,9 +138,9 @@ if __name__ == "__main__":
                'item_feat': item_difficulty}
     for p in population_parameters[population_type]:
         engine.set_skill_level(p)
-        print(engine.get_parameters())
         res = test_engine(engine, data, num_puzzles)
         dataset['response'].append(res)
+        print(engine.get_parameters(), sum(res)/len(res))
         if engine_name == 'leela':
             dataset['ability'].append(engine.elo)
             dataset['nodes'].append(engine.nodes)
