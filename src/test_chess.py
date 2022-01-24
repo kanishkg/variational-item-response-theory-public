@@ -127,7 +127,7 @@ if __name__ == "__main__":
         engine = Leela()
         if population_type == 'level':
             weight_files = os.listdir(engine_path_leela)
-            population_parameters = {'level': [os.path.join(engine_path_leela, w) for w in weight_files]}
+            population_parameters = {'level': sorted([os.path.join(engine_path_leela, w) for w in weight_files])}
 
     data = get_chess_data(data_file)
     responses = []
