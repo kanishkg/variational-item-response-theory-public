@@ -39,3 +39,7 @@ for d in dest_files:
     result = run(command, stdout=PIPE, stderr=PIPE, text=True)
     if result.returncode != 0:
         print(d)
+        command = ['mv', '{f}', f'{d}.txt.gz']
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True)
+        command = ['gunzip', f'{d}.txt.gz']
+        result = run(command, stdout=PIPE, stderr=PIPE, text=True)

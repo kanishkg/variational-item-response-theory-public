@@ -1100,7 +1100,7 @@ class ChessAIDataset(torch.utils.data.Dataset):
 
         dataset = torch.load(os.path.join(DATA_DIR, 'chess/chess.pth'))
 
-        self.n_students = len(dataset['ability'][:8])
+        self.n_students = len(dataset['ability'])
         self.n_problems = len(dataset['item_feat'])
 
         self.response = np.array(dataset['response'][:8], dtype=int)
