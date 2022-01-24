@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     data_file = '/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess/lichess_db_puzzle.csv'
-    engine_name = 'stockfish'
+    engine_name = 'leela'
 
     engine_path_stockfish = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
     engine_path_leela = "/mnt/fs6/kanishkg/lc0/weights"
