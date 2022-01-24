@@ -90,7 +90,7 @@ def test_engine(engine, data, num_puzzles=-1):
             board.push(chess.Move.from_uci(opp_move))
             fen = board.fen()
             engine.set_fen_position(fen)
-            predicted_move = engine.get_best_move_time(1000)
+            predicted_move = engine.get_best_move_time(100)
             if predicted_move != q:
                 board_test = copy.deepcopy(board)
                 board_test.push(chess.Move.from_uci(predicted_move))
