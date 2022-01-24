@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     population_type = 'level'
     nodes = -1
-    num_puzzles = 1000
+    num_puzzles = 500
 
     if engine_name == 'stockfish':
         engine = Stockfish(path=engine_path_stockfish)
