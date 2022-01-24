@@ -30,28 +30,37 @@ def get_chess_data(data_file):
     return puzzles
 
 class Leela(object):
-    def __init__(self, weights, nodes):
+    def __init__(self):
         super().__init__()
-        self.weights = weights
-        self.nodes = nodes
         self.fen = None
-        self.set_engine_specs()
+        self.weights = None
+        self.nodes = None
 
-    def set_engine_specs(self):
+    def set_skill(self, weights, nodes=-1):
+        self.nodes = nodes
+        self.weights = weights
         command = ['lc0', 'describenet', f'--weights={self.weights}']
         result = run(command, stdout=PIPE, stderr=PIPE, text=True)
         assert result.returncode == 0
         out = result.stdout.split()
+        self.elo = int(weights.split('_')[-1])
         self.train_steps = out[out.index('steps:')+1]
         self.policy_loss = out[out.index('Policy')+2]
         self.mse_loss = out[out.index('MSE')+2]
         self.accuracy = out[out.index('Accuracy:')+1]
+
+    def get_parameters(self):
+        return f"elo: {self.elo}, train_steps: {self.train_steps}, nodes: {self.nodes}, accuracy = {self.accuracy}," \
+               f" losses: {self.mse_loss,self.policy_loss}"
 
     def set_fen_position(self, fen):
         self.fen = fen
 
     def get_best_move_time(self, time):
         assert self.fen is not None
+        assert self.weights is not None
+        assert self.nodes is not None
+
         command = ['lc0', 'benchmark', f'--weights={self.weights}',
                    f'--fen={self.fen}', f'--movetime={time}', f'--nodes={self.nodes}']
         result = run(command, stdout=PIPE, stderr=PIPE, text=True)
@@ -100,26 +109,45 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     data_file = '/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess/lichess_db_puzzle.csv'
-    engine_path = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
     engine_name = 'stockfish'
+
+    engine_path_stockfish = "/mnt/fs6/kanishkg/Stockfish/src/stockfish"
+    engine_path_leela = "/mnt/fs6/kanishkg/lc0/weights"
+
     population_type = 'level'
+    nodes = -1
     num_puzzles = 1000
 
     if engine_name == 'stockfish':
-        engine = Stockfish(path=engine_path)
+        engine = Stockfish(path=engine_path_stockfish)
         if population_type == 'level':
             population_parameters = {'level': [i + 1 for i in range(20)]}
+
     elif engine_name == 'leela':
-        engine = Leela
+        engine = Leela()
+        if population_type == 'level':
+            weight_files = os.listdir(engine_path_leela)
+            population_parameters = {'level': [os.path.join(engine_path_leela, w) for w in weight_files]}
+
     data = get_chess_data(data_file)
     responses = []
     ability = []
     item_difficulty = [d['Rating'] for d in data[:num_puzzles]]
+
+    dataset = {'response': [], 'train_steps': [], 'accuracy': [], 'policy_loss': [], 'mse_loss':[], 'elo': [],
+               'item_feat': item_difficulty}
     for p in population_parameters[population_type]:
         engine.set_skill_level(p)
         print(engine.get_parameters())
-        responses.append(test_engine(engine, data, num_puzzles))
-        ability.append(p)
-    dataset = {'response': responses, 'ability': ability, 'item_feat': item_difficulty}
+        res = test_engine(engine, data, num_puzzles)
+        dataset['response'].append(res)
+        if engine_name == 'leela':
+            dataset['ability'].append(engine.elo)
+            dataset['nodes'].append(engine.nodes)
+            dataset['accuracy'].append(engine.accuracy)
+            dataset['train_steps'].append(engine.train_steps)
+            dataset['policy_loss'].append(engine.policy_loss)
+            dataset['mse_loss'].append(engine.mse_loss)
 
-    torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess', 'chess.pth'))
+        torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess',
+                                     'leela.pth'))
