@@ -1096,13 +1096,22 @@ class JSONDataset(torch.utils.data.Dataset):
         return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
 
 
-
 class AlgebraAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
 
         if is_train:
-            dataset = torch.load(os.path.join(DATA_DIR, 'algebsra/algebra.pth'))
+            data_files = ['algebra.pth', 'algebra2.pth', 'algebra3.pth', 'algebra4.pth']
+            dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[],
+                   'problems': []}
+            for a in data_files:
+                d = torch.load(os.path.join(DATA_DIR, f'algebra/{a}'))
+                dataset['response'] += d['response']
+                dataset['epoch'] += d['epoch']
+                dataset['beam'] += d['beam']
+                dataset['depth'] += d['depth']
+                dataset['score'] += d['score']
+                dataset['problems'] = d['problems']
 
             self.n_students = len(dataset['epoch'])
             self.n_problems = len(dataset['problems'])
