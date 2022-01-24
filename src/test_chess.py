@@ -140,7 +140,7 @@ if __name__ == "__main__":
         engine.set_skill_level(p)
         res = test_engine(engine, data, num_puzzles)
         dataset['response'].append(res)
-        print(engine.get_parameters(), sum(res)/len(res))
+        print(engine.get_parameters())
         if engine_name == 'leela':
             dataset['ability'].append(engine.elo)
             dataset['nodes'].append(engine.nodes)
