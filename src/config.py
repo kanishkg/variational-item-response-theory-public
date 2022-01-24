@@ -27,5 +27,6 @@ IS_REAL_WORLD = {
     'json': True,
     'jsonstep': True,
     'chessai': True,
+    'algebraai': True,
     'roar': True,
 }
