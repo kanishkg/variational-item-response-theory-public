@@ -36,7 +36,7 @@ class Leela(object):
         self.weights = None
         self.nodes = None
 
-    def set_skill(self, weights, nodes=-1):
+    def set_skill_level(self, weights, nodes=-1):
         self.nodes = nodes
         self.weights = weights
         command = ['lc0', 'describenet', f'--weights={self.weights}']
