@@ -65,6 +65,7 @@ class Leela(object):
                    f'--fen={self.fen}', f'--movetime={time}', f'--nodes={self.nodes}']
         result = run(command, stdout=PIPE, stderr=PIPE, text=True)
         assert result.returncode == 0
+        print(result.stdout, result.stderr)
         out = result.stdout.split()
         best_move = out[out.index('bestmove')+1]
         return best_move
