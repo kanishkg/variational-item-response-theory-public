@@ -1094,6 +1094,41 @@ class JSONDataset(torch.utils.data.Dataset):
         return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
 
 
+
+class AlgebraAIDataset(torch.utils.data.Dataset):
+    def __init__(self, is_train=True, **kwargs):
+        super().__init__()
+
+        dataset = torch.load(os.path.join(DATA_DIR, 'algebsra/algebra.pth'))
+
+        self.n_students = len(dataset['epoch'])
+        self.n_problems = len(dataset['problems'])
+        self.problems = dataset['problems']
+
+        self.response = np.array(dataset['response'], dtype=int)
+        self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
+        self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
+
+        num_train = int(0.8 * len(self.response))
+        split = slice(0, num_train) if is_train else slice(num_train, len(self.response))
+
+        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.problem_id = self.problem_id[split]
+        self.num_person = len(self.response)
+        self.num_item = self.response.shape[1]
+        self.encoder_mask = None
+        print(f"loaded chess ai dataset with responses {self.response.shape}, students: {self.n_students}, problems: {self.problem_id.shape}")
+
+    def __len__(self):
+        return self.response.shape[0]
+
+    def __getitem__(self, index):
+        return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
+
+
+
+
 class ChessAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
