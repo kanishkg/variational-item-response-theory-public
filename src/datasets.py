@@ -1098,12 +1098,12 @@ class ChessAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
 
-        dataset = torch.load(os.path.join(DATA_DIR, 'chess/chess.pth'))
+        dataset = torch.load(os.path.join(DATA_DIR, 'chess/leela.pth'))
 
-        self.n_students = len(dataset['ability'])
+        self.n_students = len(dataset['elo'])
         self.n_problems = len(dataset['item_feat'])
 
-        self.response = np.array(dataset['response'][:8], dtype=int)
+        self.response = np.array(dataset['response'], dtype=int)
         self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
         self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
 
