@@ -142,7 +142,7 @@ if __name__ == "__main__":
         dataset['response'].append(res)
         print(engine.get_parameters())
         if engine_name == 'leela':
-            dataset['ability'].append(engine.elo)
+            dataset['elo'].append(engine.elo)
             dataset['nodes'].append(engine.nodes)
             dataset['accuracy'].append(engine.accuracy)
             dataset['train_steps'].append(engine.train_steps)
