@@ -49,7 +49,7 @@ if __name__ == "__main__":
                             'json',
                             'jsonstep',
                             'chessai',
-                            'algebrai',
+                            'algebraai',
                             'roar',
                         ],
                         help='which dataset to run on (default: 1pl_simulation)')
