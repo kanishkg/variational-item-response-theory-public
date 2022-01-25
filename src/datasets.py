@@ -1192,9 +1192,22 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
 class ChessAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
+        data_files = ['leela.pth']
+        dataset = {'response': [], 'elo': [], 'nodes': [], 'accuracy': [], 'train_steps':[],
+               'policy_loss': [], 'mse_loss': [], 'item_feat': []}
 
-        dataset = torch.load(os.path.join(DATA_DIR, 'chess/leela.pth'))
+        for a in data_files:
+            d = torch.load(os.path.join(DATA_DIR, f'chess/{a}'))
+            dataset['response'] += d['response']
+            dataset['elo'] += d['elo']
+            dataset['nodes'] += d['nodes']
+            dataset['accuracy'] += d['accuracy']
+            dataset['train_steps'] += d['train_steps']
+            dataset['policy_loss'] += d['policy_loss']
+            dataset['mse_loss'] += d['mse_loss']
+            dataset['item_feat'] = d['item_feat']
 
+        self.dataset = dataset
         self.n_students = len(dataset['elo'])
         self.n_problems = len(dataset['item_feat'])
 
@@ -1202,9 +1215,9 @@ class ChessAIDataset(torch.utils.data.Dataset):
         self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
         self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
 
-        num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if is_train else slice(num_train, len(self.response))
-
+        # num_train = int(0.8 * len(self.response))
+        # split = slice(0, num_train) if is_train else slice(num_train, len(self.response))
+        split = slice(0, len(self.response))
         self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
         self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
