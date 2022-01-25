@@ -1162,10 +1162,10 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
 
             for i, s_obs in enumerate(data_by_student.values()):
-                for j, (problem, correct) in enumerate(s_obs):
-                    self.response[i][j] = float(correct)
-                    self.problem_id[i][j] = problem
-                    self.response_mask[i][j] = 1
+                for problem, correct in s_obs:
+                    self.response[i][problem] = float(correct)
+                    self.problem_id[i][problem] = problem
+                    self.response_mask[i][problem] = 1
 
 
             self.response = np.expand_dims(self.response[:, unsolved_idx], axis=2).astype(np.float32)
