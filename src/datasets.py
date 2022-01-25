@@ -1115,7 +1115,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         unsolved_idx = num_correct != 0
         print(unsolved_idx)
         self.problems = []
-        for i in len(dataset['problems']):
+        for i in range(len(dataset['problems'])):
             if unsolved_idx[i]:
                 self.problems.append(dataset['problems'][i])
         if is_train:
