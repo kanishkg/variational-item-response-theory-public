@@ -1115,8 +1115,8 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         unsolved_idx = num_correct != 0
         if is_train:
             self.n_students = len(dataset['epoch'])
-            self.n_problems = len(dataset['problems'])
-            self.problems = dataset['problems']
+            self.n_problems = len(dataset['problems'][unsolved_idx])
+            self.problems = dataset['problems'][unsolved_idx]
 
             self.response = np.array(dataset['response'], dtype=int)
             self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
@@ -1124,8 +1124,8 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
 
 
             self.response = np.expand_dims(self.response[:, unsolved_idx], axis=2).astype(np.float32)
-            self.mask = np.expand_dims(self.response_mask[:, unsolved_idx], axis=2).astype(np.int)
-            self.problem_id = self.problem_id[:, unsolved_idx]
+            self.mask = np.expand_dims(self.response_mask[:, :], axis=2).astype(np.int)
+            self.problem_id = self.problem_id[:, :]
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
             self.problems = dataset['problems'][unsolved_idx]
@@ -1134,7 +1134,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         else:
             with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
                 observations = json.load(f)
-            all_problems = list(set([row['problem'] for row in observations]))
+            all_problems = dataset['problems'][unsolved_idx]
             problem_id = dict(zip(all_problems, range(len(all_problems))))
 
             if 'timestamp' in observations[0]:
@@ -1168,12 +1168,12 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                     self.response_mask[i][problem] = 1
 
 
-            self.response = np.expand_dims(self.response[:, unsolved_idx], axis=2).astype(np.float32)
-            self.mask = np.expand_dims(self.response_mask[:, unsolved_idx], axis=2).astype(np.int)
-            self.problem_id = self.problem_id[:, unsolved_idx]
+            self.response = np.expand_dims(self.response[:, :], axis=2).astype(np.float32)
+            self.mask = np.expand_dims(self.response_mask[:, :], axis=2).astype(np.int)
+            self.problem_id = self.problem_id[:, :]
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
-            self.problems = all_problems[unsolved_idx]
+            self.problems = all_problems
             self.encoder_mask = None
             print(f"loaded algebra dataset with responses {self.response.shape}, students: {self.num_person}, problems: {self.problem_id.shape}")
 
