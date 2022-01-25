@@ -1132,7 +1132,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.problem_id = self.problem_id[:, :]
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
-            self.problems = dataset['problems'][unsolved_idx]
+            self.problems = self.problems
             self.encoder_mask = None
             print(f"loaded algebra ai dataset with responses {self.response.shape}, students: {self.num_person}, problems: {self.problem_id.shape}")
         else:
