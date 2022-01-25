@@ -1112,12 +1112,15 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['problems'] = d['problems']
         res = np.array(dataset['response'], dtype=int)
         num_correct = res.sum(0)
-        unsolved_idx = np.nonzero(num_correct)
+        unsolved_idx = num_correct != 0
         print(unsolved_idx)
+        self.problems = []
+        for i in len(dataset['problems']):
+            if unsolved_idx[i]:
+                self.problems.append(dataset['problems'][i])
         if is_train:
             self.n_students = len(dataset['epoch'])
-            self.n_problems = len(dataset['problems'][unsolved_idx])
-            self.problems = dataset['problems'][unsolved_idx]
+            self.n_problems = len(self.problems)
 
             self.response = np.array(dataset['response'], dtype=int)
             self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
@@ -1135,8 +1138,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         else:
             with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
                 observations = json.load(f)
-            all_problems = dataset['problems'][unsolved_idx]
-            problem_id = dict(zip(all_problems, range(len(all_problems))))
+            problem_id = dict(zip(self.problems, range(len(self.problems))))
 
             if 'timestamp' in observations[0]:
                 observations.sort(key=lambda row: row['timestamp'])
@@ -1155,9 +1157,9 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.obs_by_problem = data_by_problem
             self.student_ids = list(data_by_student.keys())
             self.n_students = len(data_by_student)
-            self.n_problems = len(all_problems)
+            self.n_problems = len(self.problems)
 
-            self.problems = all_problems
+            self.problems = self.problems
             self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
             self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
             self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
@@ -1174,7 +1176,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.problem_id = self.problem_id[:, :]
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
-            self.problems = all_problems
+            self.problems = self.problems
             self.encoder_mask = None
             print(f"loaded algebra dataset with responses {self.response.shape}, students: {self.num_person}, problems: {self.problem_id.shape}")
 
