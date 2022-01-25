@@ -1112,7 +1112,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['problems'] = d['problems']
         res = np.array(dataset['response'], dtype=int)
         num_correct = res.sum(0)
-        unsolved_idx = (num_correct != 0).astype(int)
+        unsolved_idx = np.nonzero(num_correct)
         print(unsolved_idx)
         if is_train:
             self.n_students = len(dataset['epoch'])
