@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     dataset = {'response': [], 'train_steps': [], 'accuracy': [], 'policy_loss': [], 'mse_loss':[], 'elo': [], 'nodes': [],
                'item_feat': item_difficulty}
-    for p in population_parameters[population_type]:
+    for p in population_parameters[population_type][1:]:
         engine.set_skill_level(p)
         res = test_engine(engine, data, num_puzzles)
         dataset['response'].append(res)
@@ -150,4 +150,4 @@ if __name__ == "__main__":
             dataset['mse_loss'].append(engine.mse_loss)
 
         torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/chess',
-                                     'maia.pth'))
+                                     'maia2.pth'))
