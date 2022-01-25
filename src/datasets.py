@@ -1122,6 +1122,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
 
             num_train = int(0.8 * len(self.response))
+            split = slice(0, num_train)
 
             self.response = np.expand_dims(self.response, axis=2).astype(np.float32)
             self.mask = np.expand_dims(self.response_mask, axis=2).astype(np.int)
@@ -1152,14 +1153,13 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.obs_by_student = data_by_student
             self.obs_by_problem = data_by_problem
             self.student_ids = list(data_by_student.keys())
-            self.max_observations = max(len(s_obs) for s_obs in data_by_student.values())
             self.n_students = len(data_by_student)
             self.n_problems = len(all_problems)
 
             self.problems = all_problems
-            self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
-            self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
-            self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+            self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
+            self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
+            self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
 
             for i, s_obs in enumerate(data_by_student.values()):
                 for j, (problem, correct) in enumerate(s_obs):
@@ -1167,12 +1167,10 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                     self.problem_id[i][j] = problem
                     self.response_mask[i][j] = 1
 
-            num_train = int(0.8 * len(self.response))
-            split = slice(0, -1)
 
-            self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
-            self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
-            self.problem_id = self.problem_id[split]
+            self.response = np.expand_dims(self.response, axis=2).astype(np.float32)
+            self.mask = np.expand_dims(self.response_mask, axis=2).astype(np.int)
+            self.problem_id = self.problem_id
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
             self.problems = all_problems
