@@ -1113,7 +1113,6 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         res = np.array(dataset['response'], dtype=int)
         num_correct = res.sum(0)
         unsolved_idx = num_correct != 0
-        print(unsolved_idx)
         self.problems = []
         for i in range(len(dataset['problems'])):
             if unsolved_idx[i]:
