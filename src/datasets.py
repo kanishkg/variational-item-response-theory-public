@@ -1145,15 +1145,12 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             data_by_student = collections.defaultdict(list)
             data_by_problem = collections.defaultdict(list)
 
-            count = 0
             for row in observations:
                 if row['problem'] in self.problems:
-                    count +=1
                     data_by_student[row['student']].append((problem_id[row['problem']],
                                                             int(row['correct'])))
                     data_by_problem[row['problem']].append((row['student'],
                                                         int(row['correct'])))
-            print(len(observations), count)
             self.observations = observations
             self.obs_by_student = data_by_student
             self.obs_by_problem = data_by_problem
