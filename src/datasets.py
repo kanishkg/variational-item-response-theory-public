@@ -1192,20 +1192,20 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
 class ChessAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
-        data_files = ['chess.pth']
+        data_files = ['leela.pth']
         dataset = {'response': [], 'elo': [], 'nodes': [], 'accuracy': [], 'train_steps':[],
                'policy_loss': [], 'mse_loss': [], 'item_feat': []}
 
         for a in data_files:
             d = torch.load(os.path.join(DATA_DIR, f'chess/{a}'))
-            dataset['response'] += d['response'][:500]
-            dataset['elo'] += d['elo'][:500]
-            dataset['nodes'] += d['nodes'][:500]
-            dataset['accuracy'] += d['accuracy'][:500]
-            dataset['train_steps'] += d['train_steps'][:500]
-            dataset['policy_loss'] += d['policy_loss'][:500]
-            dataset['mse_loss'] += d['mse_loss'][:500]
-            dataset['item_feat'] = d['item_feat'][:500]
+            dataset['response'] += d['response']
+            dataset['elo'] += d['elo']
+            dataset['nodes'] += d['nodes']
+            dataset['accuracy'] += d['accuracy']
+            dataset['train_steps'] += d['train_steps']
+            dataset['policy_loss'] += d['policy_loss']
+            dataset['mse_loss'] += d['mse_loss']
+            dataset['item_feat'] = d['item_feat']
 
         self.raw_data = dataset
         self.n_students = len(dataset['elo'])
