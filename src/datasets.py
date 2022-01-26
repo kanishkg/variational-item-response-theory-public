@@ -1192,7 +1192,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
 class ChessAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
-        data_files = ['leela.pth']
+        data_files = ['maia.pth', 'maia2.pth']
         dataset = {'response': [], 'elo': [], 'nodes': [], 'accuracy': [], 'train_steps':[],
                'policy_loss': [], 'mse_loss': [], 'item_feat': []}
 
@@ -1207,7 +1207,7 @@ class ChessAIDataset(torch.utils.data.Dataset):
             dataset['mse_loss'] += d['mse_loss']
             dataset['item_feat'] = d['item_feat']
 
-        self.dataset = dataset
+        self.raw_data = dataset
         self.n_students = len(dataset['elo'])
         self.n_problems = len(dataset['item_feat'])
 
