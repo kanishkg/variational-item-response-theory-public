@@ -703,8 +703,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             country += instance.countries
             if (instance.user, instance.token) in word_to_attempt:
                 index = bisect.bisect(word_to_attempt[(instance.user, instance.token)], instance.days)
-                word_to_attempt[(instance.user, instance.token)].insert(instance.days, index)
-                word_to_response[(instance.user, instance.token)].insert(labels[instance.instance_id], index)
+                word_to_attempt[(instance.user, instance.token)].insert(index, instance.days)
+                word_to_response[(instance.user, instance.token)].insert(index, labels[instance.instance_id])
             else:
                 word_to_attempt[(instance.user, instance.token)] = [instance.days]
                 word_to_response[(instance.user, instance.token)] = [labels[instance.instance_id]]
