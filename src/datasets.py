@@ -699,6 +699,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             country += instance.countries
         words = sorted(list(set(words)))
         country = sorted(list(set(country)))
+        print(country)
 
         instance_to_sentence = dict()
         for instance in tqdm(instances):
