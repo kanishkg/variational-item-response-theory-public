@@ -266,6 +266,7 @@ def load_duolingo(filename):
                             else:
                                 assert '.' not in value
                                 value = int(value)
+                                assert value >= 0
                         instance_properties[key] = value
 
             # Otherwise we're parsing a new Instance for the current exercise
@@ -525,6 +526,31 @@ class Children_LanguageAcquisition(torch.utils.data.Dataset):
         return index, response, item_id, mask
 
 
+def load_labels(filename):
+    """
+    This loads labels, either the actual ones or your predictions.
+
+    Parameters:
+        filename: the filename pointing to your labels
+
+    Returns:
+        labels: a dict of instance_ids as keys and labels between 0 and 1 as values
+    """
+    labels = dict()
+
+    with open(filename, 'rt') as f:
+        for line in f:
+            line = line.strip()
+            if len(line) == 0:
+                continue
+            else:
+                line = line.split()
+            instance_id = line[0]
+            label = float(line[1])
+            labels[instance_id] = label
+    return labels
+
+
 class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
     """
     2018 Duolingo Shared Task on Second Language Acquisition Modeling (SLAM).
@@ -577,7 +603,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
     """
     def __init__(
             self, 
-            train = True, 
+            train = True,
             sub_problem = 'en_es', 
             max_num_person = None, 
             max_num_item = None,
@@ -586,18 +612,23 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         ):
         super().__init__()
         assert sub_problem in ['fr_en', 'en_es', 'es_en']
+        mode = "train" if train else "dev"
+        cache_score_matrix_file = os.path.join(DUOLINGO_LANG_DIR, f'score_matrix_{mode}.npy')
+        cache_token_id_file = os.path.join(DUOLINGO_LANG_DIR, f'token_id_{mode}.npy')
+        cache_dataset_file = os.path.join(DUOLINGO_LANG_DIR, f'data_{mode}.json')
 
-        cache_score_matrix_file = os.path.join(DUOLINGO_LANG_DIR, f'score_matrix.npy')
-        cache_token_id_file = os.path.join(DUOLINGO_LANG_DIR, f'token_id.npy')
         if (os.path.isfile(cache_score_matrix_file) and \
-            os.path.isfile(cache_token_id_file)):
-
+            os.path.isfile(cache_token_id_file) and os.path.isfile(cache_dataset_file)) :
             response = np.load(cache_score_matrix_file)
             item_id = np.load(cache_token_id_file)
+            with open(cache_dataset_file, 'r') as f:
+                dataset = json.load(f)
         else:
-            response, item_id = self.make_score_matrix(sub_problem)
+            response, item_id, dataset = self.make_score_matrix(sub_problem, mode)
             np.save(cache_score_matrix_file, response)
             np.save(cache_token_id_file, item_id)
+            with open(cache_dataset_file, 'w') as f:
+                f.write(json.dumps(dataset))
 
         if binarize:
             response = np.round(response)
@@ -608,12 +639,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         response = response[swapper] 
 
         num_person = response.shape[0]
-        num_train = int(0.8 * num_person)
 
-        if train:
-            response = response[:num_train]
-        else:
-            response = response[num_train:]
 
         if max_num_person is not None:
             response = response[:max_num_person]
@@ -635,37 +661,73 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
+        self.countries = [c for c in dataset['country']]
+        self.words = [w for w in dataset['word']]
+        self.sentence = [s for s in dataset['sentence']]
+        self.times = [t for t in dataset['time']]
+        self.format = [f for f in dataset['format']]
+        self.days = [d for d in dataset['days']]
+        self.dataset = dataset
 
-    def make_score_matrix(self, sub_problem):
+
+    def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
+            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.{mode}')
+        if mode == 'train':
+            instances, labels = load_duolingo(filename)
+        else:
+            instances = load_duolingo(filename)
+            labels = load_labels(filename+'.key')
+
+        train_filename = os.path.join(
             DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
-        instances, labels = load_duolingo(filename)
+        train_instances, train_labels = load_duolingo(train_filename)
 
         words = []
-        for i in tqdm(range(len(instances))):
-            instance = instances[i]
+        format = ['reverse_translate', 'reverse_tap', 'listen']
+        country = []
+        for i in tqdm(range(len(train_instances))):
+            instance = train_instances[i]
+            # TODO why not all sessions?
             if instance.session != 'lesson':
                 continue
             word = instance.token
             words.append(word)
-        words = list(set(words))
+            country += instance.countries
+        words = sorted(list(set(words)))
+        country = sorted(list(set(country)))
 
+        instance_to_sentence = dict()
+        for instance in tqdm(instances):
+            if instance.exercise_id in instance_to_sentence:
+                instance_to_sentence[instance.exercise_id].append(instance.word)
+            else:
+                instance_to_sentence[instance.exercise_id] = [instance.word]
+
+
+        dataset = []
         person_ids, tokens, responses = [], [], []
 
         for i in tqdm(range(len(instances))):
             instance = instances[i]
-
             if instance.session != 'lesson':
                 continue
-            
-            user = instance.user
-            response = labels[instance.instance_id]
-            word = instance.token
-            token = words.index(word)
+            data_instance = dict()
+            data_instance['user'] = instance.user
+            data_instance['response'] = labels[instance.instance_id]
+            data_instance['word'] = instance.token
+            data_instance['token'] = words.index(word)
+            data_instance['country'] = [country.index(c) for c in instance.countries]
+            data_instance['days'] = instance.days
+            data_instance['session'] = instance.session
+            data_instance['format'] = format.index(instance.format)
+            data_instance['prompt'] = instance.prompt
+            data_instance['sentence'] = instance_to_sentence[instance.exercise_id]
+            dataset.append(data_instance)
 
-            person_ids.append(user)
-            tokens.append(token)
-            responses.append(response)
+            person_ids.append(instance.user)
+            tokens.append(instance.token)
+            responses.append(instance.response)
 
         num_tokens = len(list(set(tokens)))
         unique_ids = list(set(person_ids))
@@ -697,7 +759,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         score_matrix = score_matrix / count_matrix
         token_ids = np.arange(num_tokens)
 
-        return score_matrix, token_ids
+        return score_matrix, token_ids, dataset
 
     def get_unique_person_ids(self, instances):
         return [instance.user for instance in instances] 
