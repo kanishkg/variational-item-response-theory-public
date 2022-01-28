@@ -682,6 +682,9 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
         train_instances, train_labels = load_duolingo(train_filename)
 
+        val_filename = os.path.join(
+            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
+        val_instances, train_labels = load_duolingo(train_filename)
         if mode == 'train':
             instances, labels = train_instances, train_labels
         else:
@@ -710,14 +713,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 word_to_attempt[(instance.user, instance.token)] = [instance.days]
                 word_to_response[(instance.user, instance.token)] = [train_labels[instance.instance_id]]
 
+        for instance in tqdm(val_instances):
+            word = instance.token
+            words.append(word)
+            country += instance.countries
 
 
         instance_to_sentence = dict()
 
         for instance in tqdm(instances):
-            word = instance.token
-            words.append(word)
-            country += instance.countries
             if instance.exercise_id in instance_to_sentence:
                 instance_to_sentence[instance.exercise_id].append(instance.token)
             else:
