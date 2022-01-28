@@ -707,7 +707,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 word_to_response[(instance.user, instance.token)].insert(index, labels[instance.instance_id])
             else:
                 word_to_attempt[(instance.user, instance.token)] = [instance.days]
-                word_to_response[(instance.user, instance.token)] = [labels[instance.instance_id]]
+                word_to_response[(instance.user, instance.token)] = [train_labels[instance.instance_id]]
 
         words = sorted(list(set(words)))
         country = sorted(list(set(country)))
@@ -725,7 +725,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         dataset = []
         person_ids, tokens, responses = [], [], []
 
-        assert word_to_response.keys() == word_to_attempt.keys()
         for i in tqdm(range(len(instances))):
             instance = instances[i]
             if instance.session != 'lesson':
@@ -746,8 +745,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             if (instance.user, instance.token) in word_to_attempt:
                 index = bisect.bisect(word_to_attempt[(instance.user, instance.token)], instance.days)
                 if index !=0:
-                    print(instance.user, instance.token)
-                    print(word_to_response.keys())
                     data_instance['history'] = word_to_response[(instance.user, instance.token)][:index-1]
             dataset.append(data_instance)
 
