@@ -709,19 +709,23 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 word_to_attempt[(instance.user, instance.token)] = [instance.days]
                 word_to_response[(instance.user, instance.token)] = [train_labels[instance.instance_id]]
 
-        words = sorted(list(set(words)))
-        country = sorted(list(set(country)))
-        print(country)
+
 
         instance_to_sentence = dict()
 
         for instance in tqdm(instances):
+            word = instance.token
+            words.append(word)
+            country += instance.countries
             if instance.exercise_id in instance_to_sentence:
                 instance_to_sentence[instance.exercise_id].append(instance.token)
             else:
                 instance_to_sentence[instance.exercise_id] = [instance.token]
 
 
+        words = sorted(list(set(words)))
+        country = sorted(list(set(country)))
+        print(f'countries {country}, len: {len(country)}')
         dataset = []
         person_ids, tokens, responses = [], [], []
 
