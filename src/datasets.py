@@ -674,15 +674,17 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
     def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
             DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.{mode}')
-        if mode == 'train':
-            instances, labels = load_duolingo(filename)
-        else:
-            instances = load_duolingo(filename)
-            labels = load_labels(filename+'.key')
 
         train_filename = os.path.join(
             DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
         train_instances, train_labels = load_duolingo(train_filename)
+        if mode == 'train':
+            instances, labels = train_instances, train_labels
+        else:
+            instances = load_duolingo(filename)
+            labels = load_labels(filename+'.key')
+
+
 
         words = []
         format = ['reverse_translate', 'reverse_tap', 'listen']
@@ -728,7 +730,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
             person_ids.append(instance.user)
             tokens.append(instance.token)
-            responses.append(instance.response)
+            responses.append(labels[instance.instance_id])
 
         num_tokens = len(list(set(tokens)))
         unique_ids = list(set(person_ids))

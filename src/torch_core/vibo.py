@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
     train_dataset = load_dataset(
         dataset_name, 
-        is_train = True,
+        train = True,
         num_person = args.num_person, 
         num_item = args.num_item,  
         ability_dim = args.ability_dim,
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     )
     test_dataset  = load_dataset(
         dataset_name, 
-        is_train = False,
+        train = False,
         num_person = args.num_person, 
         num_item = args.num_item, 
         ability_dim = args.ability_dim,
