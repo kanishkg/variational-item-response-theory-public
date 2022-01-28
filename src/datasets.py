@@ -707,7 +707,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 word_to_response[(instance.user, instance.token)].insert(labels[instance.instance_id], index)
             else:
                 word_to_attempt[(instance.user, instance.token)] = [instance.days]
-                word_to_response[(instance.user, instance.token)] = labels[instance.instance_id]
+                word_to_response[(instance.user, instance.token)] = [labels[instance.instance_id]]
 
         words = sorted(list(set(words)))
         country = sorted(list(set(country)))
