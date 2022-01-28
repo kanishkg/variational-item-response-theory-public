@@ -742,7 +742,10 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             data_instance['prompt'] = instance.prompt
             data_instance['sentence'] = instance_to_sentence[instance.exercise_id]
             index = bisect.bisect(word_to_attempt[(instance.user, instance.token)], instance.days)
-            data_instance['history'] = word_to_response[(instance.user, instance.token)][:index]
+            if index == 0:
+                data_instance['history'] = []
+            else:
+                data_instance['history'] = word_to_response[(instance.user, instance.token)][:index-1]
             dataset.append(data_instance)
 
             person_ids.append(instance.user)
