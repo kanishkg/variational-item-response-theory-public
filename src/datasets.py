@@ -701,9 +701,9 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         instance_to_sentence = dict()
         for instance in tqdm(instances):
             if instance.exercise_id in instance_to_sentence:
-                instance_to_sentence[instance.exercise_id].append(instance.word)
+                instance_to_sentence[instance.exercise_id].append(instance.token)
             else:
-                instance_to_sentence[instance.exercise_id] = [instance.word]
+                instance_to_sentence[instance.exercise_id] = [instance.token]
 
 
         dataset = []
