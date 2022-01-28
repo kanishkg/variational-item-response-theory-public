@@ -749,7 +749,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                     print(instance.user, instance.token)
                     print(word_to_response.keys())
                     data_instance['history'] = word_to_response[(instance.user, instance.token)][:index-1]
-            else:
             dataset.append(data_instance)
 
             person_ids.append(instance.user)
