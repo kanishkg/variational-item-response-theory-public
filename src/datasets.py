@@ -1,5 +1,6 @@
 import os
 import ast
+import bisect
 import copy
 import torch
 import collections
@@ -617,6 +618,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         cache_score_matrix_file = os.path.join(DUOLINGO_LANG_DIR, f'score_matrix_{mode}.npy')
         cache_token_id_file = os.path.join(DUOLINGO_LANG_DIR, f'token_id_{mode}.npy')
         cache_dataset_file = os.path.join(DUOLINGO_LANG_DIR, f'data_{mode}.json')
+        MAX_COUNTRY = 40
 
         if (os.path.isfile(cache_score_matrix_file) and \
             os.path.isfile(cache_token_id_file) and os.path.isfile(cache_dataset_file)) :
@@ -662,14 +664,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
-        self.countries = [c for c in dataset['country']]
-        self.words = [w for w in dataset['word']]
-        self.sentence = [s for s in dataset['sentence']]
-        self.times = [t for t in dataset['time']]
-        self.format = [f for f in dataset['format']]
-        self.days = [d for d in dataset['days']]
+        self.countries = [c['country'] for c in dataset]
+        self.words = [w['word'] for w in dataset]
+        self.sentence = [s['sentence'] for s in dataset]
+        self.prompts = [s['prompt'] for s in dataset]
+        self.times = [t['time'] for t in dataset]
+        self.format = [f['format'] for f in dataset]
+        self.days = [d['days'] for d in dataset]
+        self.history = [d['history'] for d in dataset]
         self.dataset = dataset
-
 
     def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
@@ -684,11 +687,12 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             instances = load_duolingo(filename)
             labels = load_labels(filename+'.key')
 
-
-
         words = []
         format = ['reverse_translate', 'reverse_tap', 'listen']
         country = []
+
+        word_to_attempt = dict()
+        word_to_response = dict()
         for i in tqdm(range(len(train_instances))):
             instance = train_instances[i]
             # TODO why not all sessions?
@@ -697,11 +701,24 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             word = instance.token
             words.append(word)
             country += instance.countries
+            if (instance.user, instance.token) in word_to_attempt:
+                word_to_attempt[(instance.user, instance.token)].append(instance.days)
+                word_to_response[(instance.user, instance.token)].append(labels[instance.instance_id])
+            else:
+                word_to_attempt[(instance.user, instance.token)] = [instance.days]
+                word_to_response[(instance.user, instance.token)] = labels[instance.instance_id]
+
+            word_to_response[(instance.user, instance.token)] = [x for _, x in sorted(
+                zip(word_to_attempt[(instance.user, instance.token)],
+                    word_to_response[(instance.user, instance.token)]))]
+            word_to_attempt[(instance.user, instance.token)] = sorted(word_to_attempt[(instance.user, instance.token)])
+
         words = sorted(list(set(words)))
         country = sorted(list(set(country)))
         print(country)
 
         instance_to_sentence = dict()
+
         for instance in tqdm(instances):
             if instance.exercise_id in instance_to_sentence:
                 instance_to_sentence[instance.exercise_id].append(instance.token)
@@ -727,6 +744,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             data_instance['format'] = format.index(instance.format)
             data_instance['prompt'] = instance.prompt
             data_instance['sentence'] = instance_to_sentence[instance.exercise_id]
+            index = bisect.bisect(word_to_attempt[(instance.user, instance.token)], instance.days)
+            data_instance['history'] = word_to_response[(instance.user, instance.token)][:index]
             dataset.append(data_instance)
 
             person_ids.append(instance.user)
