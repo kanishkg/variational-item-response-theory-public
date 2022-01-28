@@ -725,6 +725,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         dataset = []
         person_ids, tokens, responses = [], [], []
 
+        assert word_to_response.keys() == word_to_attempt.keys()
         for i in tqdm(range(len(instances))):
             instance = instances[i]
             if instance.session != 'lesson':
