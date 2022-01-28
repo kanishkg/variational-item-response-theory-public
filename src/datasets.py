@@ -719,7 +719,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             data_instance['user'] = instance.user
             data_instance['response'] = labels[instance.instance_id]
             data_instance['word'] = instance.token
-            data_instance['token'] = words.index(word)
+            data_instance['token'] = words.index(instance.token)
             data_instance['country'] = [country.index(c) for c in instance.countries]
             data_instance['days'] = instance.days
             data_instance['session'] = instance.session
@@ -729,7 +729,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             dataset.append(data_instance)
 
             person_ids.append(instance.user)
-            tokens.append(instance.token)
+            tokens.append(words.index(instance.token))
             responses.append(labels[instance.instance_id])
 
         num_tokens = len(list(set(tokens)))
