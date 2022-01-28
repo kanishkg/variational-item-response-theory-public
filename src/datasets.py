@@ -681,6 +681,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         train_filename = os.path.join(
             DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
         train_instances, train_labels = load_duolingo(train_filename)
+
         if mode == 'train':
             instances, labels = train_instances, train_labels
         else:
@@ -756,7 +757,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             tokens.append(words.index(instance.token))
             responses.append(labels[instance.instance_id])
 
-        num_tokens = len(list(set(tokens)))
+        num_tokens = len(list(set(words)))
         unique_ids = list(set(person_ids))
         unique_ids = dict(zip(unique_ids, range(len(unique_ids))))
 
