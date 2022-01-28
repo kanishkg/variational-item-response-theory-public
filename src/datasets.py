@@ -737,6 +737,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             data_instance['country'] = [country.index(c) for c in instance.countries]
             data_instance['days'] = instance.days
             data_instance['session'] = instance.session
+            data_instance['time'] = instance.time
             data_instance['format'] = format.index(instance.format)
             data_instance['prompt'] = instance.prompt
             data_instance['sentence'] = instance_to_sentence[instance.exercise_id]
