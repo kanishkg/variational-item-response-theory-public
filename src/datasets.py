@@ -266,7 +266,8 @@ def load_duolingo(filename):
                             else:
                                 assert '.' not in value
                                 value = int(value)
-                                assert value >= 0
+                                if value < 0:
+                                    value = None
                         instance_properties[key] = value
 
             # Otherwise we're parsing a new Instance for the current exercise
