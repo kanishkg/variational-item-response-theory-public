@@ -694,7 +694,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         train_instances, train_labels = load_duolingo(train_filename)
 
         val_filename = os.path.join(
-            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.val')
+            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.dev')
         val_instances = load_duolingo(val_filename)
         val_labels = load_labels(val_filename)
         if mode == 'train':
