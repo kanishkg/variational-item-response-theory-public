@@ -683,6 +683,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.days = [d['days'] for d in dataset]
         self.history = [d['history'] for d in dataset]
         self.dataset = dataset
+        self.encoder_mask = None
 
     def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
@@ -693,13 +694,13 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         train_instances, train_labels = load_duolingo(train_filename)
 
         val_filename = os.path.join(
-            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
-        val_instances, train_labels = load_duolingo(train_filename)
+            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.val')
+        val_instances = load_duolingo(val_filename)
+        val_labels = load_labels(val_filename)
         if mode == 'train':
             instances, labels = train_instances, train_labels
         else:
-            instances = load_duolingo(filename)
-            labels = load_labels(filename + '.key')
+            instances, labels = val_instances, val_labels
 
         words = []
         format = ['reverse_translate', 'reverse_tap', 'listen']
@@ -724,6 +725,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 word_to_response[(instance.user, instance.token)] = [train_labels[instance.instance_id]]
 
         for instance in tqdm(val_instances):
+            if instance.session != 'lesson':
+                continue
             word = instance.token
             words.append(word)
             country += instance.countries
@@ -731,7 +734,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         instance_to_sentence = dict()
 
         for instance in tqdm(instances):
-            if instance.exercise_id in instance_to_sentence:
+            if instance.session != 'lesson':
+                continue
                 instance_to_sentence[instance.exercise_id].append(instance.token)
             else:
                 instance_to_sentence[instance.exercise_id] = [instance.token]
@@ -813,12 +817,14 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         # -1 in questions represents missing data
         item_id[response == -1] = -1
         mask = self.mask[index]
+        e_mask = self.encoder_mask[index]
 
         response = torch.from_numpy(response).float().unsqueeze(1)
         item_id = torch.from_numpy(item_id).long().unsqueeze(1)
         mask = torch.from_numpy(mask).bool().unsqueeze(1)
+        e_mask = torch.from_numpy(e_mask).bool().unsqueeze(1)
 
-        return index, response, item_id, mask
+        return index, response, item_id, mask, e_mask
 
 
 class WordBank_Language(torch.utils.data.Dataset):
