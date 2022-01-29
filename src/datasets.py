@@ -1552,7 +1552,7 @@ class ROARDataset(torch.utils.data.Dataset):
                 self.response[i][j] = float(correct)
                 self.problem_id[i][j] = problem
                 self.response_mask[i][j] = 1
-                self.steps[i][j] = student_time[s_id][j]
+                self.steps[i][j] = student_time[s_id][j][1]
 
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if is_train else slice(num_train, len(self.response))
