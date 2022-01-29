@@ -1152,7 +1152,7 @@ class StepEncoder(nn.Module):
         self.embedding_dim = info_dim
 
     def forward(self, steps, step_mask):
-        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.info_dim).to(step_mask.device)
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         for s, (i, j, _) in enumerate(steps_idx):
             step_embedding[i, j, :] = torch.tensor(steps[i])
