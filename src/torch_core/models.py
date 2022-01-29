@@ -746,6 +746,7 @@ class VIBO_STEP_1PL(nn.Module):
             item_logabsdetjac = None,
     ):
         if self.response_dist == 'bernoulli':
+            print(response_mu[mask!=0])
             log_p_r_j_given_d_u = masked_bernoulli_log_pdf(response, mask, response_mu).sum()
         elif self.response_dist == 'gaussian':
             response_logvar = 2. * torch.log(torch.ones_like(response_mu) * 0.1)
