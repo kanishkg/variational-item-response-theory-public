@@ -372,11 +372,13 @@ if __name__ == "__main__":
                      outputs = model(response, mask, steps, step_mask, encoder_mask)
                 else:
                      outputs = model(response, mask, encoder_mask)
+                response, mask, response_mu, \
                 ability, ability_mu, ability_logvar, \
                 item_feat, item_feat_mu, item_feat_logvar, \
                 step_feat, step_feat_mu, step_feat_logvar \
                         = (outputs)
-                print(torch.isnan(ability), torch.isnan(ability_mu), torch.isnan(ability_logvar), \
+                print( torch.isnan(response), torch.isnan(mask), torch.isnan(response_mu),
+                    torch.isnan(ability), torch.isnan(ability_mu), torch.isnan(ability_logvar), \
                 torch.isnan(item_feat), torch.isnan(item_feat_mu), torch.isnan(item_feat_logvar), \
                 torch.isnan(step_feat), torch.isnan(step_feat_mu), torch.isnan(step_feat_logvar))
                 loss = model.elbo(*outputs, annealing_factor=annealing_factor,
