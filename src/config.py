@@ -29,4 +29,7 @@ IS_REAL_WORLD = {
     'chessai': True,
     'algebraai': True,
     'roar': True,
+    'roarstep': True,
+    'abacus': True,
+    'abacusstep': True,
 }

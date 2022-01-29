@@ -51,6 +51,9 @@ if __name__ == "__main__":
                             'chessai',
                             'algebraai',
                             'roar',
+                            'roarstep',
+                            'abacus',
+                            'abacusstep'
                         ],
                         help='which dataset to run on (default: 1pl_simulation)')
     parser.add_argument('--ability-dim', type=int, default=1,
