@@ -369,9 +369,6 @@ if __name__ == "__main__":
                 )
             else:
                if 'step' in args.dataset:
-                    print(steps)
-                    print(index)
-                    print(response)
                     outputs = model(response, mask, steps, step_mask, encoder_mask)
                else:
                     outputs = model(response, mask, encoder_mask)
