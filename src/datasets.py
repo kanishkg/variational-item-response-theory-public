@@ -1423,7 +1423,7 @@ class JSONStepDataset(torch.utils.data.Dataset):
 
 
 class AbacusDataset(torch.utils.data.Dataset):
-    def __init__(self, is_train=True, **kwargs):
+    def __init__(self, train=True, **kwargs):
         super().__init__()
 
         answers = {}
@@ -1463,15 +1463,15 @@ class AbacusDataset(torch.utils.data.Dataset):
         self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
         self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
 
-        for i, (s_obs, s_time) in enumerate(zip(student_responses.values(), student_answers.values())):
+        for i, (s_id, s_obs) in enumerate(student_responses.items()):
             for j, (problem, correct) in enumerate(s_obs):
                 self.response[i][j] = float(correct)
                 self.problem_id[i][j] = problem
                 self.response_mask[i][j] = 1
-                self.steps[i][j] = s_time[j]
+                self.steps[i][j] = student_answers[s_id][j][1]
 
         num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if is_train else slice(num_train, len(self.response))
+        split = slice(0, num_train) if train else slice(num_train, len(self.response))
 
         self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
         self.steps = np.expand_dims(self.steps[split], axis=2).astype(np.float32)
@@ -1496,7 +1496,7 @@ class AbacusStepDataset(AbacusDataset):
 
 
 class ROARDataset(torch.utils.data.Dataset):
-    def __init__(self, is_train=True, **kwargs):
+    def __init__(self, train=True, **kwargs):
         super().__init__()
 
         answers = {}
@@ -1555,7 +1555,7 @@ class ROARDataset(torch.utils.data.Dataset):
                 self.steps[i][j] = student_time[s_id][j][1]
 
         num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if is_train else slice(num_train, len(self.response))
+        split = slice(0, num_train) if train else slice(num_train, len(self.response))
 
         self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
         self.steps = np.expand_dims(self.steps[split], axis=2).astype(np.float32)
