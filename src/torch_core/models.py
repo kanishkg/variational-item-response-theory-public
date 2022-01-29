@@ -600,8 +600,8 @@ class VIBO_STEP_1PL(nn.Module):
         self.embedding_model       = embedding_model
 
         self._set_step_feat_dim()
-        # if 'simulate' in side_info_model:
-        #     self.step_feat_dim = 1
+        if 'scalar' in side_info_model:
+            self.step_feat_dim = 1
         self._set_item_feat_dim()
         self._set_irt_num()
 
@@ -632,11 +632,10 @@ class VIBO_STEP_1PL(nn.Module):
         else:
             self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
 
-        # TODO Change to generic side info encoder; not same as item
-        if side_info_model:
-            # if 'simulate' in side_info_model:
-            #     self.step_encoder = StepEncoder(self.ability_dim, self.step_feat_dim)
-            # else:
+        if side_info_model == 'scalar':
+            self.step_encoder = StepEncoder(1, self.step_feat_dim)
+        elif 'conpole' in side_info_model:
+            side_info_model = torch.load(side_info_model)
             self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
@@ -1143,17 +1142,17 @@ class ItemInferenceNetwork(nn.Module):
 
 
 class StepEncoder(nn.Module):
-    def __init__(self, ability_dim, step_feat_dim, hidden_dim=16):
+    def __init__(self, info_dim, step_feat_dim, hidden_dim=16):
         super().__init__()
 
         self.mlp = nn.Sequential(
-            nn.Linear(ability_dim, step_feat_dim*2),
+            nn.Linear(info_dim, step_feat_dim*2),
         )
         self.step_feat_dim = step_feat_dim
-        self.embedding_dim = ability_dim
+        self.embedding_dim = info_dim
 
     def forward(self, steps, step_mask):
-        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.info_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         for s, (i, j, _) in enumerate(steps_idx):
             step_embedding[i, j, :] = torch.tensor(steps[i])
