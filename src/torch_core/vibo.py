@@ -377,6 +377,8 @@ if __name__ == "__main__":
             loss.backward()
             total_norm = -1
             weight_norm = 1
+
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
             if 'step' in args.dataset:
                 for p in model.step_encoder.parameters():
                     if p.grad is not None:
