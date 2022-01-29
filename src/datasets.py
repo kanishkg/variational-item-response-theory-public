@@ -562,7 +562,6 @@ def load_labels(filename):
     return labels
 
 
-# TODO Fix word token count in val / train
 class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
     """
     2018 Duolingo Shared Task on Second Language Acquisition Modeling (SLAM).
@@ -1488,7 +1487,7 @@ class AbacusDataset(torch.utils.data.Dataset):
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.problems = all_problems
-        self.step_mask = self.response_mask
+        self.step_mask = self.mask
         self.encoder_mask = None
 
     def __len__(self):
@@ -1572,7 +1571,7 @@ class ROARDataset(torch.utils.data.Dataset):
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.problems = all_problems
-        self.step_mask = self.response_mask
+        self.step_mask = self.mask
         self.encoder_mask = None
 
     def __len__(self):
