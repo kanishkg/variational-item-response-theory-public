@@ -736,6 +736,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         for instance in tqdm(instances):
             if instance.session != 'lesson':
                 continue
+            if instance.exercise_id in instance_to_sentence:
                 instance_to_sentence[instance.exercise_id].append(instance.token)
             else:
                 instance_to_sentence[instance.exercise_id] = [instance.token]
