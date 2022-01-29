@@ -368,11 +368,12 @@ if __name__ == "__main__":
                     item_logabsdetjac = item_feat_logabsdetjac,
                 )
             else:
-               if 'step' in args.dataset:
-                    outputs = model(response, mask, steps, step_mask, encoder_mask)
-               else:
-                    outputs = model(response, mask, encoder_mask)
-               loss = model.elbo(*outputs, annealing_factor=annealing_factor,
+                if 'step' in args.dataset:
+                     outputs = model(response, mask, steps, step_mask, encoder_mask)
+                else:
+                     outputs = model(response, mask, encoder_mask)
+                print(outputs)
+                loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                 use_kl_divergence=True)/args.batch_size
             loss.backward()
             total_norm = -1
