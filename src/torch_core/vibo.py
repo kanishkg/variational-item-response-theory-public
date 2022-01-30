@@ -20,7 +20,7 @@ from src.torch_core.models import (
 )
 from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, artificially_mask_side_info, \
     create_encoder_mask
-from src.utils import AverageMeter, save_checkpoint
+from src.utils import AverageMeter, save_checkpoint, evaluate_metrics
 from src.config import OUT_DIR, IS_REAL_WORLD
 # from roar.pretraining import CharBERT, CharBERTClassifier
 import environment
@@ -700,12 +700,14 @@ if __name__ == "__main__":
 
                 correct, count = 0, 0
                 print(inferred_response.size())
+                actual = []
+                predicted = []
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
                     inferred_label = inferred_response[missing_index[0], missing_index[1]]
-                    if inferred_label.item() == missing_label[0]:
-                        correct += 1
-                    count += 1
-                missing_imputation_accuracy = correct / float(count)
+                    actual.append(missing_label[0])
+                    predicted.append(inferred_label.item())
+                metrics = evaluate_metrics(actual, predicted)
+                missing_imputation_accuracy = metrics['accuracy']
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
                 if 'step' in args.dataset:
@@ -724,19 +726,20 @@ if __name__ == "__main__":
                         inferred_response = posterior_predict_samples['response'].mean(0)
                         inferred_response = torch.round(inferred_response)
 
-                        correct, count = 0, 0
+                        actual = []
+                        predicted = []
                         for missing_index, missing_label in zip(missing_indices, missing_labels):
                             inferred_label = inferred_response[missing_index[0], missing_index[1]]
-                            if inferred_label.item() == missing_label[0]:
-                                correct += 1
-                            count += 1
-                        test_missing_imputation_accuracy = correct / float(count)
+                            actual.append(missing_label[0])
+                            predicted.append(inferred_label.item())
+                        test_metrics = evaluate_metrics(actual, predicted)
+                        test_missing_imputation_accuracy = test_metrics['accuracy']
 
                 if 'best' in checkpoint_name:
                     with open('results_algebra','a') as f:
-                        f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},\n')
-                print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {missing_imputation_accuracy}, "test_accuracy": {test_missing_imputation_accuracy} , "num_encode": {args.num_encode}}},')
-                print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
+                        f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {metrics}, "test_accuracy": {test_metrics} , "num_encode": {args.num_encode}}},\n')
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {metrics}, "test_accuracy": {test_metrics} , "num_encode": {args.num_encode}}},')
+                print(f'Missing Imputation Accuracy from samples: {test_metrics}')
 
             posterior_mean_samples = sample_posterior_mean(train_loader)
             
@@ -751,14 +754,17 @@ if __name__ == "__main__":
                 inferred_response = torch.round(inferred_response)
 
                 correct, count = 0, 0
+                actual = []
+                predicted = []
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
                     inferred_label = inferred_response[missing_index[0], missing_index[1]]
-                    if inferred_label.item() == missing_label[0]:
-                        correct += 1
-                    count += 1
-                missing_imputation_accuracy = correct / float(count)
+                    actual.append(missing_label[0])
+                    predicted.append(inferred_label.item())
+                metrics = evaluate_metrics(actual, predicted)
+                missing_imputation_accuracy = metrics['accuracy']
+
                 checkpoint['missing_imputation_accuracy_mean'] = missing_imputation_accuracy
-                print(f'Missing Imputation Accuracy from mean: {missing_imputation_accuracy}')
+                print(f'Missing Imputation Accuracy from mean: {metrics}')
 
         if not args.no_marginal:
             train_logp = get_log_marginal_density(train_loader)
@@ -782,19 +788,20 @@ if __name__ == "__main__":
                 inferred_response = posterior_predict_samples['response'].mean(0)
                 inferred_response = torch.round(inferred_response)
 
-                correct, count = 0, 0
+                actual = []
+                predicted = []
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
                     inferred_label = inferred_response[missing_index[0], missing_index[1]]
-                    if inferred_label.item() == missing_label[0]:
-                        correct += 1
-                    count += 1
-                missing_imputation_accuracy = correct / float(count)
+                    actual.append(missing_label[0])
+                    predicted.append(inferred_label.item())
+                metrics = evaluate_metrics(actual, predicted)
+                missing_imputation_accuracy = metrics['accuracy']
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
                 model_name = "Amortized VIBO" if args.embed_bert or args.embed_conpole else "VIBO"
                 if 'step' in args.dataset:
                     model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
-                print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "test_accuracy": {missing_imputation_accuracy} }},')
-                print(f'Missing Imputation Accuracy from samples: {missing_imputation_accuracy}')
+                print(f'{{ "seed": {args.seed}, "model": "{model_name}","missing side": {args.side_artificial_perc}, "missing_perc": {args.test_artificial_perc}, "test_accuracy": {metrics} }},')
+                print(f'Missing Imputation Accuracy from samples: {metrics}')
 
         torch.save(checkpoint, os.path.join(args.out_dir, checkpoint_name))
         print(f'Train time: {np.abs(train_times[:100]).sum()}')
