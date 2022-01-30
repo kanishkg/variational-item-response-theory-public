@@ -1533,6 +1533,7 @@ class ROARDataset(torch.utils.data.Dataset):
 
         student_time = {}
 
+        times_all = []
         with open(os.path.join(DATA_DIR, 'roar/roar_resp_time.csv')) as f:
             for d in csv.DictReader(f):
                 words = list(d.keys())[1:]
@@ -1540,7 +1541,9 @@ class ROARDataset(torch.utils.data.Dataset):
                 times = list(d.values())[1:]
                 student_id = d['id']
                 student_time[student_id] = [(i, float(r)) for i, r in enumerate(times)]
-
+                times_all += [float(r) for r in times]
+        std = np.std(times_all)
+        mean = np.mean(times)
         self.obs_by_student = student_responses
         self.times_by_student = student_time
         self.student_ids = list(student_responses.keys())
@@ -1559,7 +1562,7 @@ class ROARDataset(torch.utils.data.Dataset):
                 self.response[i][j] = float(correct)
                 self.problem_id[i][j] = problem
                 self.response_mask[i][j] = 1
-                self.steps[i][j] = student_time[s_id][j][1]
+                self.steps[i][j] = (student_time[s_id][j][1]-mean)/std
 
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if train else slice(num_train, len(self.response))
