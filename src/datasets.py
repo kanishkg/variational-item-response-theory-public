@@ -1543,7 +1543,7 @@ class ROARDataset(torch.utils.data.Dataset):
                 student_time[student_id] = [(i, float(r)) for i, r in enumerate(times)]
                 times_all += [float(r) for r in times]
         std = np.std(times_all)
-        mean = np.mean(times)
+        mean = np.mean(times_all)
         self.obs_by_student = student_responses
         self.times_by_student = student_time
         self.student_ids = list(student_responses.keys())
