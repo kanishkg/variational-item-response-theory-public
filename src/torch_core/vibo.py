@@ -372,11 +372,6 @@ if __name__ == "__main__":
                      outputs = model(response, mask, steps, step_mask, encoder_mask)
                 else:
                      outputs = model(response, mask, encoder_mask)
-                response, mask, response_mu, \
-                ability, ability_mu, ability_logvar, \
-                item_feat, item_feat_mu, item_feat_logvar, \
-                step_feat, step_feat_mu, step_feat_logvar \
-                        = (outputs)
                 loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                 use_kl_divergence=True)/args.batch_size
             loss.backward()
