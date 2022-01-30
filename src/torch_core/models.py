@@ -1158,7 +1158,7 @@ class StepEncoder(nn.Module):
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
 
         for s, (i, j, _) in enumerate(steps_idx):
-            step_embedding[i, j, :] = torch.tensor(steps[i][j])
+            step_embedding[i, j, :] = torch.tensor(steps[i][j]).detach()
 
         # step_mulogvar = self.mlp(step_embedding)
         mu = step_embedding
