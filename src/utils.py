@@ -45,7 +45,7 @@ def bernoulli_log_pdf(x, probs):
 
 def masked_bernoulli_log_pdf(x, mask, probs):
     dist = torch.distributions.bernoulli.Bernoulli(probs=probs)
-    log_prob = dist.log_prob(x.relu())
+    log_prob = (1-probs)**2 * dist.log_prob(x.relu())
     return log_prob * mask.float()
 
 
