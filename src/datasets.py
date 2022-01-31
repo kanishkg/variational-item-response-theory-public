@@ -1180,9 +1180,9 @@ class JSONDataset(torch.utils.data.Dataset):
         self.n_problems = len(all_problems)
 
         self.problems = all_problems
-        self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
-        self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
-        self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
+        self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
+        self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
 
         for i, s_obs in enumerate(data_by_student.values()):
             for j, (problem, correct) in enumerate(s_obs):
@@ -1388,13 +1388,13 @@ class JSONStepDataset(torch.utils.data.Dataset):
         self.n_problems = len(all_problems)
 
         self.problems = all_problems
-        self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
-        self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
+        self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
+        self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
 
-        self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
 
-        self.steps = np.empty((self.n_students, self.max_observations)).tolist()
-        self.step_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.steps = np.empty((self.n_students, self.n_problems)).tolist()
+        self.step_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
 
         for i, s_obs in enumerate(data_by_student.values()):
             for j, (problem, correct, steps) in enumerate(s_obs):
@@ -1468,17 +1468,16 @@ class AbacusDataset(torch.utils.data.Dataset):
         self.obs_by_student = student_responses
         self.answers_by_student = student_answers
         self.student_ids = list(student_responses.keys())
-        self.max_observations = len(all_problems)
         self.n_students = len(student_responses)
         self.n_problems = len(all_problems)
 
         self.problems = all_problems
-        self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
-        self.steps = np.empty((self.n_students, self.max_observations)).tolist()
+        self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
+        self.steps = np.empty((self.n_students, self.n_problems)).tolist()
 
         # self.steps = np.zeros((self.n_students, self.max_observations), dtype=float)
-        self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
-        self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
+        self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
 
         for i, (s_id, s_obs) in enumerate(student_responses.items()):
             for j, (problem, correct) in enumerate(s_obs):
