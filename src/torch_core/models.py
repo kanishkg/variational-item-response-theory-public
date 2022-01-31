@@ -601,7 +601,7 @@ class VIBO_STEP_1PL(nn.Module):
 
         self._set_step_feat_dim()
         if 'scalar' in side_info_model:
-            self.step_feat_dim = 8
+            self.step_feat_dim = 1
         self._set_item_feat_dim()
         self._set_irt_num()
 
@@ -611,6 +611,15 @@ class VIBO_STEP_1PL(nn.Module):
                 self.response_dim,
                 self.item_feat_dim,
                 self.step_feat_dim,
+                self.hidden_dim,
+                ability_merge = self.ability_merge,
+                replace_missing_with_prior = self.replace_missing_with_prior,
+            )
+
+            self.ability_encoder = ConditionalAbilityInferenceNetwork(
+                self.ability_dim,
+                self.response_dim,
+                self.item_feat_dim,
                 self.hidden_dim,
                 ability_merge = self.ability_merge,
                 replace_missing_with_prior = self.replace_missing_with_prior,
@@ -708,7 +717,9 @@ class VIBO_STEP_1PL(nn.Module):
         step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
         # step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
         step_feat = step_feat_mu
-        ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
+        # ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
+        ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat)
+
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
 
