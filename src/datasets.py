@@ -1447,7 +1447,7 @@ class AbacusDataset(torch.utils.data.Dataset):
                 student_responses[student_id] = [(i, int(r)) for i, r in enumerate(responses)]
 
         student_answers = {}
-
+        all_answers = []
         with open(os.path.join(DATA_DIR, 'abacus/answers.csv')) as f:
             for d in csv.DictReader(f):
                 problems = list(d.keys())[1:]
@@ -1455,6 +1455,10 @@ class AbacusDataset(torch.utils.data.Dataset):
                 answers = list(d.values())[1:]
                 student_id = d['id']
                 student_answers[student_id] = [(i, r) for i, r in enumerate(answers)]
+                all_answers.append([float(r) for r in answers])
+        all_answers = np.array(all_answers)
+        answer_mean = np.mean(all_answers, axis=0)
+        answer_std = np.std(all_answers, axis=0)
 
         self.obs_by_student = student_responses
         self.answers_by_student = student_answers
@@ -1475,7 +1479,7 @@ class AbacusDataset(torch.utils.data.Dataset):
                     self.response[i][j] = float(correct)
                     self.problem_id[i][j] = problem
                     self.response_mask[i][j] = 1
-                    self.steps[i][j] = float(student_answers[s_id][j][1])
+                    self.steps[i][j] = (float(student_answers[s_id][j][1])-answer_mean[j])/answer_std[j]
 
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if train else slice(num_train, len(self.response))
