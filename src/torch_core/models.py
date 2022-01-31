@@ -1162,7 +1162,7 @@ class StepEncoder(nn.Module):
 
         step_mulogvar = self.mlp(step_embedding)
         # mu = step_embedding
-        # mu = step_mulogvar[:, :, :self.step_feat_dim]
+        mu = step_mulogvar[:, :, :self.step_feat_dim]
         logvar = step_mulogvar[:, :, self.step_feat_dim:]
         # logvar = step_embedding
         return mu, logvar
