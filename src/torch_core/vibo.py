@@ -316,6 +316,7 @@ if __name__ == "__main__":
         embed_bert=args.embed_bert,
         problems=train_dataset.problems,
         side_info_model=side_info_model,
+        device=device
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)

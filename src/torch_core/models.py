@@ -262,6 +262,7 @@ class VIBO_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
+            device=None
         ):
         super().__init__()
 
@@ -579,6 +580,7 @@ class VIBO_STEP_1PL(nn.Module):
             embed_conpole = False,
             embed_bert = False,
             problems=None,
+            device=None
     ):
         super().__init__()
 
@@ -635,7 +637,8 @@ class VIBO_STEP_1PL(nn.Module):
         if side_info_model == 'scalar':
             self.step_encoder = StepEncoder(1, self.step_feat_dim)
         elif 'conpole' in side_info_model:
-            side_info_model = torch.load(side_info_model)
+            side_info_model = torch.load(side_info_model, map_location=device)
+            side_info_model.to(device)
             self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
@@ -1185,7 +1188,6 @@ class ConpoleStepEncoder(nn.Module):
     def forward(self, steps, step_mask):
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
-        self.q_fn.to(step_mask.device)
         step_embedding_masked = self.q_fn.embed_states(
             [environment.State([steps[i][j][-1]], [], 0) for i, j, _ in steps_idx]).detach()
         for s, (i, j, _) in enumerate(steps_idx):
