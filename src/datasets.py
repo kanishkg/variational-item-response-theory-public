@@ -1454,7 +1454,7 @@ class AbacusDataset(torch.utils.data.Dataset):
                 assert 'id' not in problems, 'Broken assumption that dict key order is mantained from CSV.'
                 answers = list(d.values())[1:]
                 student_id = d['id']
-                student_answers[student_id] = [(i, r) for i, r in enumerate(answers)]
+                student_answers[student_id] = [(i, f'x={r}') for i, r in enumerate(answers)]
                 for i, r in enumerate(answers):
                     if r != '':
                         if i not in all_answers:
@@ -1474,7 +1474,9 @@ class AbacusDataset(torch.utils.data.Dataset):
 
         self.problems = all_problems
         self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
-        self.steps = np.zeros((self.n_students, self.max_observations), dtype=float)
+        self.steps = np.empty((self.n_students, self.max_observations)).tolist()
+
+        # self.steps = np.zeros((self.n_students, self.max_observations), dtype=float)
         self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
         self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
 
@@ -1484,7 +1486,8 @@ class AbacusDataset(torch.utils.data.Dataset):
                     self.response[i][j] = float(correct)
                     self.problem_id[i][j] = problem
                     self.response_mask[i][j] = 1
-                    self.steps[i][j] = (float(student_answers[s_id][j][1])-answer_mean[j])/answer_std[j]
+                    # self.steps[i][j] = (float(student_answers[s_id][j][1])-answer_mean[j])/answer_std[j]
+                    self.steps[i][j] = student_answers[s_id][j][1]
 
 
         print(f'total_responses = {np.sum(self.response_mask)}, correct_responses = {np.sum(self.response)}, num_per_student = {np.mean(np.sum(self.response_mask, axis=1))}')
