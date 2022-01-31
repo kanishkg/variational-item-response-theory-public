@@ -1482,7 +1482,7 @@ class AbacusDataset(torch.utils.data.Dataset):
 
         for i, (s_id, s_obs) in enumerate(student_responses.items()):
             for j, (problem, correct) in enumerate(s_obs):
-                if student_answers[s_id][j][1] != '':
+                if student_answers[s_id][j][1] != 'x=':
                     self.response[i][j] = float(correct)
                     self.problem_id[i][j] = problem
                     self.response_mask[i][j] = 1
