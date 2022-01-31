@@ -1497,6 +1497,7 @@ class AbacusDataset(torch.utils.data.Dataset):
 
         self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
         # self.steps = np.expand_dims(self.steps[split], axis=2).astype(np.float32)
+        self.steps = self.steps[split]
         self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
         self.num_person = len(self.response)
