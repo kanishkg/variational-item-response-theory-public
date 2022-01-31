@@ -606,15 +606,15 @@ class VIBO_STEP_1PL(nn.Module):
         self._set_irt_num()
 
         if self.conditional_posterior:
-            self.ability_encoder = ConditionalAbilityStepInferenceNetwork(
-                self.ability_dim,
-                self.response_dim,
-                self.item_feat_dim,
-                self.step_feat_dim,
-                self.hidden_dim,
-                ability_merge = self.ability_merge,
-                replace_missing_with_prior = self.replace_missing_with_prior,
-            )
+            # self.ability_encoder = ConditionalAbilityStepInferenceNetwork(
+            #     self.ability_dim,
+            #     self.response_dim,
+            #     self.item_feat_dim,
+            #     self.step_feat_dim,
+            #     self.hidden_dim,
+            #     ability_merge = self.ability_merge,
+            #     replace_missing_with_prior = self.replace_missing_with_prior,
+            # )
 
             self.ability_encoder = ConditionalAbilityInferenceNetwork(
                 self.ability_dim,
@@ -690,7 +690,7 @@ class VIBO_STEP_1PL(nn.Module):
         ability, ability_mu, ability_logvar, \
         item_feat, item_feat_mu, item_feat_logvar, \
         step_feat, step_feat_mu, step_feat_logvar \
-            = self.encode(response, encoder_mask, steps, step_mask)
+            = self.encode(response, encoder_mask, 0, 0)
 
         if self.n_norm_flows > 0:
             ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
@@ -714,8 +714,9 @@ class VIBO_STEP_1PL(nn.Module):
         item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
         item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
-        step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
-        # step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
+        # step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
+        step_feat_mu, step_feat_logvar = 0, 0
+
         step_feat = step_feat_mu
         # ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
         ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat)
