@@ -1486,6 +1486,8 @@ class AbacusDataset(torch.utils.data.Dataset):
                     self.response_mask[i][j] = 1
                     self.steps[i][j] = (float(student_answers[s_id][j][1])-answer_mean[j])/answer_std[j]
 
+
+        print(f'total_responses = {np.sum(self.response_mask)}, correct_responses = {np.sum(self.response)} ')
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if train else slice(num_train, len(self.response))
 
