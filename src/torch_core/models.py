@@ -1156,9 +1156,9 @@ class StepEncoder(nn.Module):
     def forward(self, steps, step_mask):
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
-        device = step_mask.device
+
         for s, (i, j, _) in enumerate(steps_idx):
-            step_embedding[i, j, :] = torch.tensor(steps[i][j]).detach().to(device)
+            step_embedding[i, j, :] = torch.tensor(steps[i][j]).detach()
 
         step_mulogvar = self.mlp(step_embedding)
         # mu = step_embedding
@@ -1185,6 +1185,7 @@ class ConpoleStepEncoder(nn.Module):
     def forward(self, steps, step_mask):
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+        self.q_fn.to(step_mask.device)
         step_embedding_masked = self.q_fn.embed_states(
             [environment.State([steps[i][j][-1]], [], 0) for i, j, _ in steps_idx]).detach()
         for s, (i, j, _) in enumerate(steps_idx):
