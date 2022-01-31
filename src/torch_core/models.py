@@ -601,7 +601,7 @@ class VIBO_STEP_1PL(nn.Module):
 
         self._set_step_feat_dim()
         if 'scalar' in side_info_model:
-            self.step_feat_dim = 1
+            self.step_feat_dim = 8
         self._set_item_feat_dim()
         self._set_irt_num()
 
