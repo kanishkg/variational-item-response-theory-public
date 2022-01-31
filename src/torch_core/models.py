@@ -601,25 +601,16 @@ class VIBO_STEP_1PL(nn.Module):
 
         self._set_step_feat_dim()
         if 'scalar' in side_info_model:
-            self.step_feat_dim = 1
+            self.step_feat_dim = 8
         self._set_item_feat_dim()
         self._set_irt_num()
 
         if self.conditional_posterior:
-            # self.ability_encoder = ConditionalAbilityStepInferenceNetwork(
-            #     self.ability_dim,
-            #     self.response_dim,
-            #     self.item_feat_dim,
-            #     self.step_feat_dim,
-            #     self.hidden_dim,
-            #     ability_merge = self.ability_merge,
-            #     replace_missing_with_prior = self.replace_missing_with_prior,
-            # )
-
-            self.ability_encoder = ConditionalAbilityInferenceNetwork(
+            self.ability_encoder = ConditionalAbilityStepInferenceNetwork(
                 self.ability_dim,
                 self.response_dim,
                 self.item_feat_dim,
+                self.step_feat_dim,
                 self.hidden_dim,
                 ability_merge = self.ability_merge,
                 replace_missing_with_prior = self.replace_missing_with_prior,
@@ -690,7 +681,7 @@ class VIBO_STEP_1PL(nn.Module):
         ability, ability_mu, ability_logvar, \
         item_feat, item_feat_mu, item_feat_logvar, \
         step_feat, step_feat_mu, step_feat_logvar \
-            = self.encode(response, encoder_mask, 0, 0)
+            = self.encode(response, encoder_mask, steps, step_mask)
 
         if self.n_norm_flows > 0:
             ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
@@ -714,13 +705,10 @@ class VIBO_STEP_1PL(nn.Module):
         item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
         item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
         item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
-        # step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
-        step_feat_mu, step_feat_logvar = 0, 0
-
+        step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
+        # step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
         step_feat = step_feat_mu
-        # ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
-        ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat)
-
+        ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
 
@@ -1125,7 +1113,7 @@ class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
         item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
         step_feat_flat = step_feat.view(num_person * num_item, self.step_feat_dim)
 
-        mlp_input = torch.cat([response_flat, item_feat_flat, 0*step_feat_flat], dim=1)
+        mlp_input = torch.cat([response_flat, item_feat_flat, step_feat_flat], dim=1)
 
         return getattr(self, f'_forward_{self.ability_merge}')(
             mlp_input,
@@ -1174,7 +1162,7 @@ class StepEncoder(nn.Module):
 
         step_mulogvar = self.mlp(step_embedding)
         # mu = step_embedding
-        mu = step_mulogvar[:, :, :self.step_feat_dim]*0
+        mu = step_mulogvar[:, :, :self.step_feat_dim]
         logvar = step_mulogvar[:, :, self.step_feat_dim:]
         # logvar = step_embedding
         return mu, logvar
