@@ -9,6 +9,7 @@ import torch
 from torch import optim
 import torch.distributions as dist
 import torch.nn.functional as F
+import wandb
 
 from src.torch_core.models import (
     VIBO_1PL, 
@@ -24,6 +25,10 @@ from src.utils import AverageMeter, save_checkpoint, evaluate_metrics
 from src.config import OUT_DIR, IS_REAL_WORLD
 # from roar.pretraining import CharBERT, CharBERTClassifier
 import environment
+
+
+
+wandb.init(project="rich-irt", entity="kanishkgandhi")
 
 sys.path.append('../../socratic-tutor/')
 
@@ -171,7 +176,7 @@ if __name__ == "__main__":
     else:
         args.max_num_person = None
         args.max_num_item = None
-
+    
     out_file = 'VIBO_{}_{}_{}_{}_{}person_{}item_{}maxperson_{}maxitem_{}maskperc_{}ability_{}_{}_{}seed{}_encode{}'.format(
         args.irt_model, 
         args.dataset,
@@ -320,7 +325,9 @@ if __name__ == "__main__":
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-
+    wandb.config = {
+            vars(args)
+        }
     def get_annealing_factor(epoch, which_mini_batch):
         if args.anneal_kl:
             annealing_factor = \
@@ -441,7 +448,7 @@ if __name__ == "__main__":
                         outputs = model(response, mask, steps, step_mask, encoder_mask)
                     else:
                         outputs = model(response, mask, encoder_mask)
-                    loss = model.elbo(*outputs)
+                    loss = model.elbo(*outputs)/args.batch_size
                 test_loss.update(loss.item(), mb)
 
                 pbar.update()
@@ -684,7 +691,6 @@ if __name__ == "__main__":
             infer_dict = get_infer_dict(train_loader)
             checkpoint['infer_dict'] = infer_dict
 
-
         if not args.no_predictive:
             posterior_predict_samples = sample_posterior_predictive(train_loader)
             checkpoint['posterior_predict_samples'] = posterior_predict_samples
@@ -740,7 +746,18 @@ if __name__ == "__main__":
                     with open('results_algebra','a') as f:
                         acc = metrics['accuracy']
                         tacc = test_metrics['accuracy']
+                        # f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {acc}, "test_accuracy": {tacc} , "num_encode": {args.num_encode}}},\n')
                         f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {acc}, "test_accuracy": {tacc} , "num_encode": {args.num_encode}}},\n')
+                        wandb.log({
+                            "train_accuracy":metrics['accuracy'], 
+                            "train_auc":metrics['auroc'],
+                            "train_f1":metrics['F1'], 
+                            "test_accuracy":test_metrics['accuracy'], 
+                            "test_auc":test_metrics['auroc'],
+                            "test_f1":test_metrics['F1'], 
+                        })
+
+
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {metrics}, "test_accuracy": {test_metrics} , "num_encode": {args.num_encode}}},')
                 print(f'Missing Imputation Accuracy from samples: {test_metrics}')
 
