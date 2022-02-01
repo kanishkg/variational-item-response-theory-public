@@ -746,7 +746,7 @@ if __name__ == "__main__":
                     with open('results_algebra','a') as f:
                         acc = metrics['accuracy']
                         tacc = test_metrics['accuracy']
-                        # f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {acc}, "test_accuracy": {tacc} , "num_encode": {args.num_encode}}},\n')
+                        f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {acc}, "test_accuracy": {tacc} , "num_encode": {args.num_encode}}},\n')
                         f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {acc}, "test_accuracy": {tacc} , "num_encode": {args.num_encode}}},\n')
                         wandb.log({
                             "train_accuracy":metrics['accuracy'], 
