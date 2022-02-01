@@ -1455,7 +1455,7 @@ class AbacusDataset(torch.utils.data.Dataset):
                 answers = list(d.values())[1:]
                 student_id = d['id']
                 # student_answers[student_id] = [(i, f'x={r}') for i, r in enumerate(answers)]
-                student_answers[student_id] = [(i, float(r)) for i, r in enumerate(answers)]
+                student_answers[student_id] = [(i, r) for i, r in enumerate(answers)]
 
                 for i, r in enumerate(answers):
                     if r != '':
