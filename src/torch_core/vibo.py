@@ -738,7 +738,9 @@ if __name__ == "__main__":
 
                 if 'best' in checkpoint_name:
                     with open('results_algebra','a') as f:
-                        f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {metrics}, "test_accuracy": {test_metrics} , "num_encode": {args.num_encode}}},\n')
+                        acc = metrics['accuracy']
+                        tacc = metrics['accuracy']
+                        f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {acc}, "test_accuracy": {tacc} , "num_encode": {args.num_encode}}},\n')
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {metrics}, "test_accuracy": {test_metrics} , "num_encode": {args.num_encode}}},')
                 print(f'Missing Imputation Accuracy from samples: {test_metrics}')
 
