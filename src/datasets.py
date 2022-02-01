@@ -1477,7 +1477,7 @@ class AbacusDataset(torch.utils.data.Dataset):
         self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
         # self.steps = np.empty((self.n_students, self.n_problems)).tolist()
 
-        self.steps = np.zeros((self.n_students, self.max_observations), dtype=float)
+        self.steps = np.zeros((self.n_students, self.n_problems), dtype=float)
         self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
         self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
 
