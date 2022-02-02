@@ -742,16 +742,18 @@ if __name__ == "__main__":
 
                         actual = []
                         predicted = []
-                        correct = 0
+                        correct, count = 0, 0
                         for missing_index, missing_label in zip(missing_indices, missing_labels):
                             inferred_label = inferred_response[missing_index[0],
                                                                missing_index[1]]
                             actual.append(missing_label[0])
                             predicted.append(inferred_label.item())
-                            correct += int(inferred_label.item() == missing_label[0])
+                            if inferred_label.item() == missing_label[0]:
+                                correct += 1
+                            count += 1
                         test_metrics = evaluate_metrics(actual, predicted)
                         test_missing_imputation_accuracy = test_metrics['accuracy']
-                        print("manual acc",correct/len(missing_label))
+                        print("manual acc",correct/float(count))
 
                 if 'best' in checkpoint_name:
                     with open('results_algebra', 'a') as f:
