@@ -1,3 +1,4 @@
+from distutils import core
 import os
 import time
 import math
@@ -750,6 +751,7 @@ if __name__ == "__main__":
                             correct += int(inferred_label.item() == missing_label[0])
                         test_metrics = evaluate_metrics(actual, predicted)
                         test_missing_imputation_accuracy = test_metrics['accuracy']
+                        print("manual acc",correct/len(missing_label))
 
                 if 'best' in checkpoint_name:
                     with open('results_algebra', 'a') as f:
