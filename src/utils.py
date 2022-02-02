@@ -6,6 +6,7 @@ import shutil
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
+
     def __init__(self):
         self.reset()
 
@@ -81,7 +82,7 @@ def log_mean_exp(x, dim=1):
     """
     # m = torch.max(x, dim=dim, keepdim=True)[0]
     # return m + torch.log(torch.mean(torch.exp(x - m),
-                        #  dim=dim, keepdim=True))
+    #  dim=dim, keepdim=True))
     return torch.logsumexp(x, dim=dim) - math.log(x.shape[1])
 
 
@@ -126,11 +127,12 @@ def multivariate_product_of_experts(mu, logcov, eps=1e-8):
 
     mT = torch.sum(torch.einsum('pbi,pbii->pbi', mu, T), dim=0)
     pd_mu = torch.einsum('bii,bii->bii', mT, sum_T_inv)
-    
+
     pd_cov = sum_T_inv
     pd_logcov = torch.log(pd_cov + eps)
 
     return pd_mu, pd_logcov
+
 
 def compute_auroc(actual, predicted):
     """
@@ -139,12 +141,14 @@ def compute_auroc(actual, predicted):
     https://github.com/benhamner/Metrics/blob/master/Python/ml_metrics/auc.py
     """
     num = len(actual)
-    temp = sorted([[predicted[i], actual[i]] for i in range(num)], reverse=True)
+    temp = sorted([[predicted[i], actual[i]]
+                  for i in range(num)], reverse=True)
 
     sorted_predicted = [row[0] for row in temp]
     sorted_actual = [row[1] for row in temp]
 
-    sorted_posterior = sorted(zip(sorted_predicted, range(len(sorted_predicted))))
+    sorted_posterior = sorted(
+        zip(sorted_predicted, range(len(sorted_predicted))))
     r = [0 for k in sorted_predicted]
     cur_val = sorted_posterior[0][0]
     last_rank = 0
@@ -154,16 +158,18 @@ def compute_auroc(actual, predicted):
             for j in range(last_rank, i):
                 r[sorted_posterior[j][1]] = float(last_rank+1+i)/2.0
             last_rank = i
-        if i==len(sorted_posterior)-1:
+        if i == len(sorted_posterior)-1:
             for j in range(last_rank, i+1):
                 r[sorted_posterior[j][1]] = float(last_rank+i+2)/2.0
 
     num_positive = len([0 for x in sorted_actual if x == 1])
     num_negative = num - num_positive
     sum_positive = sum([r[i] for i in range(len(r)) if sorted_actual[i] == 1])
-    auroc = ((sum_positive - num_positive * (num_positive + 1) / 2.0) / (num_negative * num_positive))
+    auroc = ((sum_positive - num_positive * (num_positive + 1) /
+             2.0) / (num_negative * num_positive))
 
     return auroc
+
 
 def evaluate_metrics(actual, predicted):
     """
@@ -205,6 +211,7 @@ def compute_f1(actual, predicted):
         F1 = 0.0
 
     return F1
+
 
 def compute_acc(actual, predicted):
     """
