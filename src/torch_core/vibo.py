@@ -26,12 +26,8 @@ from src.config import OUT_DIR, IS_REAL_WORLD
 # from roar.pretraining import CharBERT, CharBERTClassifier
 import environment
 
-
-
-wandb.init(project="rich-irt", entity="kanishkgandhi")
-
 sys.path.append('../../socratic-tutor/')
-
+wandb.init(project="rich-irt", entity="kanishkgandhi")
 
 if __name__ == "__main__":
     import argparse
