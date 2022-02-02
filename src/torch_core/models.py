@@ -8,12 +8,12 @@ from torch.nn import functional as F, init
 import environment
 
 from src.utils import (
-    bernoulli_log_pdf, 
+    bernoulli_log_pdf,
     masked_bernoulli_log_pdf,
     masked_gaussian_log_pdf,
-    standard_normal_log_pdf, 
+    standard_normal_log_pdf,
     normal_log_pdf,
-    kl_divergence_standard_normal_prior, 
+    kl_divergence_standard_normal_prior,
     log_mean_exp,
     product_of_experts,
 )
@@ -21,20 +21,20 @@ from src.torch_core.flows import NormalizingFlows
 
 
 class MLE_1PL(nn.Module):
-    
+
     def __init__(
-            self,
-            latent_dim,
-            num_person,
-            num_item,
-        ):
+        self,
+        latent_dim,
+        num_person,
+        num_item,
+    ):
         super().__init__()
 
-        self.latent_dim            = latent_dim
-        self.ability_dim           = latent_dim
-        self.response_dim          = 1
-        self.num_person            = num_person
-        self.num_item              = num_item
+        self.latent_dim = latent_dim
+        self.ability_dim = latent_dim
+        self.response_dim = 1
+        self.num_person = num_person
+        self.num_item = num_item
 
         self._set_item_feat_dim()
 
@@ -48,7 +48,8 @@ class MLE_1PL(nn.Module):
 
     def encode(self, index, response, mask):
         ability = self.ability(index)
-        item_domain = torch.arange(self.num_item).unsqueeze(1).to(response.device)
+        item_domain = torch.arange(
+            self.num_item).unsqueeze(1).to(response.device)
         item_feat = self.item_feat(item_domain).squeeze(1)
         return ability, item_feat
 
@@ -63,7 +64,8 @@ class MLE_1PL(nn.Module):
     @staticmethod
     def weights_init(m):
         if isinstance(m, (nn.Linear, nn.Conv2d)):
-            init.xavier_normal_(m.weight.data, gain=init.calculate_gain('relu'))
+            init.xavier_normal_(
+                m.weight.data, gain=init.calculate_gain('relu'))
             init.constant_(m.bias.data, 0)
         elif isinstance(m, nn.BatchNorm1d):
             pass
@@ -79,7 +81,7 @@ class MLE_2PL(MLE_1PL):
 
 
 class MLE_3PL(MLE_2PL):
-    
+
     def _set_item_feat_dim(self):
         self.item_feat_dim = self.latent_dim + 2
 
@@ -88,28 +90,31 @@ class MLE_3PL(MLE_2PL):
 
 
 class VI_1PL(nn.Module):
-    
+
     def __init__(
-            self,
-            latent_dim,
-            num_person, 
-            num_item,
-        ):
+        self,
+        latent_dim,
+        num_person,
+        num_item,
+    ):
         super().__init__()
 
-        self.latent_dim            = latent_dim
-        self.ability_dim           = latent_dim
-        self.response_dim          = 1
-        self.num_person            = num_person
-        self.num_item              = num_item
+        self.latent_dim = latent_dim
+        self.ability_dim = latent_dim
+        self.response_dim = 1
+        self.num_person = num_person
+        self.num_item = num_item
 
         self._set_item_feat_dim()
 
-        self.ability_mu_lookup = nn.Embedding(self.num_person, self.ability_dim)
-        self.ability_logvar_lookup = nn.Embedding(self.num_person, self.ability_dim)
+        self.ability_mu_lookup = nn.Embedding(
+            self.num_person, self.ability_dim)
+        self.ability_logvar_lookup = nn.Embedding(
+            self.num_person, self.ability_dim)
 
         self.item_mu_lookup = nn.Embedding(self.num_item, self.item_feat_dim)
-        self.item_logvar_lookup = nn.Embedding(self.num_item, self.item_feat_dim)
+        self.item_logvar_lookup = nn.Embedding(
+            self.num_item, self.item_feat_dim)
 
         self.apply(self.weights_init)
 
@@ -122,7 +127,7 @@ class VI_1PL(nn.Module):
         response_mu = self.decode(ability, item_feat)
 
         return response, mask, response_mu, ability, ability_mu, ability_logvar, \
-                item_feat, item_feat_mu, item_feat_logvar
+            item_feat, item_feat_mu, item_feat_logvar
 
     def encode(self, index, response, mask):
         device = response.device
@@ -130,43 +135,49 @@ class VI_1PL(nn.Module):
         item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
         item_feat_mu = self.item_mu_lookup(item_domain).squeeze(1)
         item_feat_logvar = self.item_logvar_lookup(item_domain).squeeze(1)
-        item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
+        item_feat = self.reparameterize_gaussian(
+            item_feat_mu, item_feat_logvar)
 
         ability_mu = self.ability_mu_lookup(index)
         ability_logvar = self.ability_logvar_lookup(index)
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
 
         return ability, ability_mu, ability_logvar, \
-                item_feat, item_feat_mu, item_feat_logvar
+            item_feat, item_feat_mu, item_feat_logvar
 
     def decode(self, ability, item_feat):
         return irt_model_1pl(ability, item_feat)
 
     def elbo(
-            self,
-            response,
-            mask,
-            response_mu,
-            ability,
-            ability_mu,
-            ability_logvar,
-            item_feat,
-            item_feat_mu,
-            item_feat_logvar,
-            annealing_factor = 1,
-            use_kl_divergence = True,
-        ):
-        log_p_r_j_given_d_u = masked_bernoulli_log_pdf(response, mask, response_mu).sum()
-        
+        self,
+        response,
+        mask,
+        response_mu,
+        ability,
+        ability_mu,
+        ability_logvar,
+        item_feat,
+        item_feat_mu,
+        item_feat_logvar,
+        annealing_factor=1,
+        use_kl_divergence=True,
+    ):
+        log_p_r_j_given_d_u = masked_bernoulli_log_pdf(
+            response, mask, response_mu).sum()
+
         if use_kl_divergence:
-            kl_q_u_p_u = kl_divergence_standard_normal_prior(ability_mu, ability_logvar).sum()
-            kl_q_d_p_d = kl_divergence_standard_normal_prior(item_feat_mu, item_feat_logvar).sum()
-            elbo = log_p_r_j_given_d_u - annealing_factor * kl_q_u_p_u - annealing_factor * kl_q_d_p_d
+            kl_q_u_p_u = kl_divergence_standard_normal_prior(
+                ability_mu, ability_logvar).sum()
+            kl_q_d_p_d = kl_divergence_standard_normal_prior(
+                item_feat_mu, item_feat_logvar).sum()
+            elbo = log_p_r_j_given_d_u - annealing_factor * \
+                kl_q_u_p_u - annealing_factor * kl_q_d_p_d
         else:
             log_p_u = standard_normal_log_pdf(ability).sum()
             log_p_d = standard_normal_log_pdf(item_feat).sum()
             log_q_u = normal_log_pdf(ability, ability_mu, ability_logvar).sum()
-            log_q_d = normal_log_pdf(item_feat, item_feat_mu, item_feat_logvar).sum()
+            log_q_d = normal_log_pdf(
+                item_feat, item_feat_mu, item_feat_logvar).sum()
 
             model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d
             guide_log_prob_sum = log_q_u + log_q_d
@@ -201,8 +212,8 @@ class VI_1PL(nn.Module):
                     item_feat,
                     item_feat_mu,
                     item_feat_logvar,
-                    annealing_factor = 1,
-                    use_kl_divergence = False,
+                    annealing_factor=1,
+                    use_kl_divergence=False,
                 )
                 log_weight.append(log_w)
 
@@ -220,7 +231,8 @@ class VI_1PL(nn.Module):
     @staticmethod
     def weights_init(m):
         if isinstance(m, (nn.Linear, nn.Conv2d)):
-            init.xavier_normal_(m.weight.data, gain=init.calculate_gain('relu'))
+            init.xavier_normal_(
+                m.weight.data, gain=init.calculate_gain('relu'))
             init.constant_(m.bias.data, 0)
         elif isinstance(m, nn.BatchNorm1d):
             pass
@@ -236,7 +248,7 @@ class VI_2PL(VI_1PL):
 
 
 class VI_3PL(VI_2PL):
-    
+
     def _set_item_feat_dim(self):
         self.item_feat_dim = self.latent_dim + 2
 
@@ -245,99 +257,102 @@ class VI_3PL(VI_2PL):
 
 
 class VIBO_1PL(nn.Module):
-    
+
     def __init__(
-            self, 
-            latent_dim, 
-            num_item, 
-            hidden_dim = 64,
-            ability_merge = 'mean',
-            conditional_posterior = False,
-            generative_model = 'irt',
-            response_dist = 'bernoulli',
-            replace_missing_with_prior = True,
-            n_norm_flows = 0,
-            embedding_model = None,
-            side_info_model = None,
-            embed_conpole = False,
-            embed_bert = False,
-            problems=None,
-            device=None
-        ):
+        self,
+        latent_dim,
+        num_item,
+        hidden_dim=64,
+        ability_merge='mean',
+        conditional_posterior=False,
+        generative_model='irt',
+        response_dist='bernoulli',
+        replace_missing_with_prior=True,
+        n_norm_flows=0,
+        embedding_model=None,
+        side_info_model=None,
+        embed_conpole=False,
+        embed_bert=False,
+        problems=None,
+        device=None
+    ):
         super().__init__()
 
         assert ability_merge in ['mean', 'product']
         assert generative_model in ['irt', 'link', 'deep', 'residual']
         assert response_dist in ['bernoulli', 'gaussian']
 
-        self.latent_dim            = latent_dim
-        self.ability_dim           = latent_dim
-        self.response_dim          = 1
-        self.hidden_dim            = hidden_dim
-        self.num_item              = num_item
-        self.ability_merge         = ability_merge
+        self.latent_dim = latent_dim
+        self.ability_dim = latent_dim
+        self.response_dim = 1
+        self.hidden_dim = hidden_dim
+        self.num_item = num_item
+        self.ability_merge = ability_merge
         self.conditional_posterior = conditional_posterior
-        self.generative_model      = generative_model
-        self.response_dist         = response_dist
+        self.generative_model = generative_model
+        self.response_dist = response_dist
         self.replace_missing_with_prior = replace_missing_with_prior
-        self.n_norm_flows          = n_norm_flows
-        self.embedding_model       = embedding_model
+        self.n_norm_flows = n_norm_flows
+        self.embedding_model = embedding_model
 
         self._set_item_feat_dim()
         self._set_irt_num()
 
         if self.conditional_posterior:
             self.ability_encoder = ConditionalAbilityInferenceNetwork(
-                self.ability_dim, 
-                self.response_dim, 
-                self.item_feat_dim, 
-                self.hidden_dim, 
-                ability_merge = self.ability_merge,
-                replace_missing_with_prior = self.replace_missing_with_prior,
+                self.ability_dim,
+                self.response_dim,
+                self.item_feat_dim,
+                self.hidden_dim,
+                ability_merge=self.ability_merge,
+                replace_missing_with_prior=self.replace_missing_with_prior,
             )
         else:
             self.ability_encoder = AbilityInferenceNetwork(
-                self.ability_dim, 
-                self.response_dim, 
+                self.ability_dim,
+                self.response_dim,
                 self.hidden_dim,
-                ability_merge = self.ability_merge,
-                replace_missing_with_prior = self.replace_missing_with_prior,
+                ability_merge=self.ability_merge,
+                replace_missing_with_prior=self.replace_missing_with_prior,
             )
 
         if embedding_model:
             if embed_conpole:
-                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim)
+                self.item_encoder = ConpoleEncoder(
+                    embedding_model, problems, self.item_feat_dim)
             else:
-                self.item_encoder = BertEncoder(embedding_model, problems, self.item_feat_dim)
+                self.item_encoder = BertEncoder(
+                    embedding_model, problems, self.item_feat_dim)
         else:
-            self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
+            self.item_encoder = ItemInferenceNetwork(
+                self.num_item, self.item_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
-                self.ability_dim, 
+                self.ability_dim,
                 n_flows=self.n_norm_flows,
             )
             self.item_norm_flows = NormalizingFlows(
-                self.item_feat_dim, 
+                self.item_feat_dim,
                 n_flows=self.n_norm_flows,
             )
 
         if self.generative_model == 'link':
             self.decoder = LinkedIRT(
-                irt_model = f'{self.irt_num}pl',
-                hidden_dim = self.hidden_dim,
+                irt_model=f'{self.irt_num}pl',
+                hidden_dim=self.hidden_dim,
             )
         elif self.generative_model == 'deep':
             self.decoder = DeepIRT(
                 self.ability_dim,
-                irt_model = f'{self.irt_num}pl',
-                hidden_dim = self.hidden_dim,
+                irt_model=f'{self.irt_num}pl',
+                hidden_dim=self.hidden_dim,
             )
         elif self.generative_model == 'residual':
             self.decoder = ResidualIRT(
                 self.ability_dim,
-                irt_model = f'{self.irt_num}pl',
-                hidden_dim = self.hidden_dim,
+                irt_model=f'{self.irt_num}pl',
+                hidden_dim=self.hidden_dim,
             )
 
         self.apply(self.weights_init)
@@ -350,12 +365,13 @@ class VIBO_1PL(nn.Module):
 
     def forward(self, response, mask, encoder_mask):
         ability, ability_mu, ability_logvar, \
-        item_feat, item_feat_mu, item_feat_logvar \
+            item_feat, item_feat_mu, item_feat_logvar \
             = self.encode(response, encoder_mask)
 
         if self.n_norm_flows > 0:
             ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
-            item_feat_k, item_feat_logabsdetjac = self.item_norm_flows(item_feat)
+            item_feat_k, item_feat_logabsdetjac = self.item_norm_flows(
+                item_feat)
             response_mu = self.decode(ability_k, item_feat_k)
             return response, mask, response_mu, \
                 ability_k, ability, ability_mu, ability_logvar, ability_logabsdetjac, \
@@ -372,17 +388,19 @@ class VIBO_1PL(nn.Module):
 
         item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
         item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
-        item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
+        item_feat = self.reparameterize_gaussian(
+            item_feat_mu, item_feat_logvar)
 
         if self.conditional_posterior:
-            ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat)
+            ability_mu, ability_logvar = self.ability_encoder(
+                response, mask, item_feat)
         else:
             ability_mu, ability_logvar = self.ability_encoder(response, mask)
 
         ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
 
         return ability, ability_mu, ability_logvar, \
-                item_feat, item_feat_mu, item_feat_logvar
+            item_feat, item_feat_mu, item_feat_logvar
 
     def decode(self, ability, item_feat):
         if self.generative_model == 'irt':
@@ -392,369 +410,34 @@ class VIBO_1PL(nn.Module):
             return self.decoder(ability, item_feat)
 
     def elbo(
-            self, 
-            response,
-            mask, 
-            response_mu, 
-            ability, 
-            ability_mu, 
-            ability_logvar,
-            item_feat, 
-            item_feat_mu, 
-            item_feat_logvar, 
-            annealing_factor = 1,
-            use_kl_divergence = True,
-            ability_k = None,
-            item_feat_k = None,
-            ability_logabsdetjac = None,
-            item_logabsdetjac = None,
-        ):
-        if self.response_dist == 'bernoulli':
-            log_p_r_j_given_d_u = masked_bernoulli_log_pdf(response, mask, response_mu).sum()
-        elif self.response_dist == 'gaussian':
-            response_logvar = 2. * torch.log(torch.ones_like(response_mu) * 0.1)
-            log_p_r_j_given_d_u = masked_gaussian_log_pdf(response, mask, response_mu, response_logvar).sum()
-        else:
-            raise Exception(f'response_dist {self.response_dist} not supported.')
-       
-        if self.n_norm_flows > 0:
-            assert ability_logabsdetjac is not None
-            assert item_logabsdetjac is not None
-            assert ability_k is not None
-            assert item_feat_k is not None
-
-            log_q_u_0 = normal_log_pdf(ability, ability_mu, ability_logvar).sum()
-            log_q_d_0 = normal_log_pdf(item_feat, item_feat_mu, item_feat_logvar).sum()
-            
-            log_p_u_k = standard_normal_log_pdf(ability_k).sum()
-            log_p_d_k = standard_normal_log_pdf(item_feat_k).sum()
-
-            log_q_u_k = log_q_u_0 - ability_logabsdetjac.sum()
-            log_q_d_k = log_q_d_0 - item_logabsdetjac.sum()
-
-            model_log_prob_sum = log_p_r_j_given_d_u + log_p_u_k + log_p_d_k
-            guide_log_prob_sum = log_q_u_k + log_q_d_k
-
-            elbo = model_log_prob_sum - guide_log_prob_sum
-
-        else:
-            if use_kl_divergence:
-                kl_q_u_p_u = kl_divergence_standard_normal_prior(ability_mu, ability_logvar).sum()
-                kl_q_d_p_d = kl_divergence_standard_normal_prior(item_feat_mu, item_feat_logvar).sum()
-                elbo = log_p_r_j_given_d_u - annealing_factor * kl_q_u_p_u - annealing_factor * kl_q_d_p_d
-            
-            else:
-                log_p_u = standard_normal_log_pdf(ability).sum()
-                log_p_d = standard_normal_log_pdf(item_feat).sum()
-                log_q_u = normal_log_pdf(ability, ability_mu, ability_logvar).sum()
-                log_q_d = normal_log_pdf(item_feat, item_feat_mu, item_feat_logvar).sum()
-
-                model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d
-                guide_log_prob_sum = log_q_u + log_q_d
-
-                elbo = model_log_prob_sum - guide_log_prob_sum
-
-        return -elbo
-
-    def log_marginal(self, response, mask, num_samples=100):
-        with torch.no_grad():
-            log_weight = []
-            for _ in range(num_samples):
-                if self.n_norm_flows > 0:
-                    (
-                        response, 
-                        mask, 
-                        response_mu,
-                        ability_k, 
-                        ability, 
-                        ability_mu, 
-                        ability_logvar, 
-                        ability_logabsdetjac,
-                        item_feat_k, 
-                        item_feat, 
-                        item_feat_mu, 
-                        item_feat_logvar, 
-                        item_feat_logabsdetjac,
-                    ) = self.forward(response, mask)
-                else:
-                    (
-                        response, 
-                        mask, 
-                        response_mu, 
-                        ability, 
-                        ability_mu, 
-                        ability_logvar,
-                        item_feat, 
-                        item_feat_mu, 
-                        item_feat_logvar, 
-                    ) = self.forward(response, mask)
-                    ability_k = None
-                    item_feat_k = None
-                    ability_logabsdetjac = None
-                    item_feat_logabsdetjac = None
-
-                log_w = -self.elbo(
-                    response,
-                    mask,
-                    response_mu,
-                    ability,
-                    ability_mu,
-                    ability_logvar,
-                    item_feat,
-                    item_feat_mu,
-                    item_feat_logvar,
-                    annealing_factor = 1,
-                    use_kl_divergence = False,
-                    ability_k = ability_k,
-                    item_feat_k = item_feat_k,
-                    ability_logabsdetjac = ability_logabsdetjac,
-                    item_logabsdetjac = item_feat_logabsdetjac,
-                )
-                log_weight.append(log_w)
-
-            log_weight = torch.stack(log_weight)
-            logp = torch.logsumexp(log_weight, 0) - math.log(num_samples)
-
-        return logp
-
-    @staticmethod
-    def reparameterize_gaussian(mean, logvar):
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        return eps.mul(std).add_(mean)
-
-    @staticmethod
-    def weights_init(m):
-        if isinstance(m, (nn.Linear, nn.Conv2d)):
-            init.xavier_normal_(m.weight.data, gain=init.calculate_gain('relu'))
-            init.constant_(m.bias.data, 0)
-        elif isinstance(m, nn.BatchNorm1d):
-            pass
-
-
-class VIBO_2PL(VIBO_1PL):
-
-    def _set_item_feat_dim(self):
-        self.item_feat_dim = self.latent_dim + 1
-
-    def _set_irt_num(self):
-        self.irt_num = 2
-
-    def decode(self, ability, item_feat):
-        if self.generative_model == 'irt':
-            return irt_model_2pl(ability, item_feat)
-        else:
-            return self.decoder(ability, item_feat)
-
-
-class VIBO_3PL(VIBO_2PL):
-
-    def _set_item_feat_dim(self):
-        self.item_feat_dim = self.latent_dim + 2
-
-    def _set_irt_num(self):
-        self.irt_num = 3
-
-    def decode(self, ability, item_feat):
-        if self.generative_model == 'irt':
-            return irt_model_3pl(ability, item_feat)
-        else:
-            return self.decoder(ability, item_feat)
-
-
-class VIBO_STEP_1PL(nn.Module):
-
-    def __init__(
-            self,
-            latent_dim,
-            num_item,
-            hidden_dim = 64,
-            ability_merge = 'mean',
-            conditional_posterior = False,
-            generative_model = 'irt',
-            response_dist = 'bernoulli',
-            replace_missing_with_prior = True,
-            n_norm_flows = 0,
-            embedding_model = None,
-            side_info_model = None,
-            embed_conpole = False,
-            embed_bert = False,
-            problems=None,
-            device=None
-    ):
-        super().__init__()
-
-        assert ability_merge in ['mean', 'product']
-        assert generative_model in ['irt', 'link', 'deep', 'residual']
-        assert response_dist in ['bernoulli', 'gaussian']
-
-        self.latent_dim            = latent_dim
-        self.ability_dim           = latent_dim
-        self.response_dim          = 1
-        self.hidden_dim            = hidden_dim
-        self.num_item              = num_item
-        self.ability_merge         = ability_merge
-        self.conditional_posterior = conditional_posterior
-        self.generative_model      = generative_model
-        self.response_dist         = response_dist
-        self.replace_missing_with_prior = replace_missing_with_prior
-        self.n_norm_flows          = n_norm_flows
-        self.embedding_model       = embedding_model
-
-        self._set_step_feat_dim()
-        if 'scalar' in side_info_model:
-            self.step_feat_dim = 1
-        self._set_item_feat_dim()
-        self._set_irt_num()
-
-        if self.conditional_posterior:
-            self.ability_encoder = ConditionalAbilityStepInferenceNetwork(
-                self.ability_dim,
-                self.response_dim,
-                self.item_feat_dim,
-                self.step_feat_dim,
-                self.hidden_dim,
-                ability_merge = self.ability_merge,
-                replace_missing_with_prior = self.replace_missing_with_prior,
-            )
-        else:
-            self.ability_encoder = AbilityInferenceNetwork(
-                self.ability_dim,
-                self.response_dim,
-                self.hidden_dim,
-                ability_merge = self.ability_merge,
-                replace_missing_with_prior = self.replace_missing_with_prior,
-            )
-
-        if embedding_model:
-            if embed_conpole:
-                self.item_encoder = ConpoleEncoder(embedding_model, problems, self.item_feat_dim)
-            else:
-                self.item_encoder = BertEncoder(embedding_model, problems, self.item_feat_dim)
-        else:
-            self.item_encoder = ItemInferenceNetwork(self.num_item, self.item_feat_dim)
-
-        if side_info_model == 'scalar':
-            self.step_encoder = StepEncoder(1, self.step_feat_dim)
-        elif 'conpole' in side_info_model:
-            side_info_model = torch.load(side_info_model, map_location=device)
-            side_info_model.to(device)
-            self.step_encoder = ConpoleStepEncoder(side_info_model, self.step_feat_dim)
-
-        if self.n_norm_flows > 0:
-            self.ability_norm_flows = NormalizingFlows(
-                self.ability_dim,
-                n_flows=self.n_norm_flows,
-            )
-            self.item_norm_flows = NormalizingFlows(
-                self.item_feat_dim,
-                n_flows=self.n_norm_flows,
-            )
-
-        if self.generative_model == 'link':
-            self.decoder = LinkedIRT(
-                irt_model = f'{self.irt_num}pl',
-                hidden_dim = self.hidden_dim,
-            )
-        elif self.generative_model == 'deep':
-            self.decoder = DeepIRT(
-                self.ability_dim,
-                irt_model = f'{self.irt_num}pl',
-                hidden_dim = self.hidden_dim,
-            )
-        elif self.generative_model == 'residual':
-            self.decoder = ResidualIRT(
-                self.ability_dim,
-                irt_model = f'{self.irt_num}pl',
-                hidden_dim = self.hidden_dim,
-            )
-
-        self.apply(self.weights_init)
-
-    def _set_item_feat_dim(self):
-        self.item_feat_dim = 1
-
-    def _set_step_feat_dim(self):
-        self.step_feat_dim = 16
-
-    def _set_irt_num(self):
-        self.irt_num = 1
-
-    def forward(self, response, mask, steps, step_mask, encoder_mask):
-        ability, ability_mu, ability_logvar, \
-        item_feat, item_feat_mu, item_feat_logvar, \
-        step_feat, step_feat_mu, step_feat_logvar \
-            = self.encode(response, encoder_mask, steps, step_mask)
-
-        if self.n_norm_flows > 0:
-            ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
-            item_feat_k, item_feat_logabsdetjac = self.item_norm_flows(item_feat)
-            response_mu = self.decode(ability_k, item_feat_k)
-            return response, mask, response_mu, \
-                   ability_k, ability, ability_mu, ability_logvar, ability_logabsdetjac, \
-                   item_feat_k, item_feat, item_feat_mu, item_feat_logvar, item_feat_logabsdetjac
-
-        else:
-            response_mu = self.decode(ability, item_feat)
-            return response, mask, response_mu, \
-                   ability, ability_mu, ability_logvar, \
-                   item_feat, item_feat_mu, item_feat_logvar, \
-                   step_feat, step_feat_mu, step_feat_logvar
-
-
-    def encode(self, response, mask, steps, step_mask):
-        device = response.device
-
-        item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
-        item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
-        item_feat = self.reparameterize_gaussian(item_feat_mu, item_feat_logvar)
-        step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
-        # step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
-        step_feat = step_feat_mu
-        ability_mu, ability_logvar = self.ability_encoder(response, mask, item_feat, step_feat, step_mask)
-
-        ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
-
-        return ability, ability_mu, ability_logvar, \
-               item_feat, item_feat_mu, item_feat_logvar, \
-               step_feat, step_feat_mu, step_feat_logvar
-
-
-    def decode(self, ability, item_feat):
-        if self.generative_model == 'irt':
-            response_mu = irt_model_1pl(ability, item_feat)
-            return response_mu
-        else:
-            return self.decoder(ability, item_feat)
-
-    def elbo(
-            self,
-            response,
-            mask,
-            response_mu,
-            ability,
-            ability_mu,
-            ability_logvar,
-            item_feat,
-            item_feat_mu,
-            item_feat_logvar,
-            step_feat,
-            step_feat_mu,
-            step_feat_logvar,
-            annealing_factor = 1,
-            use_kl_divergence = True,
-            ability_k = None,
-            item_feat_k = None,
-            ability_logabsdetjac = None,
-            item_logabsdetjac = None,
+        self,
+        response,
+        mask,
+        response_mu,
+        ability,
+        ability_mu,
+        ability_logvar,
+        item_feat,
+        item_feat_mu,
+        item_feat_logvar,
+        annealing_factor=1,
+        use_kl_divergence=True,
+        ability_k=None,
+        item_feat_k=None,
+        ability_logabsdetjac=None,
+        item_logabsdetjac=None,
     ):
         if self.response_dist == 'bernoulli':
-            log_p_r_j_given_d_u = masked_bernoulli_log_pdf(response, mask, response_mu).sum()
+            log_p_r_j_given_d_u = masked_bernoulli_log_pdf(
+                response, mask, response_mu).sum()
         elif self.response_dist == 'gaussian':
-            response_logvar = 2. * torch.log(torch.ones_like(response_mu) * 0.1)
-            log_p_r_j_given_d_u = masked_gaussian_log_pdf(response, mask, response_mu, response_logvar).sum()
+            response_logvar = 2. * \
+                torch.log(torch.ones_like(response_mu) * 0.1)
+            log_p_r_j_given_d_u = masked_gaussian_log_pdf(
+                response, mask, response_mu, response_logvar).sum()
         else:
-            raise Exception(f'response_dist {self.response_dist} not supported.')
+            raise Exception(
+                f'response_dist {self.response_dist} not supported.')
 
         if self.n_norm_flows > 0:
             assert ability_logabsdetjac is not None
@@ -762,8 +445,10 @@ class VIBO_STEP_1PL(nn.Module):
             assert ability_k is not None
             assert item_feat_k is not None
 
-            log_q_u_0 = normal_log_pdf(ability, ability_mu, ability_logvar).sum()
-            log_q_d_0 = normal_log_pdf(item_feat, item_feat_mu, item_feat_logvar).sum()
+            log_q_u_0 = normal_log_pdf(
+                ability, ability_mu, ability_logvar).sum()
+            log_q_d_0 = normal_log_pdf(
+                item_feat, item_feat_mu, item_feat_logvar).sum()
 
             log_p_u_k = standard_normal_log_pdf(ability_k).sum()
             log_p_d_k = standard_normal_log_pdf(item_feat_k).sum()
@@ -778,19 +463,21 @@ class VIBO_STEP_1PL(nn.Module):
 
         else:
             if use_kl_divergence:
-                kl_q_u_p_u = kl_divergence_standard_normal_prior(ability_mu, ability_logvar).sum()
-                kl_q_d_p_d = kl_divergence_standard_normal_prior(item_feat_mu, item_feat_logvar).sum()
-
-                elbo = log_p_r_j_given_d_u \
-                       - annealing_factor * kl_q_u_p_u \
-                       - annealing_factor * kl_q_d_p_d
+                kl_q_u_p_u = kl_divergence_standard_normal_prior(
+                    ability_mu, ability_logvar).sum()
+                kl_q_d_p_d = kl_divergence_standard_normal_prior(
+                    item_feat_mu, item_feat_logvar).sum()
+                elbo = log_p_r_j_given_d_u - annealing_factor * \
+                    kl_q_u_p_u - annealing_factor * kl_q_d_p_d
 
             else:
                 log_p_u = standard_normal_log_pdf(ability).sum()
                 log_p_d = standard_normal_log_pdf(item_feat).sum()
+                log_q_u = normal_log_pdf(
+                    ability, ability_mu, ability_logvar).sum()
+                log_q_d = normal_log_pdf(
+                    item_feat, item_feat_mu, item_feat_logvar).sum()
 
-                log_q_u = normal_log_pdf(ability, ability_mu, ability_logvar).sum()
-                log_q_d = normal_log_pdf(item_feat, item_feat_mu, item_feat_logvar).sum()
                 model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d
                 guide_log_prob_sum = log_q_u + log_q_d
 
@@ -845,12 +532,12 @@ class VIBO_STEP_1PL(nn.Module):
                     item_feat,
                     item_feat_mu,
                     item_feat_logvar,
-                    annealing_factor = 1,
-                    use_kl_divergence = False,
-                    ability_k = ability_k,
-                    item_feat_k = item_feat_k,
-                    ability_logabsdetjac = ability_logabsdetjac,
-                    item_logabsdetjac = item_feat_logabsdetjac,
+                    annealing_factor=1,
+                    use_kl_divergence=False,
+                    ability_k=ability_k,
+                    item_feat_k=item_feat_k,
+                    ability_logabsdetjac=ability_logabsdetjac,
+                    item_logabsdetjac=item_feat_logabsdetjac,
                 )
                 log_weight.append(log_w)
 
@@ -868,7 +555,366 @@ class VIBO_STEP_1PL(nn.Module):
     @staticmethod
     def weights_init(m):
         if isinstance(m, (nn.Linear, nn.Conv2d)):
-            init.xavier_normal_(m.weight.data, gain=init.calculate_gain('relu'))
+            init.xavier_normal_(
+                m.weight.data, gain=init.calculate_gain('relu'))
+            init.constant_(m.bias.data, 0)
+        elif isinstance(m, nn.BatchNorm1d):
+            pass
+
+
+class VIBO_2PL(VIBO_1PL):
+
+    def _set_item_feat_dim(self):
+        self.item_feat_dim = self.latent_dim + 1
+
+    def _set_irt_num(self):
+        self.irt_num = 2
+
+    def decode(self, ability, item_feat):
+        if self.generative_model == 'irt':
+            return irt_model_2pl(ability, item_feat)
+        else:
+            return self.decoder(ability, item_feat)
+
+
+class VIBO_3PL(VIBO_2PL):
+
+    def _set_item_feat_dim(self):
+        self.item_feat_dim = self.latent_dim + 2
+
+    def _set_irt_num(self):
+        self.irt_num = 3
+
+    def decode(self, ability, item_feat):
+        if self.generative_model == 'irt':
+            return irt_model_3pl(ability, item_feat)
+        else:
+            return self.decoder(ability, item_feat)
+
+
+class VIBO_STEP_1PL(nn.Module):
+
+    def __init__(
+            self,
+            latent_dim,
+            num_item,
+            hidden_dim=64,
+            ability_merge='mean',
+            conditional_posterior=False,
+            generative_model='irt',
+            response_dist='bernoulli',
+            replace_missing_with_prior=True,
+            n_norm_flows=0,
+            embedding_model=None,
+            side_info_model=None,
+            embed_conpole=False,
+            embed_bert=False,
+            problems=None,
+            device=None
+    ):
+        super().__init__()
+
+        assert ability_merge in ['mean', 'product']
+        assert generative_model in ['irt', 'link', 'deep', 'residual']
+        assert response_dist in ['bernoulli', 'gaussian']
+
+        self.latent_dim = latent_dim
+        self.ability_dim = latent_dim
+        self.response_dim = 1
+        self.hidden_dim = hidden_dim
+        self.num_item = num_item
+        self.ability_merge = ability_merge
+        self.conditional_posterior = conditional_posterior
+        self.generative_model = generative_model
+        self.response_dist = response_dist
+        self.replace_missing_with_prior = replace_missing_with_prior
+        self.n_norm_flows = n_norm_flows
+        self.embedding_model = embedding_model
+
+        self._set_step_feat_dim()
+        if 'scalar' in side_info_model:
+            self.step_feat_dim = 1
+        self._set_item_feat_dim()
+        self._set_irt_num()
+
+        if self.conditional_posterior:
+            self.ability_encoder = ConditionalAbilityStepInferenceNetwork(
+                self.ability_dim,
+                self.response_dim,
+                self.item_feat_dim,
+                self.step_feat_dim,
+                self.hidden_dim,
+                ability_merge=self.ability_merge,
+                replace_missing_with_prior=self.replace_missing_with_prior,
+            )
+        else:
+            self.ability_encoder = AbilityInferenceNetwork(
+                self.ability_dim,
+                self.response_dim,
+                self.hidden_dim,
+                ability_merge=self.ability_merge,
+                replace_missing_with_prior=self.replace_missing_with_prior,
+            )
+
+        if embedding_model:
+            if embed_conpole:
+                self.item_encoder = ConpoleEncoder(
+                    embedding_model, problems, self.item_feat_dim)
+            else:
+                self.item_encoder = BertEncoder(
+                    embedding_model, problems, self.item_feat_dim)
+        else:
+            self.item_encoder = ItemInferenceNetwork(
+                self.num_item, self.item_feat_dim)
+
+        if side_info_model == 'scalar':
+            self.step_encoder = StepEncoder(1, self.step_feat_dim)
+        elif 'conpole' in side_info_model:
+            side_info_model = torch.load(side_info_model, map_location=device)
+            side_info_model.to(device)
+            self.step_encoder = ConpoleStepEncoder(
+                side_info_model, self.step_feat_dim)
+
+        if self.n_norm_flows > 0:
+            self.ability_norm_flows = NormalizingFlows(
+                self.ability_dim,
+                n_flows=self.n_norm_flows,
+            )
+            self.item_norm_flows = NormalizingFlows(
+                self.item_feat_dim,
+                n_flows=self.n_norm_flows,
+            )
+
+        if self.generative_model == 'link':
+            self.decoder = LinkedIRT(
+                irt_model=f'{self.irt_num}pl',
+                hidden_dim=self.hidden_dim,
+            )
+        elif self.generative_model == 'deep':
+            self.decoder = DeepIRT(
+                self.ability_dim,
+                irt_model=f'{self.irt_num}pl',
+                hidden_dim=self.hidden_dim,
+            )
+        elif self.generative_model == 'residual':
+            self.decoder = ResidualIRT(
+                self.ability_dim,
+                irt_model=f'{self.irt_num}pl',
+                hidden_dim=self.hidden_dim,
+            )
+
+        self.apply(self.weights_init)
+
+    def _set_item_feat_dim(self):
+        self.item_feat_dim = 1
+
+    def _set_step_feat_dim(self):
+        self.step_feat_dim = 16
+
+    def _set_irt_num(self):
+        self.irt_num = 1
+
+    def forward(self, response, mask, steps, step_mask, encoder_mask):
+        ability, ability_mu, ability_logvar, \
+            item_feat, item_feat_mu, item_feat_logvar, \
+            step_feat, step_feat_mu, step_feat_logvar \
+            = self.encode(response, encoder_mask, steps, step_mask)
+
+        if self.n_norm_flows > 0:
+            ability_k, ability_logabsdetjac = self.ability_norm_flows(ability)
+            item_feat_k, item_feat_logabsdetjac = self.item_norm_flows(
+                item_feat)
+            response_mu = self.decode(ability_k, item_feat_k)
+            return response, mask, response_mu, \
+                ability_k, ability, ability_mu, ability_logvar, ability_logabsdetjac, \
+                item_feat_k, item_feat, item_feat_mu, item_feat_logvar, item_feat_logabsdetjac
+
+        else:
+            response_mu = self.decode(ability, item_feat)
+            return response, mask, response_mu, \
+                ability, ability_mu, ability_logvar, \
+                item_feat, item_feat_mu, item_feat_logvar, \
+                step_feat, step_feat_mu, step_feat_logvar
+
+    def encode(self, response, mask, steps, step_mask):
+        device = response.device
+
+        item_domain = torch.arange(self.num_item).unsqueeze(1).to(device)
+        item_feat_mu, item_feat_logvar = self.item_encoder(item_domain)
+        item_feat = self.reparameterize_gaussian(
+            item_feat_mu, item_feat_logvar)
+        step_feat_mu, step_feat_logvar = self.step_encoder(steps, step_mask)
+        # step_feat = self.reparameterize_gaussian(step_feat_mu, step_feat_logvar)
+        step_feat = step_feat_mu
+        ability_mu, ability_logvar = self.ability_encoder(
+            response, mask, item_feat, step_feat, step_mask)
+
+        ability = self.reparameterize_gaussian(ability_mu, ability_logvar)
+
+        return ability, ability_mu, ability_logvar, \
+            item_feat, item_feat_mu, item_feat_logvar, \
+            step_feat, step_feat_mu, step_feat_logvar
+
+    def decode(self, ability, item_feat):
+        if self.generative_model == 'irt':
+            response_mu = irt_model_1pl(ability, item_feat)
+            return response_mu
+        else:
+            return self.decoder(ability, item_feat)
+
+    def elbo(
+            self,
+            response,
+            mask,
+            response_mu,
+            ability,
+            ability_mu,
+            ability_logvar,
+            item_feat,
+            item_feat_mu,
+            item_feat_logvar,
+            step_feat,
+            step_feat_mu,
+            step_feat_logvar,
+            annealing_factor=1,
+            use_kl_divergence=True,
+            ability_k=None,
+            item_feat_k=None,
+            ability_logabsdetjac=None,
+            item_logabsdetjac=None,
+    ):
+        if self.response_dist == 'bernoulli':
+            log_p_r_j_given_d_u = masked_bernoulli_log_pdf(
+                response, mask, response_mu).sum()
+        elif self.response_dist == 'gaussian':
+            response_logvar = 2. * \
+                torch.log(torch.ones_like(response_mu) * 0.1)
+            log_p_r_j_given_d_u = masked_gaussian_log_pdf(
+                response, mask, response_mu, response_logvar).sum()
+        else:
+            raise Exception(
+                f'response_dist {self.response_dist} not supported.')
+
+        if self.n_norm_flows > 0:
+            assert ability_logabsdetjac is not None
+            assert item_logabsdetjac is not None
+            assert ability_k is not None
+            assert item_feat_k is not None
+
+            log_q_u_0 = normal_log_pdf(
+                ability, ability_mu, ability_logvar).sum()
+            log_q_d_0 = normal_log_pdf(
+                item_feat, item_feat_mu, item_feat_logvar).sum()
+
+            log_p_u_k = standard_normal_log_pdf(ability_k).sum()
+            log_p_d_k = standard_normal_log_pdf(item_feat_k).sum()
+
+            log_q_u_k = log_q_u_0 - ability_logabsdetjac.sum()
+            log_q_d_k = log_q_d_0 - item_logabsdetjac.sum()
+
+            model_log_prob_sum = log_p_r_j_given_d_u + log_p_u_k + log_p_d_k
+            guide_log_prob_sum = log_q_u_k + log_q_d_k
+
+            elbo = model_log_prob_sum - guide_log_prob_sum
+
+        else:
+            if use_kl_divergence:
+                kl_q_u_p_u = kl_divergence_standard_normal_prior(
+                    ability_mu, ability_logvar).sum()
+                kl_q_d_p_d = kl_divergence_standard_normal_prior(
+                    item_feat_mu, item_feat_logvar).sum()
+
+                elbo = log_p_r_j_given_d_u \
+                    - annealing_factor * kl_q_u_p_u \
+                    - annealing_factor * kl_q_d_p_d
+
+            else:
+                log_p_u = standard_normal_log_pdf(ability).sum()
+                log_p_d = standard_normal_log_pdf(item_feat).sum()
+
+                log_q_u = normal_log_pdf(
+                    ability, ability_mu, ability_logvar).sum()
+                log_q_d = normal_log_pdf(
+                    item_feat, item_feat_mu, item_feat_logvar).sum()
+                model_log_prob_sum = log_p_r_j_given_d_u + log_p_u + log_p_d
+                guide_log_prob_sum = log_q_u + log_q_d
+
+                elbo = model_log_prob_sum - guide_log_prob_sum
+
+        return -elbo
+
+    def log_marginal(self, response, mask, num_samples=100):
+        with torch.no_grad():
+            log_weight = []
+            for _ in range(num_samples):
+                if self.n_norm_flows > 0:
+                    (
+                        response,
+                        mask,
+                        response_mu,
+                        ability_k,
+                        ability,
+                        ability_mu,
+                        ability_logvar,
+                        ability_logabsdetjac,
+                        item_feat_k,
+                        item_feat,
+                        item_feat_mu,
+                        item_feat_logvar,
+                        item_feat_logabsdetjac,
+                    ) = self.forward(response, mask)
+                else:
+                    (
+                        response,
+                        mask,
+                        response_mu,
+                        ability,
+                        ability_mu,
+                        ability_logvar,
+                        item_feat,
+                        item_feat_mu,
+                        item_feat_logvar,
+                    ) = self.forward(response, mask)
+                    ability_k = None
+                    item_feat_k = None
+                    ability_logabsdetjac = None
+                    item_feat_logabsdetjac = None
+
+                log_w = -self.elbo(
+                    response,
+                    mask,
+                    response_mu,
+                    ability,
+                    ability_mu,
+                    ability_logvar,
+                    item_feat,
+                    item_feat_mu,
+                    item_feat_logvar,
+                    annealing_factor=1,
+                    use_kl_divergence=False,
+                    ability_k=ability_k,
+                    item_feat_k=item_feat_k,
+                    ability_logabsdetjac=ability_logabsdetjac,
+                    item_logabsdetjac=item_feat_logabsdetjac,
+                )
+                log_weight.append(log_w)
+
+            log_weight = torch.stack(log_weight)
+            logp = torch.logsumexp(log_weight, 0) - math.log(num_samples)
+
+        return logp
+
+    @staticmethod
+    def reparameterize_gaussian(mean, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps.mul(std).add_(mean)
+
+    @staticmethod
+    def weights_init(m):
+        if isinstance(m, (nn.Linear, nn.Conv2d)):
+            init.xavier_normal_(
+                m.weight.data, gain=init.calculate_gain('relu'))
             init.constant_(m.bias.data, 0)
         elif isinstance(m, nn.BatchNorm1d):
             pass
@@ -907,13 +953,13 @@ class VIBO_STEP_3PL(VIBO_STEP_2PL):
 class AbilityInferenceNetwork(nn.Module):
 
     def __init__(
-            self,
-            ability_dim,
-            response_dim,
-            hidden_dim = 64,
-            ability_merge = 'mean',
-            replace_missing_with_prior = True,
-        ):
+        self,
+        ability_dim,
+        response_dim,
+        hidden_dim=64,
+        ability_merge='mean',
+        replace_missing_with_prior=True,
+    ):
         super().__init__()
 
         self.ability_dim = ability_dim
@@ -923,7 +969,7 @@ class AbilityInferenceNetwork(nn.Module):
         self.replace_missing_with_prior = replace_missing_with_prior
 
         getattr(self, f'_create_models_{self.ability_merge}')(
-            self.response_dim, 
+            self.response_dim,
             self.hidden_dim,
             self.ability_dim * 2,
         )
@@ -936,7 +982,7 @@ class AbilityInferenceNetwork(nn.Module):
             nn.ELU(inplace=True),
             nn.Linear(hidden_dim, output_dim),
         )
-    
+
     def _create_models_mean(self, input_dim, hidden_dim, output_dim):
         self.mlp1 = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
@@ -948,9 +994,10 @@ class AbilityInferenceNetwork(nn.Module):
             nn.ELU(inplace=True),
             nn.Linear(hidden_dim, output_dim),
         )
-    
+
     def _forward_product(self, mlp_input, mask, num_person, num_item):
-        has_missing = bool(torch.sum(1 - mask).item()) if mask is not None else False
+        has_missing = bool(torch.sum(1 - mask).item()
+                           ) if mask is not None else False
 
         mu_flat, logvar_flat = torch.chunk(self.mlp(mlp_input), 2, dim=1)
         mu_set = mu_flat.view(num_person, num_item, self.ability_dim)
@@ -966,16 +1013,21 @@ class AbilityInferenceNetwork(nn.Module):
                 if mask[i].sum().item() == 0:
                     mask_i = mask[i].bool().repeat(1, self.ability_dim)
                     mu_set_i = mu_set[i][mask_i].view(-1, self.ability_dim)
-                    logvar_set_i = logvar_set[i][mask_i].view(-1, self.ability_dim)
+                    logvar_set_i = logvar_set[i][mask_i].view(
+                        -1, self.ability_dim)
                     # replace all missing items with a prior score
-                    p_mu_set_i = p_mu_set[i][~mask_i].view(-1, self.ability_dim)
-                    p_logvar_set_i = p_logvar_set[i][~mask_i].view(-1, self.ability_dim)
+                    p_mu_set_i = p_mu_set[i][~mask_i].view(
+                        -1, self.ability_dim)
+                    p_logvar_set_i = p_logvar_set[i][~mask_i].view(
+                        -1, self.ability_dim)
                     mu_set_i = torch.cat([mu_set_i, p_mu_set_i], dim=0)
-                    logvar_set_i = torch.cat([logvar_set_i, p_logvar_set_i], dim=0)
+                    logvar_set_i = torch.cat(
+                        [logvar_set_i, p_logvar_set_i], dim=0)
                 elif mask[i].sum().item() != num_item:
                     mask_i = mask[i].bool().repeat(1, self.ability_dim)
                     mu_set_i = mu_set[i][mask_i].view(-1, self.ability_dim)
-                    logvar_set_i = logvar_set[i][mask_i].view(-1, self.ability_dim)
+                    logvar_set_i = logvar_set[i][mask_i].view(
+                        -1, self.ability_dim)
                     # replace all missing items with a prior score
                     if self.replace_missing_with_prior:
                         p_mu_set_i = p_mu_set[i][~mask_i].view(-1, self.ability_dim)

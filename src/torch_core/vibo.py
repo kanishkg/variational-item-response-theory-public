@@ -12,8 +12,8 @@ import torch.nn.functional as F
 import wandb
 
 from src.torch_core.models import (
-    VIBO_1PL, 
-    VIBO_2PL, 
+    VIBO_1PL,
+    VIBO_2PL,
     VIBO_3PL,
     VIBO_STEP_1PL,
     VIBO_STEP_2PL,
@@ -37,8 +37,8 @@ if __name__ == "__main__":
                         help='1pl|2pl|3pl (default: 1pl)')
     parser.add_argument('--dataset', type=str, default='1pl_simulation',
                         choices=[
-                            '1pl_simulation', 
-                            '2pl_simulation', 
+                            '1pl_simulation',
+                            '2pl_simulation',
                             '3pl_simulation',
                             '1pl_simulationstep',
                             '2pl_simulationstep',
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                         help='mean|product|transformer (default: product)')
     parser.add_argument('--conditional-posterior', action='store_true', default=False,
                         help='q(ability|item,response) vs q(ability|response)')
-    parser.add_argument('--generative-model', type=str, default='irt', 
+    parser.add_argument('--generative-model', type=str, default='irt',
                         choices=['irt', 'link', 'deep', 'residual'],
                         help='irt|link|deep|residual (default: irt)')
     parser.add_argument('--response-dist', type=str, default='bernoulli',
@@ -105,8 +105,10 @@ if __name__ == "__main__":
                         help='number of samples to use for analysis (default: 400)')
     parser.add_argument('--hidden-dim', type=int, default=64,
                         help='number of hidden dims (default: 64)')
-    parser.add_argument('--max-num-person', help='limit the number of persons in dataset')
-    parser.add_argument('--max-num-item', help='limit the number of items in dataset')
+    parser.add_argument('--max-num-person',
+                        help='limit the number of persons in dataset')
+    parser.add_argument(
+        '--max-num-item', help='limit the number of items in dataset')
 
     parser.add_argument('--out-dir', type=str, default=OUT_DIR,
                         help='where to save chkpts (default: OUT_DIR)')
@@ -121,7 +123,7 @@ if __name__ == "__main__":
                         help='number of epochs to train (default: 100)')
     parser.add_argument('--max-iters', type=int, default=-1, metavar='N',
                         help='number of maximum iterations (default: -1)')
-    parser.add_argument('--num-workers', type=int, default=0, 
+    parser.add_argument('--num-workers', type=int, default=0,
                         help='number of workers for data loading (default: 0)')
     parser.add_argument('--anneal-kl', action='store_true', default=False,
                         help='anneal KL divergence (default: False)')
@@ -132,7 +134,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--seed', type=int, default=42, metavar='S',
                         help='random seed (default: 42)')
-    parser.add_argument('--gpu-device', type=int, default=0, 
+    parser.add_argument('--gpu-device', type=int, default=0,
                         help='which CUDA device to use (default: 0)')
     parser.add_argument('--embed-conpole', type=str, default=False,
                         help='Use the given pre-trained ConPoLe model to embed problems.')
@@ -165,25 +167,25 @@ if __name__ == "__main__":
 
         if args.max_num_person is not None:
             args.max_num_person = int(args.max_num_person)
-        
+
         if args.max_num_item is not None:
             args.max_num_item = int(args.max_num_item)
-        
+
     else:
         args.max_num_person = None
         args.max_num_item = None
-    
+
     out_file = 'VIBO_{}_{}_{}_{}_{}person_{}item_{}maxperson_{}maxitem_{}maskperc_{}ability_{}_{}_{}seed{}_encode{}'.format(
-        args.irt_model, 
+        args.irt_model,
         args.dataset,
         args.response_dist,
         args.generative_model,
-        args.num_person, 
+        args.num_person,
         args.num_item,
         args.max_num_person,
         args.max_num_item,
         args.artificial_missing_perc,
-        args.ability_dim, 
+        args.ability_dim,
         args.ability_merge,
         ('conpole_'
          if args.embed_conpole
@@ -194,13 +196,14 @@ if __name__ == "__main__":
         args.seed,
         args.num_encode
     )
-    args.out_dir = os.path.join(args.out_dir, out_file) 
-    
+    args.out_dir = os.path.join(args.out_dir, out_file)
+
     if not os.path.isdir(args.out_dir):
         os.makedirs(args.out_dir)
 
     device = torch.device("cuda" if args.cuda else "cpu")
-    if args.cuda: torch.cuda.set_device(args.gpu_device)
+    if args.cuda:
+        torch.cuda.set_device(args.gpu_device)
 
     if args.response_dist == 'bernoulli':
         dataset_name = args.dataset
@@ -211,24 +214,24 @@ if __name__ == "__main__":
         side_info = True
 
     train_dataset = load_dataset(
-        dataset_name, 
-        train = True,
-        num_person = args.num_person, 
-        num_item = args.num_item,  
-        ability_dim = args.ability_dim,
-        max_num_person = args.max_num_person,
-        max_num_item = args.max_num_item,
-        side_info = side_info
+        dataset_name,
+        train=True,
+        num_person=args.num_person,
+        num_item=args.num_item,
+        ability_dim=args.ability_dim,
+        max_num_person=args.max_num_person,
+        max_num_item=args.max_num_item,
+        side_info=side_info
     )
-    test_dataset  = load_dataset(
-        dataset_name, 
-        train = False,
-        num_person = args.num_person, 
-        num_item = args.num_item, 
-        ability_dim = args.ability_dim,
-        max_num_person = args.max_num_person,
-        max_num_item = args.max_num_item,
-        side_info = side_info
+    test_dataset = load_dataset(
+        dataset_name,
+        train=False,
+        num_person=args.num_person,
+        num_item=args.num_item,
+        ability_dim=args.ability_dim,
+        max_num_person=args.max_num_person,
+        max_num_item=args.max_num_item,
+        side_info=side_info
     )
 
     if args.artificial_missing_perc > 0:
@@ -260,28 +263,29 @@ if __name__ == "__main__":
         args.num_encode
     )
     num_person = train_dataset.num_person
-    num_item   = train_dataset.num_item
+    num_item = train_dataset.num_item
 
     collate_fn = None if 'step' not in args.dataset else collate_function_step
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, 
-        batch_size = args.batch_size, 
-        shuffle = True,
-        num_workers = args.num_workers,
-        collate_fn = collate_fn
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+        collate_fn=collate_fn
     )
     test_loader = torch.utils.data.DataLoader(
-        test_dataset, 
-        batch_size = args.batch_size, 
-        shuffle = False,
-        num_workers = args.num_workers,
-        collate_fn = collate_fn
+        test_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        collate_fn=collate_fn
     )
     N_mini_batches = len(train_loader)
     if args.max_iters != -1:
         args.epochs = int(math.ceil(args.max_iters / float(len(train_loader))))
-        print(f'Found MAX_ITERS={args.max_iters}, setting EPOCHS={args.epochs}')
+        print(
+            f'Found MAX_ITERS={args.max_iters}, setting EPOCHS={args.epochs}')
 
     if args.irt_model == '1pl':
         model_class = VIBO_1PL if 'step' not in args.dataset else VIBO_STEP_1PL
@@ -305,14 +309,14 @@ if __name__ == "__main__":
     model = model_class(
         args.ability_dim,
         num_item,
-        hidden_dim = args.hidden_dim,
-        ability_merge = args.ability_merge,
-        conditional_posterior = args.conditional_posterior,
-        generative_model = args.generative_model,
-        response_dist = args.response_dist,
-        replace_missing_with_prior = not args.drop_missing,
-        n_norm_flows = args.n_norm_flows,
-        embedding_model = embedding_model,
+        hidden_dim=args.hidden_dim,
+        ability_merge=args.ability_merge,
+        conditional_posterior=args.conditional_posterior,
+        generative_model=args.generative_model,
+        response_dist=args.response_dist,
+        replace_missing_with_prior=not args.drop_missing,
+        n_norm_flows=args.n_norm_flows,
+        embedding_model=embedding_model,
         embed_conpole=args.embed_conpole,
         embed_bert=args.embed_bert,
         problems=train_dataset.problems,
@@ -322,14 +326,14 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     wandb.config.update(args)
-        
+
     def get_annealing_factor(epoch, which_mini_batch):
         if args.anneal_kl:
             annealing_factor = \
                 (float(which_mini_batch + epoch * N_mini_batches + 1) /
                  float(args.epochs // 2 * N_mini_batches))
         else:
-            annealing_factor = args.beta_kl 
+            annealing_factor = args.beta_kl
         return annealing_factor
 
     def train(epoch):
@@ -349,34 +353,35 @@ if __name__ == "__main__":
             mask = mask.long().to(device)
             encoder_mask = encoder_mask.long().to(device)
             annealing_factor = get_annealing_factor(epoch, batch_idx)
-        
+
             optimizer.zero_grad()
             if args.n_norm_flows > 0:
                 (
-                    response, mask, response_mu, 
-                    ability_k, ability, 
-                    ability_mu, ability_logvar, ability_logabsdetjac, 
-                    item_feat_k, item_feat, 
+                    response, mask, response_mu,
+                    ability_k, ability,
+                    ability_mu, ability_logvar, ability_logabsdetjac,
+                    item_feat_k, item_feat,
                     item_feat_mu, item_feat_logvar, item_feat_logabsdetjac,
                 ) = model(response, mask)
                 loss = model.elbo(
-                    response, mask, response_mu, 
+                    response, mask, response_mu,
                     ability, ability_mu, ability_logvar,
-                    item_feat, item_feat_mu, item_feat_logvar, 
-                    annealing_factor = annealing_factor,
-                    use_kl_divergence = False,
-                    ability_k = ability_k,
-                    item_feat_k = item_feat_k,
-                    ability_logabsdetjac = ability_logabsdetjac,
-                    item_logabsdetjac = item_feat_logabsdetjac,
+                    item_feat, item_feat_mu, item_feat_logvar,
+                    annealing_factor=annealing_factor,
+                    use_kl_divergence=False,
+                    ability_k=ability_k,
+                    item_feat_k=item_feat_k,
+                    ability_logabsdetjac=ability_logabsdetjac,
+                    item_logabsdetjac=item_feat_logabsdetjac,
                 )
             else:
                 if 'step' in args.dataset:
-                     outputs = model(response, mask, steps, step_mask, encoder_mask)
+                    outputs = model(response, mask, steps,
+                                    step_mask, encoder_mask)
                 else:
-                     outputs = model(response, mask, encoder_mask)
+                    outputs = model(response, mask, encoder_mask)
                 loss = model.elbo(*outputs, annealing_factor=annealing_factor,
-                                use_kl_divergence=True)/args.batch_size
+                                  use_kl_divergence=True)/args.batch_size
             loss.backward()
             total_norm = -1
             weight_norm = 1
@@ -391,13 +396,13 @@ if __name__ == "__main__":
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
             optimizer.step()
 
-
             train_loss.update(loss.item(), mb)
             grad_norm.update(total_norm)
 
             wandb.log({'train_loss': train_loss.avg, 'epoch': epoch})
             pbar.update()
-            pbar.set_postfix({'Loss': train_loss.avg, 'grad_step': grad_norm.avg})
+            pbar.set_postfix(
+                {'Loss': train_loss.avg, 'grad_step': grad_norm.avg})
 
         pbar.close()
         print('====> Train Epoch: {} Loss: {:.4f}'.format(epoch, train_loss.avg))
@@ -423,25 +428,26 @@ if __name__ == "__main__":
 
                 if args.n_norm_flows > 0:
                     (
-                        response, mask, response_mu, 
-                        ability_k, ability, 
-                        ability_mu, ability_logvar, ability_logabsdetjac, 
-                        item_feat_k, item_feat, 
+                        response, mask, response_mu,
+                        ability_k, ability,
+                        ability_mu, ability_logvar, ability_logabsdetjac,
+                        item_feat_k, item_feat,
                         item_feat_mu, item_feat_logvar, item_feat_logabsdetjac,
                     ) = model(response, mask)
                     loss = model.elbo(
-                        response, mask, response_mu, 
+                        response, mask, response_mu,
                         ability, ability_mu, ability_logvar,
-                        item_feat, item_feat_mu, item_feat_logvar, 
-                        use_kl_divergence = False,
-                        ability_k = ability_k,
-                        item_feat_k = item_feat_k,
-                        ability_logabsdetjac = ability_logabsdetjac,
-                        item_logabsdetjac = item_feat_logabsdetjac,
+                        item_feat, item_feat_mu, item_feat_logvar,
+                        use_kl_divergence=False,
+                        ability_k=ability_k,
+                        item_feat_k=item_feat_k,
+                        ability_logabsdetjac=ability_logabsdetjac,
+                        item_logabsdetjac=item_feat_logabsdetjac,
                     )
                 else:
                     if 'step' in args.dataset:
-                        outputs = model(response, mask, steps, step_mask, encoder_mask)
+                        outputs = model(response, mask, steps,
+                                        step_mask, encoder_mask)
                     else:
                         outputs = model(response, mask, encoder_mask)
                     loss = model.elbo(*outputs)/args.batch_size
@@ -467,16 +473,16 @@ if __name__ == "__main__":
                 mask = mask.long().to(device)
 
                 marginal = model.log_marginal(
-                    response, 
-                    mask, 
-                    num_samples = args.num_posterior_samples,
+                    response,
+                    mask,
+                    num_samples=args.num_posterior_samples,
                 )
                 marginal = torch.mean(marginal)
                 meter.update(marginal.item(), mb)
 
                 pbar.update()
                 pbar.set_postfix({'Marginal': meter.avg})
-        
+
         pbar.close()
         print('====> Marginal: {:.4f}'.format(meter.avg))
 
@@ -488,7 +494,7 @@ if __name__ == "__main__":
         pbar = tqdm(total=len(loader))
 
         with torch.no_grad():
-            
+
             response_sample_set = []
 
             for batch in loader:
@@ -509,15 +515,17 @@ if __name__ == "__main__":
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
                         model.encode(response, encoder_mask)
 
-                
                 ability_scale = torch.exp(0.5 * ability_logvar)
                 item_feat_scale = torch.exp(0.5 * item_feat_logvar)
 
                 ability_posterior = dist.Normal(ability_mu, ability_scale)
-                item_feat_posterior = dist.Normal(item_feat_mu, item_feat_scale)
-                
-                ability_samples = ability_posterior.sample([args.num_posterior_samples])
-                item_feat_samples = item_feat_posterior.sample([args.num_posterior_samples])
+                item_feat_posterior = dist.Normal(
+                    item_feat_mu, item_feat_scale)
+
+                ability_samples = ability_posterior.sample(
+                    [args.num_posterior_samples])
+                item_feat_samples = item_feat_posterior.sample(
+                    [args.num_posterior_samples])
 
                 response_samples = []
                 for i in range(args.num_posterior_samples):
@@ -542,7 +550,7 @@ if __name__ == "__main__":
         pbar = tqdm(total=len(loader))
 
         with torch.no_grad():
-            
+
             response_sample_set = []
 
             for batch in loader:
@@ -563,7 +571,6 @@ if __name__ == "__main__":
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
                         model.encode(response, encoder_mask)
 
-                
                 response_sample = model.decode(ability_mu, item_feat_mu).cpu()
                 response_sample_set.append(response_sample.unsqueeze(0))
 
@@ -579,8 +586,8 @@ if __name__ == "__main__":
         model.eval()
         infer_dict = {}
 
-        with torch.no_grad(): 
-            ability_mus, item_feat_mus, step_feat_mus  = [], [], []
+        with torch.no_grad():
+            ability_mus, item_feat_mus, step_feat_mus = [], [], []
             ability_logvars, item_feat_logvars, step_feat_logvars = [], [], []
 
             pbar = tqdm(total=len(loader))
@@ -594,7 +601,6 @@ if __name__ == "__main__":
                 response = response.to(device)
                 mask = mask.long().to(device)
                 encoder_mask = encoder_mask.long().to(device)
-
 
                 if 'step' in args.dataset:
                     _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar, _, step_feat_mu, step_feat_logvar = \
@@ -629,13 +635,12 @@ if __name__ == "__main__":
             infer_dict['step_feat_mu'] = step_feat_mu
             infer_dict['step_feat_logvar'] = step_feat_logvar
 
-
         return infer_dict
 
     is_best, best_loss = False, np.inf
     train_losses = np.zeros(args.epochs)
     if not args.no_test:
-        test_losses  = np.zeros(args.epochs)
+        test_losses = np.zeros(args.epochs)
     train_times = np.zeros(args.epochs)
 
     for epoch in range(args.epochs):
@@ -644,7 +649,7 @@ if __name__ == "__main__":
         end_time = time.time()
         train_losses[epoch] = train_loss
         train_times[epoch] = start_time - end_time
-        
+
         if not args.no_test:
             test_loss = test(epoch)
             test_losses[epoch] = test_loss
@@ -672,15 +677,15 @@ if __name__ == "__main__":
 
         train_loader = torch.utils.data.DataLoader(
             train_dataset,
-            batch_size = args.batch_size, 
-            shuffle = False,
+            batch_size=args.batch_size,
+            shuffle=False,
             collate_fn=collate_fn
         )
 
         test_loader = torch.utils.data.DataLoader(
             test_dataset,
-            batch_size = args.batch_size,
-            shuffle = False,
+            batch_size=args.batch_size,
+            shuffle=False,
             collate_fn=collate_fn
         )
         if not args.no_infer_dict:
@@ -688,7 +693,8 @@ if __name__ == "__main__":
             checkpoint['infer_dict'] = infer_dict
 
         if not args.no_predictive:
-            posterior_predict_samples = sample_posterior_predictive(train_loader)
+            posterior_predict_samples = sample_posterior_predictive(
+                train_loader)
             checkpoint['posterior_predict_samples'] = posterior_predict_samples
 
             if args.artificial_missing_perc > 0:
@@ -698,7 +704,8 @@ if __name__ == "__main__":
                 if np.ndim(missing_labels) == 1:
                     missing_labels = missing_labels[:, np.newaxis]
 
-                inferred_response = posterior_predict_samples['response'].mean(0)
+                inferred_response = posterior_predict_samples['response'].mean(
+                    0)
                 inferred_response = torch.round(inferred_response)
 
                 correct, count = 0, 0
@@ -706,7 +713,8 @@ if __name__ == "__main__":
                 actual = []
                 predicted = []
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
-                    inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                    inferred_label = inferred_response[missing_index[0],
+                                                       missing_index[1]]
                     actual.append(missing_label[0])
                     predicted.append(inferred_label.item())
                 metrics = evaluate_metrics(actual, predicted)
@@ -716,7 +724,8 @@ if __name__ == "__main__":
                 if 'step' in args.dataset:
                     model_name = "Side-info A-VIBO" if args.embed_bert or args.embed_conpole else "Side-info VIBO"
                 if not args.no_test_predictive:
-                    posterior_predict_samples = sample_posterior_predictive(test_loader)
+                    posterior_predict_samples = sample_posterior_predictive(
+                        test_loader)
                     checkpoint['posterior_predict_samples'] = posterior_predict_samples
 
                     if args.test_artificial_perc > 0:
@@ -726,38 +735,40 @@ if __name__ == "__main__":
                         if np.ndim(missing_labels) == 1:
                             missing_labels = missing_labels[:, np.newaxis]
 
-                        inferred_response = posterior_predict_samples['response'].mean(0)
+                        inferred_response = posterior_predict_samples['response'].mean(
+                            0)
                         inferred_response = torch.round(inferred_response)
 
                         actual = []
                         predicted = []
                         for missing_index, missing_label in zip(missing_indices, missing_labels):
-                            inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                            inferred_label = inferred_response[missing_index[0],
+                                                               missing_index[1]]
                             actual.append(missing_label[0])
                             predicted.append(inferred_label.item())
                         test_metrics = evaluate_metrics(actual, predicted)
                         test_missing_imputation_accuracy = test_metrics['accuracy']
 
                 if 'best' in checkpoint_name:
-                    with open('results_algebra','a') as f:
+                    with open('results_algebra', 'a') as f:
                         acc = metrics['accuracy']
                         tacc = test_metrics['accuracy']
                         f.write(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {acc}, "test_accuracy": {tacc} , "num_encode": {args.num_encode}}},\n')
                         wandb.log({
-                            "train_accuracy":metrics['accuracy'], 
-                            "train_auc":metrics['auroc'],
-                            "train_f1":metrics['F1'], 
-                            "test_accuracy":test_metrics['accuracy'], 
-                            "test_auc":test_metrics['auroc'],
-                            "test_f1":test_metrics['F1'], 
+                            "train_accuracy": metrics['accuracy'],
+                            "train_auc": metrics['auroc'],
+                            "train_f1": metrics['F1'],
+                            "test_accuracy": test_metrics['accuracy'],
+                            "test_auc": test_metrics['auroc'],
+                            "test_f1": test_metrics['F1'],
                         })
 
-
                 print(f'{{ "seed": {args.seed}, "model": "{model_name}","test_missing_perc": {args.test_artificial_perc}, "train_missing_perc": {args.artificial_missing_perc}, "train_accuracy": {metrics}, "test_accuracy": {test_metrics} , "num_encode": {args.num_encode}}},')
-                print(f'Missing Imputation Accuracy from samples: {test_metrics}')
+                print(
+                    f'Missing Imputation Accuracy from samples: {test_metrics}')
 
             posterior_mean_samples = sample_posterior_mean(train_loader)
-            
+
             if args.artificial_missing_perc > 0:
                 missing_indices = train_dataset.missing_indices
                 missing_labels = train_dataset.missing_labels
@@ -765,14 +776,16 @@ if __name__ == "__main__":
                 if np.ndim(missing_labels) == 1:
                     missing_labels = missing_labels[:, np.newaxis]
 
-                inferred_response = posterior_mean_samples['response'].squeeze(0)
+                inferred_response = posterior_mean_samples['response'].squeeze(
+                    0)
                 inferred_response = torch.round(inferred_response)
 
                 correct, count = 0, 0
                 actual = []
                 predicted = []
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
-                    inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                    inferred_label = inferred_response[missing_index[0],
+                                                       missing_index[1]]
                     actual.append(missing_label[0])
                     predicted.append(inferred_label.item())
                 metrics = evaluate_metrics(actual, predicted)
@@ -790,7 +803,8 @@ if __name__ == "__main__":
                 checkpoint['test_logp'] = test_logp
 
         if not args.no_test_predictive and args.no_predictive:
-            posterior_predict_samples = sample_posterior_predictive(test_loader)
+            posterior_predict_samples = sample_posterior_predictive(
+                test_loader)
             checkpoint['posterior_predict_samples'] = posterior_predict_samples
 
             if args.test_artificial_perc > 0:
@@ -800,13 +814,15 @@ if __name__ == "__main__":
                 if np.ndim(missing_labels) == 1:
                     missing_labels = missing_labels[:, np.newaxis]
 
-                inferred_response = posterior_predict_samples['response'].mean(0)
+                inferred_response = posterior_predict_samples['response'].mean(
+                    0)
                 inferred_response = torch.round(inferred_response)
 
                 actual = []
                 predicted = []
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
-                    inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                    inferred_label = inferred_response[missing_index[0],
+                                                       missing_index[1]]
                     actual.append(missing_label[0])
                     predicted.append(inferred_label.item())
                 metrics = evaluate_metrics(actual, predicted)
