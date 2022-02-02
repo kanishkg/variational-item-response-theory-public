@@ -321,9 +321,8 @@ if __name__ == "__main__":
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    wandb.config = {
-            vars(args)
-        }
+    wandb.config = args
+        
     def get_annealing_factor(epoch, which_mini_batch):
         if args.anneal_kl:
             annealing_factor = \
