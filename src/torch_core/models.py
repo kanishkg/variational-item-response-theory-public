@@ -603,7 +603,7 @@ class VIBO_STEP_1PL(nn.Module):
 
         self._set_step_feat_dim()
         if 'scalar' in side_info_model:
-            self.step_feat_dim = 8
+            self.step_feat_dim = 1
         self._set_item_feat_dim()
         self._set_irt_num()
 
@@ -1149,9 +1149,7 @@ class StepEncoder(nn.Module):
         super().__init__()
 
         self.mlp = nn.Sequential(
-            nn.Linear(info_dim, hidden_dim),
-            nn.ELU(inplace=True),
-            nn.Linear(hidden_dim, step_feat_dim*2),
+            nn.Linear(info_dim, step_feat_dim),
         )
         self.step_feat_dim = step_feat_dim
         self.embedding_dim = info_dim
