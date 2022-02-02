@@ -321,7 +321,7 @@ if __name__ == "__main__":
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    wandb.config = args
+    wandb.configx.update(args)
         
     def get_annealing_factor(epoch, which_mini_batch):
         if args.anneal_kl:
@@ -395,6 +395,7 @@ if __name__ == "__main__":
             train_loss.update(loss.item(), mb)
             grad_norm.update(total_norm)
 
+            wandb.log({'train_loss': train_loss.avg, 'epoch': epoch})
             pbar.update()
             pbar.set_postfix({'Loss': train_loss.avg, 'grad_step': grad_norm.avg})
 
@@ -445,7 +446,7 @@ if __name__ == "__main__":
                         outputs = model(response, mask, encoder_mask)
                     loss = model.elbo(*outputs)/args.batch_size
                 test_loss.update(loss.item(), mb)
-
+                wandb.log({'test_loss': test_loss.avg, 'epoch': epoch})
                 pbar.update()
                 pbar.set_postfix({'Loss': test_loss.avg})
 
