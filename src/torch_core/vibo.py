@@ -741,11 +741,13 @@ if __name__ == "__main__":
 
                         actual = []
                         predicted = []
+                        correct = 0
                         for missing_index, missing_label in zip(missing_indices, missing_labels):
                             inferred_label = inferred_response[missing_index[0],
                                                                missing_index[1]]
                             actual.append(missing_label[0])
                             predicted.append(inferred_label.item())
+                            correct += int(inferred_label.item() == missing_label[0])
                         test_metrics = evaluate_metrics(actual, predicted)
                         test_missing_imputation_accuracy = test_metrics['accuracy']
 
@@ -820,13 +822,11 @@ if __name__ == "__main__":
 
                 actual = []
                 predicted = []
-                correct = 0
                 for missing_index, missing_label in zip(missing_indices, missing_labels):
                     inferred_label = inferred_response[missing_index[0],
                                                        missing_index[1]]
                     actual.append(missing_label[0])
                     predicted.append(inferred_label.item())
-                    correct += (inferred_label.item() == missing_label[0])
                 metrics = evaluate_metrics(actual, predicted)
                 missing_imputation_accuracy = metrics['accuracy']
                 checkpoint['missing_imputation_accuracy'] = missing_imputation_accuracy
