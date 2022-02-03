@@ -681,6 +681,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.format = [f['format'] for f in dataset]
         self.days = [d['days'] for d in dataset]
         self.history = [d['history'] for d in dataset]
+        self.max_history = max([len(d['history']) for d in dataset])
         self.dataset = dataset
         self.encoder_mask = None
 
@@ -732,20 +733,21 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         instance_to_sentence = dict()
 
-        for instance in tqdm(instances):
+        for i in tqdm(range(len(instances))):
+            instance = instances[i]
             if instance.session != 'lesson':
                 continue
             if instance.exercise_id in instance_to_sentence:
-                instance_to_sentence[instance.exercise_id].append(instance.token)
+                instance_to_sentence[instance.exercise_id].append((instance.token, labels[instance.instance_id]))
             else:
-                instance_to_sentence[instance.exercise_id] = [instance.token]
+                instance_to_sentence[instance.exercise_id] = [(instance.token, labels[instance.instance_id])]
 
         words = sorted(list(set(words)))
         country = sorted(list(set(country)))
         print(f'countries {country}, len: {len(country)}')
         dataset = []
         person_ids, tokens, responses = [], [], []
-
+        self.max_history = 0
         for i in tqdm(range(len(instances))):
             instance = instances[i]
             if instance.session != 'lesson':
@@ -767,6 +769,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 index = bisect.bisect(word_to_attempt[(instance.user, instance.token)], instance.days)
                 if index != 0:
                     data_instance['history'] = word_to_response[(instance.user, instance.token)][:index - 1]
+            if len(data_instance['history']) > self.max_history:
+                self.max_history = len(data_instance['history'])
             dataset.append(data_instance)
 
             person_ids.append(instance.user)
@@ -791,19 +795,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         num_persons = len(unique_person_ids)
         # -1 => missing data (we might have every student answer every q)
-        score_matrix = np.zeros((num_persons, num_tokens))
+        score_matrix = np.zeros((num_persons, num_tokens, self.max_history))
         count_matrix = np.zeros((num_persons, num_tokens))
 
-        for i in tqdm(range(num_kept)):
-            score_matrix[person_ids[i], tokens[i]] += responses[i]
-            count_matrix[person_ids[i], tokens[i]] += 1.
+        for i in tqdm(range(len(instances))):
+            score_matrix[person_ids_int.index(data_instance['user'][i]), data_instance['token'][i],
+                         len(data_instance['history'][i])] = data_instance['response'][i]
+            count_matrix[person_ids_int.index(data_instance['user'][i]), data_instance['token'][i]] += 1.
 
-        score_matrix[count_matrix == 0] = -1
-        count_matrix[count_matrix == 0] = 1  # do not divide by 0
-        score_matrix = score_matrix / count_matrix
-        token_ids = np.arange(num_tokens)
-
-        return score_matrix, token_ids, dataset
+        return score_matrix, words, dataset
 
     def get_unique_person_ids(self, instances):
         return [instance.user for instance in instances]
