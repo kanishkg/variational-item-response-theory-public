@@ -744,8 +744,7 @@ if __name__ == "__main__":
                         predicted = []
                         correct, count = 0, 0
                         for missing_index, missing_label in zip(missing_indices, missing_labels):
-                            inferred_label = inferred_response[missing_index[0],
-                                                               missing_index[1]]
+                            inferred_label = inferred_response[missing_index[0], missing_index[1]]
                             actual.append(missing_label[0])
                             predicted.append(inferred_label.item())
                             if inferred_label.item() == missing_label[0]:
