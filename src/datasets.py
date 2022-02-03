@@ -799,9 +799,9 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         count_matrix = np.zeros((num_persons, num_tokens))
 
         for i in tqdm(range(len(instances))):
-            score_matrix[person_ids_int.index(data_instance['user'][i]), data_instance['token'][i],
-                         len(data_instance['history'][i])] = data_instance['response'][i]
-            count_matrix[person_ids_int.index(data_instance['user'][i]), data_instance['token'][i]] += 1.
+            score_matrix[person_ids_int.index(dataset[i]['user']), dataset[i]['token'],
+                         len(dataset[i]['history'])] = dataset[i]['response']
+            count_matrix[person_ids_int.index(dataset[i]['user']), dataset[i]['token']] += 1.
 
         return score_matrix, words, dataset
 
