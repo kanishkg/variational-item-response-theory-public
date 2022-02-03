@@ -149,7 +149,8 @@ def artificially_mask_dataset(old_dataset, perc, mask_items=False):
         # First choose a random subset of the items, then mask all of their labels.
         num = int(perc * len(dataset.problems))
         items = np.sort(
-            rs.choice(np.arange(len(dataset.problems)), size=num, replace=False),
+            rs.choice(np.arange(len(dataset.problems)),
+                      size=num, replace=False),
         )
         for item in items:
             mask[dataset.problem_id == item] = 0
@@ -182,7 +183,8 @@ def load_1pl_simulation(
         DATA_DIR,
         f'1pl_simulation_{num_person}person_{num_item}item_{ability_dim}ability',
     )
-    if nonlinear: data_dir = data_dir + '_nonlinear'
+    if nonlinear:
+        data_dir = data_dir + '_nonlinear'
     dataset = torch.load(os.path.join(data_dir, 'simulation.pth'))
     return dataset
 
@@ -197,7 +199,8 @@ def load_2pl_simulation(
         DATA_DIR,
         f'2pl_simulation_{num_person}person_{num_item}item_{ability_dim}ability',
     )
-    if nonlinear: data_dir = data_dir + '_nonlinear'
+    if nonlinear:
+        data_dir = data_dir + '_nonlinear'
     dataset = torch.load(os.path.join(data_dir, 'simulation.pth'))
     return dataset
 
@@ -212,7 +215,8 @@ def load_3pl_simulation(
         DATA_DIR,
         f'3pl_simulation_{num_person}person_{num_item}item_{ability_dim}ability',
     )
-    if nonlinear: data_dir = data_dir + '_nonlinear'
+    if nonlinear:
+        data_dir = data_dir + '_nonlinear'
     dataset = torch.load(os.path.join(data_dir, 'simulation.pth'))
     return dataset
 
@@ -254,7 +258,8 @@ def load_duolingo(filename):
             if len(line) == 0:
                 num_exercises += 1
                 if num_exercises % 100000 == 0:
-                    print('Loaded ' + str(len(data)) + ' instances across ' + str(num_exercises) + ' exercises...')
+                    print('Loaded ' + str(len(data)) + ' instances across ' +
+                          str(num_exercises) + ' exercises...')
                 instance_properties = dict()
 
             # If the line starts with #, then we're beginning a new exercise
@@ -305,7 +310,8 @@ def load_duolingo(filename):
                 if training:
                     label = float(line[6])
                     labels[instance_properties['instance_id']] = label
-                data.append(InstanceData(instance_properties=instance_properties))
+                data.append(InstanceData(
+                    instance_properties=instance_properties))
 
         print('Done loading ' + str(len(data)) + ' instances across ' + str(num_exercises) +
               ' exercises.\n')
@@ -440,7 +446,7 @@ class Children_LanguageAcquisition(torch.utils.data.Dataset):
     'type',
     'Lived_Eng_per',
     'Eng_little',
-    
+
     Questions
     ---------
     'q1': {0,1} correctness or not correct
@@ -477,7 +483,7 @@ class Children_LanguageAcquisition(torch.utils.data.Dataset):
             'q35_7', 'q35_8',
         ]
         item_id = np.arange(len(item_keys))
-        # NOTE: no missing data here? 
+        # NOTE: no missing data here?
         response = np.asarray(data_df[item_keys])
 
         rs = np.random.RandomState(42)
@@ -589,7 +595,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
     -   time: the amount of time (in seconds) it took for the student to 
         construct and submit their whole answer (note: for some exercises, this 
         can be null due to data logging issues)
-    
+
     There are three different sessions:
 
     -   lesson: 77% of dataset
@@ -625,19 +631,23 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         super().__init__()
         assert sub_problem in ['fr_en', 'en_es', 'es_en']
         mode = "train" if train else "dev"
-        cache_score_matrix_file = os.path.join(DUOLINGO_LANG_DIR, f'score_matrix_{mode}.npy')
-        cache_token_id_file = os.path.join(DUOLINGO_LANG_DIR, f'token_id_{mode}.npy')
-        cache_dataset_file = os.path.join(DUOLINGO_LANG_DIR, f'data_{mode}.json')
+        cache_score_matrix_file = os.path.join(
+            DUOLINGO_LANG_DIR, f'score_matrix_{mode}.npy')
+        cache_token_id_file = os.path.join(
+            DUOLINGO_LANG_DIR, f'token_id_{mode}.npy')
+        cache_dataset_file = os.path.join(
+            DUOLINGO_LANG_DIR, f'data_{mode}.json')
         MAX_COUNTRY = 40
 
-        if (os.path.isfile(cache_score_matrix_file) and \
+        if (os.path.isfile(cache_score_matrix_file) and
                 os.path.isfile(cache_token_id_file) and os.path.isfile(cache_dataset_file)):
             response = np.load(cache_score_matrix_file)
             item_id = np.load(cache_token_id_file)
             with open(cache_dataset_file, 'r') as f:
                 dataset = json.load(f)
         else:
-            response, item_id, dataset = self.make_score_matrix(sub_problem, mode)
+            response, item_id, dataset = self.make_score_matrix(
+                sub_problem, mode)
             np.save(cache_score_matrix_file, response)
             np.save(cache_token_id_file, item_id)
             with open(cache_dataset_file, 'w') as f:
@@ -717,12 +727,17 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             words.append(word)
             country += instance.countries
             if (instance.user, instance.token) in word_to_attempt:
-                index = bisect.bisect(word_to_attempt[(instance.user, instance.token)], instance.days)
-                word_to_attempt[(instance.user, instance.token)].insert(index, instance.days)
-                word_to_response[(instance.user, instance.token)].insert(index, train_labels[instance.instance_id])
+                index = bisect.bisect(
+                    word_to_attempt[(instance.user, instance.token)], instance.days)
+                word_to_attempt[(instance.user, instance.token)
+                                ].insert(index, instance.days)
+                word_to_response[(instance.user, instance.token)].insert(
+                    index, train_labels[instance.instance_id])
             else:
-                word_to_attempt[(instance.user, instance.token)] = [instance.days]
-                word_to_response[(instance.user, instance.token)] = [train_labels[instance.instance_id]]
+                word_to_attempt[(instance.user, instance.token)] = [
+                    instance.days]
+                word_to_response[(instance.user, instance.token)] = [
+                    train_labels[instance.instance_id]]
 
         for instance in tqdm(val_instances):
             if instance.session != 'lesson':
@@ -738,9 +753,11 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             if instance.session != 'lesson':
                 continue
             if instance.exercise_id in instance_to_sentence:
-                instance_to_sentence[instance.exercise_id].append((instance.token, labels[instance.instance_id]))
+                instance_to_sentence[instance.exercise_id].append(
+                    (instance.token, labels[instance.instance_id]))
             else:
-                instance_to_sentence[instance.exercise_id] = [(instance.token, labels[instance.instance_id])]
+                instance_to_sentence[instance.exercise_id] = [
+                    (instance.token, labels[instance.instance_id])]
 
         words = sorted(list(set(words)))
         country = sorted(list(set(country)))
@@ -757,7 +774,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             data_instance['response'] = labels[instance.instance_id]
             data_instance['word'] = instance.token
             data_instance['token'] = words.index(instance.token)
-            data_instance['country'] = [country.index(c) for c in instance.countries]
+            data_instance['country'] = [
+                country.index(c) for c in instance.countries]
             data_instance['days'] = instance.days
             data_instance['session'] = instance.session
             data_instance['time'] = instance.time
@@ -766,9 +784,11 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             data_instance['sentence'] = instance_to_sentence[instance.exercise_id]
             data_instance['history'] = []
             if (instance.user, instance.token) in word_to_attempt:
-                index = bisect.bisect(word_to_attempt[(instance.user, instance.token)], instance.days)
+                index = bisect.bisect(
+                    word_to_attempt[(instance.user, instance.token)], instance.days)
                 if index != 0:
-                    data_instance['history'] = word_to_response[(instance.user, instance.token)][:index - 1]
+                    data_instance['history'] = word_to_response[(
+                        instance.user, instance.token)][:index - 1]
             if len(data_instance['history']) > self.max_history:
                 self.max_history = len(data_instance['history'])
             dataset.append(data_instance)
@@ -798,12 +818,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         score_matrix = np.zeros((num_persons, num_tokens, self.max_history+1))
         count_matrix = np.zeros((num_persons, num_tokens))
         print(score_matrix.shape)
+        p, t, h = score_matrix.shape
         for i in range(len(instances)):
-            print(unique_ids[dataset[i]['user']], dataset[i]['token'],
-                         len(dataset[i]['history']))
+            if unique_ids[dataset[i]['user']] >= p or dataset[i]['token'] >= t or len(dataset[i]['history']) >= h:
+                print(unique_ids[dataset[i]['user']], dataset[i]['token'],
+                      len(dataset[i]['history']))
             score_matrix[unique_ids[dataset[i]['user']], dataset[i]['token'],
                          len(dataset[i]['history'])] = dataset[i]['response']
-            count_matrix[unique_ids[dataset[i]['user']], dataset[i]['token']] += 1.
+            count_matrix[unique_ids[dataset[i]['user']],
+                         dataset[i]['token']] += 1.
 
         return score_matrix, words, dataset
 
@@ -859,7 +882,8 @@ class WordBank_Language(torch.utils.data.Dataset):
     def __init__(self, train=True, max_num_person=None, max_num_item=None, **kwargs):
         super().__init__()
 
-        raw_data = pd.read_csv(os.path.join(WORDBANKR_LANG_DIR, 'wordbankr_english.csv'))
+        raw_data = pd.read_csv(os.path.join(
+            WORDBANKR_LANG_DIR, 'wordbankr_english.csv'))
 
         unique_item = np.unique(np.asarray(raw_data['num_item_id']))
         unique_person = np.unique(np.asarray(raw_data['data_id']))
@@ -950,8 +974,9 @@ class PISAScience2015(torch.utils.data.Dataset):
         if os.path.isfile(cache_file):
             response = np.load(cache_file)
         else:
-            # each row is a student 
-            data_df = pd.read_csv(os.path.join(PISA2015_DIR, 'cog_science.csv'))
+            # each row is a student
+            data_df = pd.read_csv(os.path.join(
+                PISA2015_DIR, 'cog_science.csv'))
             item_keys = [
                 'DS269Q01C', 'DS269Q03C', 'CS269Q04S', 'CS408Q01S', 'DS408Q03C',
                 'CS408Q04S', 'CS408Q05S', 'CS521Q02S', 'CS521Q06S', 'DS519Q01C',
@@ -1074,17 +1099,20 @@ class IRTSimulation(torch.utils.data.Dataset):
     ):
         super().__init__()
         if irt_model == '1pl':
-            dataset = load_1pl_simulation(num_person, num_item, ability_dim, nonlinear)
+            dataset = load_1pl_simulation(
+                num_person, num_item, ability_dim, nonlinear)
             response = dataset['response']
             true_ability = dataset['ability']
             true_item_feat = dataset['item_feat']
         elif irt_model == '2pl':
-            dataset = load_2pl_simulation(num_person, num_item, ability_dim, nonlinear)
+            dataset = load_2pl_simulation(
+                num_person, num_item, ability_dim, nonlinear)
             response = dataset['response']
             true_ability = dataset['ability']
             true_item_feat = dataset['item_feat']
         elif irt_model == '3pl':
-            dataset = load_3pl_simulation(num_person, num_item, ability_dim, nonlinear)
+            dataset = load_3pl_simulation(
+                num_person, num_item, ability_dim, nonlinear)
             response = dataset['response']
             true_ability = dataset['ability']
             true_item_feat = dataset['item_feat']
@@ -1093,7 +1121,8 @@ class IRTSimulation(torch.utils.data.Dataset):
         response = response.numpy()
         true_ability = true_ability.numpy()
         if side_info is not None:
-            side_info_feat = true_ability + np.random.normal(scale=0.001, size=true_ability.shape)
+            side_info_feat = true_ability + \
+                np.random.normal(scale=0.001, size=true_ability.shape)
         true_item_feat = true_item_feat.numpy()
 
         num_person = response.shape[0]
@@ -1148,7 +1177,7 @@ class IRTSimulation(torch.utils.data.Dataset):
             return index, response, item_id, mask, self.encoder_mask[index]
         else:
             return index, response, item_id, mask, self.side_info_feat[index], self.side_info_mask[index], \
-                   self.encoder_mask[index]
+                self.encoder_mask[index]
 
 
 class JSONDataset(torch.utils.data.Dataset):
@@ -1177,14 +1206,17 @@ class JSONDataset(torch.utils.data.Dataset):
         self.obs_by_student = data_by_student
         self.obs_by_problem = data_by_problem
         self.student_ids = list(data_by_student.keys())
-        self.max_observations = max(len(s_obs) for s_obs in data_by_student.values())
+        self.max_observations = max(len(s_obs)
+                                    for s_obs in data_by_student.values())
         self.n_students = len(data_by_student)
         self.n_problems = len(all_problems)
 
         self.problems = all_problems
         self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
-        self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
-        self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
+        self.problem_id = np.zeros(
+            (self.n_students, self.n_problems), dtype=int) - 1
+        self.response_mask = np.zeros(
+            (self.n_students, self.n_problems), dtype=int)
 
         for i, s_obs in enumerate(data_by_student.values()):
             for j, (problem, correct) in enumerate(s_obs):
@@ -1195,8 +1227,10 @@ class JSONDataset(torch.utils.data.Dataset):
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if is_train else slice(num_train, -1)
 
-        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
-        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.response = np.expand_dims(
+            self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(
+            self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
@@ -1213,7 +1247,8 @@ class JSONDataset(torch.utils.data.Dataset):
 class AlgebraAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
-        data_files = ['algebra.pth', 'algebra2.pth', 'algebra3.pth', 'algebra4.pth']
+        data_files = ['algebra.pth', 'algebra2.pth',
+                      'algebra3.pth', 'algebra4.pth']
         dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],
                    'problems': []}
         for a in data_files:
@@ -1236,11 +1271,15 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.n_problems = len(self.problems)
 
             self.response = np.array(dataset['response'], dtype=int)
-            self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
-            self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
+            self.problem_id = np.array(
+                [np.arange(self.n_problems) for _ in range(self.n_students)])
+            self.response_mask = np.ones(
+                (self.n_students, self.n_problems), dtype=int)
 
-            self.response = np.expand_dims(self.response[:, unsolved_idx], axis=2).astype(np.float32)
-            self.mask = np.expand_dims(self.response_mask[:, :], axis=2).astype(np.int)
+            self.response = np.expand_dims(
+                self.response[:, unsolved_idx], axis=2).astype(np.float32)
+            self.mask = np.expand_dims(
+                self.response_mask[:, :], axis=2).astype(np.int)
             self.problem_id = self.problem_id[:, :]
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
@@ -1273,9 +1312,12 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             self.n_problems = len(self.problems)
 
             self.problems = self.problems
-            self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
-            self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
-            self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
+            self.response = np.zeros(
+                (self.n_students, self.n_problems), dtype=int)
+            self.problem_id = np.zeros(
+                (self.n_students, self.n_problems), dtype=int) - 1
+            self.response_mask = np.zeros(
+                (self.n_students, self.n_problems), dtype=int)
 
             for i, s_obs in enumerate(data_by_student.values()):
                 for problem, correct in s_obs:
@@ -1283,8 +1325,10 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                     self.problem_id[i][problem] = problem
                     self.response_mask[i][problem] = 1
 
-            self.response = np.expand_dims(self.response[:, :], axis=2).astype(np.float32)
-            self.mask = np.expand_dims(self.response_mask[:, :], axis=2).astype(np.int)
+            self.response = np.expand_dims(
+                self.response[:, :], axis=2).astype(np.float32)
+            self.mask = np.expand_dims(
+                self.response_mask[:, :], axis=2).astype(np.int)
             self.problem_id = self.problem_id[:, :]
             self.num_person = len(self.response)
             self.num_item = self.response.shape[1]
@@ -1323,14 +1367,18 @@ class ChessAIDataset(torch.utils.data.Dataset):
         self.n_problems = len(dataset['item_feat'])
 
         self.response = np.array(dataset['response'], dtype=int)
-        self.problem_id = np.array([np.arange(self.n_problems) for _ in range(self.n_students)])
-        self.response_mask = np.ones((self.n_students, self.n_problems), dtype=int)
+        self.problem_id = np.array(
+            [np.arange(self.n_problems) for _ in range(self.n_students)])
+        self.response_mask = np.ones(
+            (self.n_students, self.n_problems), dtype=int)
 
         # num_train = int(0.8 * len(self.response))
         # split = slice(0, num_train) if is_train else slice(num_train, len(self.response))
         split = slice(0, len(self.response))
-        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
-        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.response = np.expand_dims(
+            self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(
+            self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
@@ -1385,18 +1433,22 @@ class JSONStepDataset(torch.utils.data.Dataset):
         self.obs_by_student = data_by_student
         self.obs_by_problem = data_by_problem
         self.student_ids = list(data_by_student.keys())
-        self.max_observations = max(len(s_obs) for s_obs in data_by_student.values())
+        self.max_observations = max(len(s_obs)
+                                    for s_obs in data_by_student.values())
         self.n_students = len(data_by_student)
         self.n_problems = len(all_problems)
 
         self.problems = all_problems
         self.response = np.zeros((self.n_students, self.n_problems), dtype=int)
-        self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
+        self.problem_id = np.zeros(
+            (self.n_students, self.n_problems), dtype=int) - 1
 
-        self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
+        self.response_mask = np.zeros(
+            (self.n_students, self.n_problems), dtype=int)
 
         self.steps = np.empty((self.n_students, self.n_problems)).tolist()
-        self.step_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
+        self.step_mask = np.zeros(
+            (self.n_students, self.n_problems), dtype=int)
 
         for i, s_obs in enumerate(data_by_student.values()):
             for j, (problem, correct, steps) in enumerate(s_obs):
@@ -1410,11 +1462,14 @@ class JSONStepDataset(torch.utils.data.Dataset):
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if is_train else slice(num_train, -1)
 
-        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
-        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.response = np.expand_dims(
+            self.response[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(
+            self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
         self.steps = self.steps[split]
-        self.step_mask = np.expand_dims(self.step_mask[split], axis=2).astype(np.int)
+        self.step_mask = np.expand_dims(
+            self.step_mask[split], axis=2).astype(np.int)
 
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
@@ -1426,8 +1481,7 @@ class JSONStepDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], self.mask[index], \
-               self.steps[index], self.step_mask[index], self.encoder_mask[index]
-
+            self.steps[index], self.step_mask[index], self.encoder_mask[index]
 
 
 class AbacusDataset(torch.utils.data.Dataset):
@@ -1446,7 +1500,8 @@ class AbacusDataset(torch.utils.data.Dataset):
                 responses = list(d.values())[1:]
                 student_id = d['id']
                 all_problems = problems
-                student_responses[student_id] = [(i, int(r)) for i, r in enumerate(responses)]
+                student_responses[student_id] = [
+                    (i, int(r)) for i, r in enumerate(responses)]
 
         student_answers = {}
         all_answers = {}
@@ -1457,7 +1512,8 @@ class AbacusDataset(torch.utils.data.Dataset):
                 answers = list(d.values())[1:]
                 student_id = d['id']
                 # student_answers[student_id] = [(i, f'x={r}') for i, r in enumerate(answers)]
-                student_answers[student_id] = [(i, r) for i, r in enumerate(answers)]
+                student_answers[student_id] = [
+                    (i, r) for i, r in enumerate(answers)]
 
                 for i, r in enumerate(answers):
                     if r != '':
@@ -1466,8 +1522,10 @@ class AbacusDataset(torch.utils.data.Dataset):
                         else:
                             all_answers[i].append(float(r))
 
-        answer_mean = [np.mean(all_answers[i]) for i in range(len(all_answers.keys()))]
-        answer_std = [np.std(all_answers[i]) for i in range(len(all_answers.keys()))]
+        answer_mean = [np.mean(all_answers[i])
+                       for i in range(len(all_answers.keys()))]
+        answer_std = [np.std(all_answers[i])
+                      for i in range(len(all_answers.keys()))]
 
         self.obs_by_student = student_responses
         self.answers_by_student = student_answers
@@ -1480,8 +1538,10 @@ class AbacusDataset(torch.utils.data.Dataset):
         # self.steps = np.empty((self.n_students, self.n_problems)).tolist()
 
         self.steps = np.zeros((self.n_students, self.n_problems), dtype=float)
-        self.problem_id = np.zeros((self.n_students, self.n_problems), dtype=int) - 1
-        self.response_mask = np.zeros((self.n_students, self.n_problems), dtype=int)
+        self.problem_id = np.zeros(
+            (self.n_students, self.n_problems), dtype=int) - 1
+        self.response_mask = np.zeros(
+            (self.n_students, self.n_problems), dtype=int)
 
         for i, (s_id, s_obs) in enumerate(student_responses.items()):
             for j, (problem, correct) in enumerate(s_obs):
@@ -1491,18 +1551,23 @@ class AbacusDataset(torch.utils.data.Dataset):
                     self.response[i][j] = float(correct)
                     self.problem_id[i][j] = problem
                     self.response_mask[i][j] = 1
-                    self.steps[i][j] = (float(student_answers[s_id][j][1])-answer_mean[j])/answer_std[j]
+                    self.steps[i][j] = (
+                        float(student_answers[s_id][j][1])-answer_mean[j])/answer_std[j]
                     # self.steps[i][j] = student_answers[s_id][j]
 
-
-        print(f'total_responses = {np.sum(self.response_mask)}, correct_responses = {np.sum(self.response)}, num_per_student = {np.mean(np.sum(self.response_mask, axis=1))}')
+        print(
+            f'total_responses = {np.sum(self.response_mask)}, correct_responses = {np.sum(self.response)}, num_per_student = {np.mean(np.sum(self.response_mask, axis=1))}')
         num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if train else slice(num_train, len(self.response))
+        split = slice(0, num_train) if train else slice(
+            num_train, len(self.response))
 
-        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
-        self.steps = np.expand_dims(self.steps[split], axis=2).astype(np.float32)
+        self.response = np.expand_dims(
+            self.response[split], axis=2).astype(np.float32)
+        self.steps = np.expand_dims(
+            self.steps[split], axis=2).astype(np.float32)
         # self.steps = self.steps[split]
-        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.mask = np.expand_dims(
+            self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
@@ -1516,10 +1581,11 @@ class AbacusDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
 
+
 class AbacusStepDataset(AbacusDataset):
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], \
-               self.mask[index], self.steps[index], self.step_mask[index], self.encoder_mask[index]
+            self.mask[index], self.steps[index], self.step_mask[index], self.encoder_mask[index]
 
 
 class ROARDataset(torch.utils.data.Dataset):
@@ -1549,7 +1615,8 @@ class ROARDataset(torch.utils.data.Dataset):
                 # This is if the data is the student's answer
                 # student_responses[student_id] = [(i, int(int(r) == answers[words[i]])) for i, r in enumerate(responses)]
                 # This is if the data is already correct/incorrect
-                student_responses[student_id] = [(i, int(r)) for i, r in enumerate(responses)]
+                student_responses[student_id] = [
+                    (i, int(r)) for i, r in enumerate(responses)]
 
         student_time = {}
 
@@ -1560,7 +1627,8 @@ class ROARDataset(torch.utils.data.Dataset):
                 assert 'id' not in words, 'Broken assumption that dict key order is mantained from CSV.'
                 times = list(d.values())[1:]
                 student_id = d['id']
-                student_time[student_id] = [(i, float(r)) for i, r in enumerate(times)]
+                student_time[student_id] = [(i, float(r))
+                                            for i, r in enumerate(times)]
                 times_all += [float(r) for r in times]
         std = np.std(times_all)
         mean = np.mean(times_all)
@@ -1572,10 +1640,14 @@ class ROARDataset(torch.utils.data.Dataset):
         self.n_problems = len(all_problems)
 
         self.problems = all_problems
-        self.response = np.zeros((self.n_students, self.max_observations), dtype=int)
-        self.steps = np.zeros((self.n_students, self.max_observations), dtype=float)
-        self.problem_id = np.zeros((self.n_students, self.max_observations), dtype=int) - 1
-        self.response_mask = np.zeros((self.n_students, self.max_observations), dtype=int)
+        self.response = np.zeros(
+            (self.n_students, self.max_observations), dtype=int)
+        self.steps = np.zeros(
+            (self.n_students, self.max_observations), dtype=float)
+        self.problem_id = np.zeros(
+            (self.n_students, self.max_observations), dtype=int) - 1
+        self.response_mask = np.zeros(
+            (self.n_students, self.max_observations), dtype=int)
 
         for i, (s_id, s_obs) in enumerate(student_responses.items()):
             for j, (problem, correct) in enumerate(s_obs):
@@ -1585,11 +1657,15 @@ class ROARDataset(torch.utils.data.Dataset):
                 self.steps[i][j] = (student_time[s_id][j][1]-mean)/std
 
         num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if train else slice(num_train, len(self.response))
+        split = slice(0, num_train) if train else slice(
+            num_train, len(self.response))
 
-        self.response = np.expand_dims(self.response[split], axis=2).astype(np.float32)
-        self.steps = np.expand_dims(self.steps[split], axis=2).astype(np.float32)
-        self.mask = np.expand_dims(self.response_mask[split], axis=2).astype(np.int)
+        self.response = np.expand_dims(
+            self.response[split], axis=2).astype(np.float32)
+        self.steps = np.expand_dims(
+            self.steps[split], axis=2).astype(np.float32)
+        self.mask = np.expand_dims(
+            self.response_mask[split], axis=2).astype(np.int)
         self.problem_id = self.problem_id[split]
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
@@ -1607,7 +1683,7 @@ class ROARDataset(torch.utils.data.Dataset):
 class ROARStepDataset(ROARDataset):
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], \
-               self.mask[index], self.steps[index], self.step_mask[index], self.encoder_mask[index]
+            self.mask[index], self.steps[index], self.step_mask[index], self.encoder_mask[index]
 
 
 class OrderedCounter(Counter, OrderedDict):
