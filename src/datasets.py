@@ -62,6 +62,8 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return Children_LanguageAcquisition(train=train, **kwargs)
     elif dataset_name == 'duolingo':
         return DuoLingo_LanguageAcquisition(train=train, binarize=True, **kwargs)
+    elif dataset_name == 'duolingostep':
+        return DuoLingo_LanguageAcquisition_Step(train=train, binarize=True, **kwargs)
     elif dataset_name == 'wordbank':
         return WordBank_Language(train=train, **kwargs)
     elif dataset_name == 'pisa2015_science':
@@ -883,8 +885,15 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
         mask = self.mask[index]
         e_mask = self.encoder_mask[index]
         step_mask = self.step_mask[index]
-
-
+        response_base = self.response_base[index] 
+        steps = []
+        for i in range(response.shape[0]):
+            if step_mask[i] == 1:
+                true_indices =  np.argwhere(response_base[i] == response[i][0])[:, 0]
+                chosen_idx = np.random.choice(true_indices)
+                step = self.steps[index][i][chosen_idx]
+                steps.append(step)
+            
         response = torch.from_numpy(response).float().unsqueeze(1)
         item_id = torch.from_numpy(item_id).long().unsqueeze(1)
         mask = torch.from_numpy(mask).bool().unsqueeze(1)
@@ -892,10 +901,9 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
         step_mask = torch.from_numpy(step_mask).bool().unsqueeze(1)
 
         return index, response, item_id, mask, \
-            self.steps[index], step_mask, e_mask
+            steps, step_mask, e_mask
 
         
-
 
 class WordBank_Language(torch.utils.data.Dataset):
     """

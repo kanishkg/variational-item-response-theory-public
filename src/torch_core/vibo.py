@@ -46,6 +46,7 @@ if __name__ == "__main__":
                             '3pl_simulationstep',
                             'critlangacq',
                             'duolingo',
+                            'duolingostep',
                             'wordbank',
                             'pisa2015_science',
                             'json',
