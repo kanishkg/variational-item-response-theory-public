@@ -632,11 +632,11 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         assert sub_problem in ['fr_en', 'en_es', 'es_en']
         mode = "train" if train else "dev"
         cache_score_matrix_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'score_matrix_{mode}.npy')
+            DUOLINGO_LANG_DIR, f'score_matrix_{mode}_{sub_problem}.npy')
         cache_token_id_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'token_id_{mode}.npy')
+            DUOLINGO_LANG_DIR, f'token_id_{mode}_{sub_problem}.npy')
         cache_dataset_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'data_{mode}.json')
+            DUOLINGO_LANG_DIR, f'data_{mode}_{sub_problem}.json')
         MAX_COUNTRY = 40
 
         if (os.path.isfile(cache_score_matrix_file) and
@@ -652,9 +652,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             np.save(cache_token_id_file, item_id)
             with open(cache_dataset_file, 'w') as f:
                 f.write(json.dumps(dataset))
-
-        if binarize:
-            response = np.round(response)
 
         rs = np.random.RandomState(42)
         swapper = np.arange(response.shape[0])
@@ -677,9 +674,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         response_mask[response == -1] = 0
 
         self.binarize = binarize
-        self.response = response
-        self.item_id = item_id
+        self.response_base = response
+        self.response = np.sum(response*response_mask, 2)/np.sum(response_mask,2)
+        if binarize:
+            self.response = np.round(self.response)
+
+        self.item_id = item_id.tolist()
         self.mask = response_mask
+        self.step_mask = self.mask
+        
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
@@ -692,6 +695,16 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.days = [d['days'] for d in dataset]
         self.history = [d['history'] for d in dataset]
         self.max_history = max([len(d['history']) for d in dataset])
+        self.unique_ids = dataset.unique_ids
+
+        self.steps = np.empty((self.num_person, self.num_item, self.max_history)).tolist()
+
+        for d in dataset:
+            u = self.unique_ids.index(d['user'])
+            i = d['token']
+            h = len(['history'])
+            self.steps[u, i, h] = d['sentence']
+
         self.dataset = dataset
         self.encoder_mask = None
 
@@ -812,6 +825,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             person_ids_int.append(unique_ids[person_ids[i]])
         person_ids = np.array(person_ids_int)
         unique_person_ids = np.unique(person_ids)
+        dataset['unique_ids'] = unique_ids
 
         num_persons = len(unique_person_ids)
         # -1 => missing data (we might have every student answer every q)
@@ -850,6 +864,12 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         e_mask = torch.from_numpy(e_mask).bool().unsqueeze(1)
 
         return index, response, item_id, mask, e_mask
+
+
+class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
+    def __init__(self):
+    def __getitem__(self, index):
+        
 
 
 class WordBank_Language(torch.utils.data.Dataset):
