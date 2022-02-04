@@ -703,7 +703,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.days = [d['days'] for d in dataset]
         self.history = [d['history'] for d in dataset]
         self.max_history = max([len(d['history']) for d in dataset])
-        self.unique_ids = user_id 
+        self.unique_ids = unique_ids 
 
         self.steps = np.empty((self.num_person, self.num_item, self.max_history)).tolist()
 
@@ -711,7 +711,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             u = self.unique_ids.index(d['user'])
             i = d['token']
             h = len(['history'])
-            self.steps[u, i, h] = d['sentence']
+            self.steps[u, i, h] = (d['sentence']
 
         self.dataset = dataset
         self.encoder_mask = None
@@ -881,15 +881,17 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
         item_id[response == -1] = -1
         mask = self.mask[index]
         e_mask = self.encoder_mask[index]
+        step_mask = self.step_mask[index]
+
 
         response = torch.from_numpy(response).float().unsqueeze(1)
         item_id = torch.from_numpy(item_id).long().unsqueeze(1)
         mask = torch.from_numpy(mask).bool().unsqueeze(1)
         e_mask = torch.from_numpy(e_mask).bool().unsqueeze(1)
+        step_mask = torch.from_numpy(step_mask).bool().unsqueeze(1)
 
-
-        return index, self.response[index], item_id, self.mask[index], \
-            self.steps[index], self.step_mask[index], self.encoder_mask[index]
+        return index, response, item_id, mask, \
+            self.steps[index], step_mask, e_mask
 
         
 
