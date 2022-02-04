@@ -22,6 +22,7 @@ IS_REAL_WORLD = {
     '2pl_nonlinear': False,
     'critlangacq': True,
     'duolingo': True,
+    'duolingostep': True,
     'wordbank': True,
     'pisa2015_science': True,
     'json': True,
