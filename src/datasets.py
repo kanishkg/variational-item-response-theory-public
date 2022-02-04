@@ -678,7 +678,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         rows_to_remove = np.sum(np.sum(response, 2),1) == (-1 * response.shape[1])
         response = response[~rows_to_remove]
 
-        response_mask = np.ones_like(response, dtype=np.int8)
+        response_mask = np.ones_like(response)
         response_mask[response == -1] = 0
 
         self.binarize = binarize
@@ -686,7 +686,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.response = np.sum(response*response_mask, 2)/np.sum(response_mask,2)
         if binarize:
             self.response = np.round(self.response)
-        del(response)
         words = item_id
         # TODO fill in item data
         self.item_id = np.zeros_like(self.response)-1
@@ -708,9 +707,10 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         MAX_HISTORY = 20
         # self.unique_ids = unique_ids 
 
+        del(response)
         self.steps = np.empty((self.num_person, self.num_item, MAX_HISTORY)).tolist()
         self.encoder_mask = None
-        for d in dataset:
+        for d in tqdm(dataset):
             u = unique_ids[d['user']]
             i = d['token']
             h = len(['history'])
