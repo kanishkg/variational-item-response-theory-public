@@ -636,18 +636,23 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             DUOLINGO_LANG_DIR, f'score_matrix_{mode}_{sub_problem}.npy')
         cache_token_id_file = os.path.join(
             DUOLINGO_LANG_DIR, f'token_id_{mode}_{sub_problem}.npy')
+        cache_user_id_file = os.path.join(
+            DUOLINGO_LANG_DIR, f'user_id_{mode}_{sub_problem}.npy')
         cache_dataset_file = os.path.join(
             DUOLINGO_LANG_DIR, f'data_{mode}_{sub_problem}.json')
         MAX_COUNTRY = 40
 
         if (os.path.isfile(cache_score_matrix_file) and
-                os.path.isfile(cache_token_id_file) and os.path.isfile(cache_dataset_file)):
+                os.path.isfile(cache_token_id_file) and
+                os.path.isfile(cache_dataset_file) and
+                os.path.isfile(cache_user_id_file)):
             response = np.load(cache_score_matrix_file)
             item_id = np.load(cache_token_id_file)
+            user_id = np.load(cache_user_id_file)
             with open(cache_dataset_file, 'r') as f:
                 dataset = json.load(f)
         else:
-            response, item_id, dataset = self.make_score_matrix(
+            response, item_id, unique_ids, dataset = self.make_score_matrix(
                 sub_problem, mode)
             np.save(cache_score_matrix_file, response)
             np.save(cache_token_id_file, item_id)
@@ -680,7 +685,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         if binarize:
             self.response = np.round(self.response)
 
-        self.item_id = item_id.tolist()
+        words = item_id.tolist()
+        self.item_id = np.zeros_like(self.response)-1
         self.mask = response_mask
         self.step_mask = self.mask
         
@@ -696,7 +702,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.days = [d['days'] for d in dataset]
         self.history = [d['history'] for d in dataset]
         self.max_history = max([len(d['history']) for d in dataset])
-        self.unique_ids = dataset.unique_ids
+        self.unique_ids = user_id 
 
         self.steps = np.empty((self.num_person, self.num_item, self.max_history)).tolist()
 
@@ -812,7 +818,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             responses.append(labels[instance.instance_id])
 
         num_tokens = len(list(set(words)))
-        unique_ids = list(set(person_ids))
+        unique_ids = sorted(list(set(person_ids)))
         unique_ids = dict(zip(unique_ids, range(len(unique_ids))))
 
         person_ids = np.array(person_ids)
@@ -826,7 +832,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             person_ids_int.append(unique_ids[person_ids[i]])
         person_ids = np.array(person_ids_int)
         unique_person_ids = np.unique(person_ids)
-        dataset['unique_ids'] = unique_ids
 
         num_persons = len(unique_person_ids)
         # -1 => missing data (we might have every student answer every q)
@@ -843,7 +848,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             count_matrix[unique_ids[dataset[i]['user']],
                          dataset[i]['token']] += 1.
 
-        return score_matrix, words, dataset
+        return score_matrix, words, unique_ids, dataset
 
     def get_unique_person_ids(self, instances):
         return [instance.user for instance in instances]
@@ -869,7 +874,22 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
 class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
     def __getitem__(self, index):
-        raise NotImplementedError
+        response = self.response[index]
+        item_id = self.item_id.copy()
+        # -1 in questions represents missing data
+        item_id[response == -1] = -1
+        mask = self.mask[index]
+        e_mask = self.encoder_mask[index]
+
+        response = torch.from_numpy(response).float().unsqueeze(1)
+        item_id = torch.from_numpy(item_id).long().unsqueeze(1)
+        mask = torch.from_numpy(mask).bool().unsqueeze(1)
+        e_mask = torch.from_numpy(e_mask).bool().unsqueeze(1)
+
+
+        return index, self.response[index], item_id, self.mask[index], \
+            self.steps[index], self.step_mask[index], self.encoder_mask[index]
+
         
 
 
