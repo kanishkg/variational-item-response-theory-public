@@ -682,8 +682,11 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         response_mask_base = np.ones_like(response)
         response_mask_base[response == -1] = 0
+        print(response_mask_base.shape)
         response_mask = np.ones((response.shape[0], response.shape[1]))
-        response_mask[response_mask_base.sum(1) == 0] = 0
+        print(response_mask.shape)
+        print(np.sum(response_mask_base, 1).shape)
+        response_mask[np.sum(response_mask_base, 1) == 0] = 0
 
         self.binarize = binarize
         self.response_base = response
