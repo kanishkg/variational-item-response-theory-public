@@ -678,7 +678,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         rows_to_remove = np.sum(np.sum(response, 2),1) == (-1 * response.shape[1])
         response = response[~rows_to_remove]
 
-        response_mask = np.ones_like(response)
+        response_mask = np.ones_like(response, dtype=np.int8)
         response_mask[response == -1] = 0
 
         self.binarize = binarize
@@ -686,7 +686,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.response = np.sum(response*response_mask, 2)/np.sum(response_mask,2)
         if binarize:
             self.response = np.round(self.response)
-
+        del(response)
         words = item_id
         # TODO fill in item data
         self.item_id = np.zeros_like(self.response)-1
@@ -696,24 +696,26 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
-        self.countries = [c['country'] for c in dataset]
-        self.words = [w['word'] for w in dataset]
-        self.sentence = [s['sentence'] for s in dataset]
-        self.prompts = [s['prompt'] for s in dataset]
-        self.times = [t['time'] for t in dataset]
-        self.format = [f['format'] for f in dataset]
-        self.days = [d['days'] for d in dataset]
+        # self.countries = [c['country'] for c in dataset]
+        # self.words = [w['word'] for w in dataset]
+        # self.sentence = [s['sentence'] for s in dataset]
+        # self.prompts = [s['prompt'] for s in dataset]
+        # self.times = [t['time'] for t in dataset]
+        # self.format = [f['format'] for f in dataset]
+        # self.days = [d['days'] for d in dataset]
         self.history = [d['history'] for d in dataset]
         self.max_history = max([len(d['history']) for d in dataset])
-        self.unique_ids = unique_ids 
+        MAX_HISTORY = 20
+        # self.unique_ids = unique_ids 
 
-        self.steps = np.empty((self.num_person, self.num_item, self.max_history)).tolist()
+        self.steps = np.empty((self.num_person, self.num_item, MAX_HISTORY)).tolist()
         self.encoder_mask = None
         for d in dataset:
             u = unique_ids[d['user']]
             i = d['token']
             h = len(['history'])
-            self.steps[u][i][h] = d['sentence']
+            if h < MAX_HISTORY:
+                self.steps[u][i][h] = d['sentence']
 
     def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
