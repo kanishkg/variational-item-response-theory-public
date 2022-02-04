@@ -844,14 +844,11 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         num_persons = len(unique_person_ids)
         # -1 => missing data (we might have every student answer every q)
-        score_matrix = np.zeros((num_persons, num_tokens, self.max_history+1))
+        score_matrix = np.zeros((num_persons, num_tokens, self.max_history+1))-1
         count_matrix = np.zeros((num_persons, num_tokens))
         print(score_matrix.shape)
         p, t, h = score_matrix.shape
         for i in range(len(dataset)):
-            if unique_ids[dataset[i]['user']] >= p or dataset[i]['token'] >= t or len(dataset[i]['history']) >= h:
-                print(unique_ids[dataset[i]['user']], dataset[i]['token'],
-                      len(dataset[i]['history']))
             score_matrix[unique_ids[dataset[i]['user']], dataset[i]['token'],
                          len(dataset[i]['history'])] = dataset[i]['response']
             count_matrix[unique_ids[dataset[i]['user']],
