@@ -685,7 +685,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         if binarize:
             self.response = np.round(self.response)
 
-        words = item_id.tolist()
+        words = item_id
+        # TODO fill in item data
         self.item_id = np.zeros_like(self.response)-1
         self.mask = response_mask
         self.step_mask = self.mask
