@@ -2,6 +2,7 @@ import os
 import ast
 import bisect
 import copy
+from sympy import Not
 import torch
 import collections
 import json
@@ -867,8 +868,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
 
 class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
-    def __init__(self):
     def __getitem__(self, index):
+        raise NotImplementedError
         
 
 
