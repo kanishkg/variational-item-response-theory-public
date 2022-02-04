@@ -680,8 +680,10 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         rows_to_remove = np.sum(np.sum(response, 2),1) == (-1 * response.shape[1])
         response = response[~rows_to_remove]
 
-        response_mask = np.ones_like(response)
-        response_mask[response == -1] = 0
+        response_mask_base = np.ones_like(response)
+        response_mask_base[response == -1] = 0
+        response_mask = np.ones((response.shape[0], response.shape[1]))
+        response_mask[response_mask_base.sum(1) == 0] = 0
 
         self.binarize = binarize
         self.response_base = response
@@ -864,7 +866,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         response = self.response[index]
         item_id = self.item_id.copy()
         # -1 in questions represents missing data
-        item_id[response == -1] = -1
+        # item_id[response == -1] = -1
         mask = self.mask[index]
         e_mask = self.encoder_mask[index]
 
@@ -881,7 +883,7 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
         response = self.response[index]
         item_id = self.item_id.copy()
         # -1 in questions represents missing data
-        item_id[response == -1] = -1
+        # item_id[response == -1] = -1
         mask = self.mask[index]
         e_mask = self.encoder_mask[index]
         step_mask = self.step_mask[index]
