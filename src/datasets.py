@@ -648,7 +648,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 os.path.isfile(cache_user_id_file)):
             response = np.load(cache_score_matrix_file)
             item_id = np.load(cache_token_id_file)
-            user_id = np.load(cache_user_id_file)
+            unique_ids = np.load(cache_user_id_file)
             with open(cache_dataset_file, 'r') as f:
                 dataset = json.load(f)
         else:
@@ -656,6 +656,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                 sub_problem, mode)
             np.save(cache_score_matrix_file, response)
             np.save(cache_token_id_file, item_id)
+            np.save(cache_user_id_file, unique_ids)
             with open(cache_dataset_file, 'w') as f:
                 f.write(json.dumps(dataset))
 
