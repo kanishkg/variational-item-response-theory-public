@@ -712,7 +712,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             u = self.unique_ids[d['user']]
             i = d['token']
             h = len(['history'])
-            self.steps[u, i, h] = d['sentence']
+            self.steps[u][i][h] = d['sentence']
 
     def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
