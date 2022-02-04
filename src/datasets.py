@@ -690,7 +690,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         self.binarize = binarize
         self.response_base = response
-        self.response = np.sum(response*response_mask, 2)/np.sum(response_mask,2)
+        self.response = np.sum(response*response_mask_base, 2)/np.sum(response_mask_base,2)
         if binarize:
             self.response = np.round(self.response)
         words = item_id
