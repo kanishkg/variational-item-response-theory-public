@@ -708,7 +708,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         # TODO fill in item data
         self.item_id = np.zeros_like(self.response)-1
         self.mask = response_mask
-        self.step_mask = self.mask
+        self.step_mask = response_mask_base
         
         self.length = response.shape[0]
         self.num_person = response.shape[0]
