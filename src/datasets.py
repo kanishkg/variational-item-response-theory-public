@@ -860,7 +860,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             count_matrix[unique_ids[dataset[i]['user']],
                          dataset[i]['token']] += 1.
             if len(dataset[i]['history']) < MAX_HISTORY:
-                print(dataset[i]['sentence'], len(dataset[i]['history']))
                 steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] = dataset[i]['sentence']
 
         return score_matrix, words, unique_ids, dataset, steps
