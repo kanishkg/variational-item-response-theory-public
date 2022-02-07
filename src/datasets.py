@@ -791,7 +791,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                     (instance.token, labels[instance.instance_id]))
             else:
                 instance_to_sentence[(instance.user,instance.exercise_id)] = [
-                    (instance.token, labels[instance.instance_id])]
+     instance.exercise_id               (instance.token, labels[instance.instance_id])]
 
         words = sorted(list(set(words)))
         country = sorted(list(set(country)))
