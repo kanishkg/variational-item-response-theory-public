@@ -676,8 +676,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         rs = np.random.RandomState(42)
         swapper = np.arange(response.shape[0])
         rs.shuffle(swapper)
-        response = response[swapper]
-        steps = steps[swapper]
+        # response = response[swapper]
+        # steps = steps[swapper]
         
 
         num_person = response.shape[0]
