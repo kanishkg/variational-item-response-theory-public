@@ -860,7 +860,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                             len(dataset[i]['history'])] = dataset[i]['response']
                 count_matrix[unique_ids[dataset[i]['user']],
                             dataset[i]['token']] += 1.
-                steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] = dataset[i]['step']
+                steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] = dataset[i]['sentence']
                 if steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] == 0.0:
                     print(dataset[i]) 
 
