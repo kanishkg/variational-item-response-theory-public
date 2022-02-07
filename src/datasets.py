@@ -752,6 +752,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         word_to_attempt = dict()
         word_to_response = dict()
+        word_to_exercise = dict()
         for i in tqdm(range(len(train_instances))):
             instance = train_instances[i]
             # TODO why not all sessions?
@@ -820,9 +821,9 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             if (instance.user, instance.token) in word_to_attempt:
                 index = bisect.bisect(
                     word_to_attempt[(instance.user, instance.token)], instance.days)
-                if index != 0:
-                    data_instance['history'] = word_to_response[(
-                        instance.user, instance.token)][:index - 1]
+                # if index != 0:
+                data_instance['history'] = word_to_response[(
+                    instance.user, instance.token)][:index]
             if len(data_instance['history']) > self.max_history:
                 self.max_history = len(data_instance['history'])
             dataset.append(data_instance)
@@ -859,7 +860,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                             len(dataset[i]['history'])] = dataset[i]['response']
                 count_matrix[unique_ids[dataset[i]['user']],
                             dataset[i]['token']] += 1.
-                steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] = dataset[i]['sentence']
+                steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] = dataset[i]['history']
 
         return score_matrix, words, unique_ids, dataset, steps
 
