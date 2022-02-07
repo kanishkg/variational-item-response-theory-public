@@ -705,7 +705,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.response = np.sum(response*response_mask_base, 2)/ count
         if binarize:
             self.response = np.round(self.response)
-        words = item_id
         # TODO fill in item data
         self.item_id = np.zeros_like(self.response)-1
         self.mask = response_mask
@@ -787,11 +786,11 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             instance = instances[i]
             if instance.session != 'lesson':
                 continue
-            if instance.exercise_id in instance_to_sentence:
-                instance_to_sentence[instance.exercise_id].append(
+            if (instance.user, instance.exercise_id) in instance_to_sentence:
+                instance_to_sentence[(instance.user,instance.exercise_id)].append(
                     (instance.token, labels[instance.instance_id]))
             else:
-                instance_to_sentence[instance.exercise_id] = [
+                instance_to_sentence[(instance.user,instance.exercise_id)] = [
                     (instance.token, labels[instance.instance_id])]
 
         words = sorted(list(set(words)))
@@ -816,7 +815,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             data_instance['time'] = instance.time
             data_instance['format'] = format.index(instance.format)
             data_instance['prompt'] = instance.prompt
-            data_instance['sentence'] = instance_to_sentence[instance.exercise_id]
+            data_instance['sentence'] = instance_to_sentence[(instance.user,instance.exercise_id)]
             data_instance['history'] = []
             if (instance.user, instance.token) in word_to_attempt:
                 index = bisect.bisect(
