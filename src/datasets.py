@@ -677,6 +677,8 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         swapper = np.arange(response.shape[0])
         rs.shuffle(swapper)
         response = response[swapper]
+        steps = steps[swapper]
+        
 
         num_person = response.shape[0]
 
@@ -687,7 +689,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             response = response[:, :max_num_item]
             item_id = item_id[:max_num_item]
 
-        rows_to_remove = np.sum(np.sum(response, 2),1) == (-1 * response.shape[1])
+        rows_to_remove = np.sum(np.sum(response, 2),1) == (-1 * response.shape[1]* response.shape[2])
         response = response[~rows_to_remove]
 
         response_mask_base = np.ones_like(response)
