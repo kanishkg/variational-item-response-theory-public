@@ -642,11 +642,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             DUOLINGO_LANG_DIR, f'user_id_{mode}_{sub_problem}.npy')
         cache_dataset_file = os.path.join(
             DUOLINGO_LANG_DIR, f'data_{mode}_{sub_problem}.json')
+        cache_step_file = os.path.join(
+            DUOLINGO_LANG_DIR, f'step_{mode}_{sub_problem}.json')
+ 
         MAX_COUNTRY = 40
 
         if (os.path.isfile(cache_score_matrix_file) and
                 os.path.isfile(cache_token_id_file) and
                 os.path.isfile(cache_dataset_file) and
+                os.path.isfile(cache_step_file) and
                 os.path.isfile(cache_user_id_file)):
             response = np.load(cache_score_matrix_file)
             item_id = np.load(cache_token_id_file)
@@ -654,14 +658,20 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             unique_ids = unique_ids.tolist()
             with open(cache_dataset_file, 'r') as f:
                 dataset = json.load(f)
+            with open(cache_step_file, 'r') as f:
+                steps = json.load(f)
+ 
         else:
-            response, item_id, unique_ids, dataset = self.make_score_matrix(
+            response, item_id, unique_ids, dataset, steps = self.make_score_matrix(
                 sub_problem, mode)
             np.save(cache_score_matrix_file, response)
             np.save(cache_token_id_file, item_id)
             np.save(cache_user_id_file, unique_ids)
             with open(cache_dataset_file, 'w') as f:
                 f.write(json.dumps(dataset))
+            with open(cache_step_file, 'w') as f:
+                f.write(json.dumps(steps))
+
 
         rs = np.random.RandomState(42)
         swapper = np.arange(response.shape[0])
@@ -690,7 +700,9 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         self.binarize = binarize
         self.response_base = response
-        self.response = np.sum(response*response_mask_base, 2)/np.sum(response_mask_base,2)
+        count = np.sum(response_mask_base,2)
+        count[count == 0] = 1
+        self.response = np.sum(response*response_mask_base, 2)/ count
         if binarize:
             self.response = np.round(self.response)
         words = item_id
@@ -702,6 +714,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
+        self.words = item_id 
         # self.countries = [c['country'] for c in dataset]
         # self.words = [w['word'] for w in dataset]
         # self.sentence = [s['sentence'] for s in dataset]
@@ -709,20 +722,13 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         # self.times = [t['time'] for t in dataset]
         # self.format = [f['format'] for f in dataset]
         # self.days = [d['days'] for d in dataset]
-        self.history = [d['history'] for d in dataset]
-        self.max_history = max([len(d['history']) for d in dataset])
+        # self.history = [d['history'] for d in dataset]
+        # self.max_history = max([len(d['history']) for d in dataset])
         MAX_HISTORY = 20
-        # self.unique_ids = unique_ids 
+        self.max_history = MAX_HISTORY
 
-        del(response)
-        self.steps = np.empty((self.num_person, self.num_item, MAX_HISTORY)).tolist()
+        self.steps = steps
         self.encoder_mask = None
-        for d in tqdm(dataset):
-            u = unique_ids[d['user']]
-            i = d['token']
-            h = len(['history'])
-            if h < MAX_HISTORY:
-                self.steps[u][i][h] = d['sentence']
 
     def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
@@ -844,17 +850,20 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         num_persons = len(unique_person_ids)
         # -1 => missing data (we might have every student answer every q)
+        MAX_HISTORY = 20
+        steps = np.empty((self.num_person, self.num_item, MAX_HISTORY)).tolist()
         score_matrix = np.zeros((num_persons, num_tokens, self.max_history+1))-1
         count_matrix = np.zeros((num_persons, num_tokens))
-        print(score_matrix.shape)
-        p, t, h = score_matrix.shape
         for i in range(len(dataset)):
             score_matrix[unique_ids[dataset[i]['user']], dataset[i]['token'],
                          len(dataset[i]['history'])] = dataset[i]['response']
             count_matrix[unique_ids[dataset[i]['user']],
                          dataset[i]['token']] += 1.
+            if len(dataset[i]['history']) < MAX_HISTORY:
+                print(dataset[i]['sentence'], len(dataset[i]['history']))
+                steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] = dataset[i]['sentence']
 
-        return score_matrix, words, unique_ids, dataset
+        return score_matrix, words, unique_ids, dataset, steps
 
     def get_unique_person_ids(self, instances):
         return [instance.user for instance in instances]
@@ -891,7 +900,7 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
         steps = []
         for i in range(response.shape[0]):
             if step_mask[i] == 1:
-                true_indices =  np.argwhere(response_base[i] == response[i][0])[:, 0]
+                true_indices =  np.argwhere(response_base[i][:self.max_history] == response[i][0])[:, 0]
                 chosen_idx = np.random.choice(true_indices)
                 step = self.steps[index][i][chosen_idx]
                 steps.append(step)
