@@ -1031,24 +1031,30 @@ class AbilityInferenceNetwork(nn.Module):
                         -1, self.ability_dim)
                     # replace all missing items with a prior score
                     if self.replace_missing_with_prior:
-                        p_mu_set_i = p_mu_set[i][~mask_i].view(-1, self.ability_dim)
-                        p_logvar_set_i = p_logvar_set[i][~mask_i].view(-1, self.ability_dim)
+                        p_mu_set_i = p_mu_set[i][~mask_i].view(
+                            -1, self.ability_dim)
+                        p_logvar_set_i = p_logvar_set[i][~mask_i].view(
+                            -1, self.ability_dim)
                         mu_set_i = torch.cat([mu_set_i, p_mu_set_i], dim=0)
-                        logvar_set_i = torch.cat([logvar_set_i, p_logvar_set_i], dim=0)
+                        logvar_set_i = torch.cat(
+                            [logvar_set_i, p_logvar_set_i], dim=0)
                         assert mu_set_i.size(0) == num_item
                         assert logvar_set_i.size(0) == num_item
                 else:
                     mu_set_i, logvar_set_i = mu_set[i], logvar_set[i]
                 mu_i, logvar_i = product_of_experts(mu_set_i, logvar_set_i)
-                mu.append(mu_i); logvar.append(logvar_i)
+                mu.append(mu_i)
+                logvar.append(logvar_i)
             mu, logvar = torch.stack(mu), torch.stack(logvar)
         else:
-            mu, logvar = product_of_experts(mu_set.permute(1, 0, 2), logvar_set.permute(1, 0, 2))
+            mu, logvar = product_of_experts(
+                mu_set.permute(1, 0, 2), logvar_set.permute(1, 0, 2))
 
         return mu, logvar
 
     def _forward_mean(self, mlp_input, mask, num_person, num_item):
-        has_missing = bool(torch.sum(1 - mask).item()) if mask is not None else False
+        has_missing = bool(torch.sum(1 - mask).item()
+                           ) if mask is not None else False
 
         hid = F.elu(self.mlp1(mlp_input))
         hid = hid.view(num_person, num_item, self.hidden_dim)
@@ -1063,9 +1069,9 @@ class AbilityInferenceNetwork(nn.Module):
             hid_mean = torch.stack(hid_mean)
         else:
             hid_mean = hid.mean(1)
-     
+
         mu, logvar = torch.chunk(self.mlp2(hid_mean), 2, dim=1)
-        
+
         return mu, logvar
 
     def forward(self, response, mask):
@@ -1073,30 +1079,30 @@ class AbilityInferenceNetwork(nn.Module):
         mlp_input = response.view(num_person * num_item, response_dim)
 
         return getattr(self, f'_forward_{self.ability_merge}')(
-                mlp_input, 
-                mask,
-                num_person,
-                num_item,
-            )
+            mlp_input,
+            mask,
+            num_person,
+            num_item,
+        )
 
 
 class ConditionalAbilityInferenceNetwork(AbilityInferenceNetwork):
 
     def __init__(
-            self, 
-            ability_dim, 
-            response_dim, 
-            item_feat_dim, 
-            hidden_dim = 64,
-            ability_merge = 'mean',
-            replace_missing_with_prior = True,
-        ):
+        self,
+        ability_dim,
+        response_dim,
+        item_feat_dim,
+        hidden_dim=64,
+        ability_merge='mean',
+        replace_missing_with_prior=True,
+    ):
         super().__init__(
             ability_dim,
             response_dim,
-            hidden_dim = hidden_dim,
-            ability_merge = ability_merge,
-            replace_missing_with_prior = replace_missing_with_prior,
+            hidden_dim=hidden_dim,
+            ability_merge=ability_merge,
+            replace_missing_with_prior=replace_missing_with_prior,
         )
         self.ability_dim = ability_dim
         self.response_dim = response_dim
@@ -1106,7 +1112,7 @@ class ConditionalAbilityInferenceNetwork(AbilityInferenceNetwork):
         self.replace_missing_with_prior = replace_missing_with_prior
 
         getattr(self, f'_create_models_{self.ability_merge}')(
-            self.response_dim + self.item_feat_dim, 
+            self.response_dim + self.item_feat_dim,
             self.hidden_dim,
             self.ability_dim * 2,
         )
@@ -1116,16 +1122,17 @@ class ConditionalAbilityInferenceNetwork(AbilityInferenceNetwork):
         item_feat_dim = item_feat.size(1)
         response_flat = response.view(num_person * num_item, response_dim)
         item_feat_flat = item_feat.unsqueeze(0).repeat(num_person, 1, 1)
-        item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
+        item_feat_flat = item_feat_flat.view(
+            num_person * num_item, item_feat_dim)
 
         mlp_input = torch.cat([response_flat, item_feat_flat], dim=1)
 
         return getattr(self, f'_forward_{self.ability_merge}')(
-                mlp_input, 
-                mask,
-                num_person,
-                num_item,
-            )
+            mlp_input,
+            mask,
+            num_person,
+            num_item,
+        )
 
 
 class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
@@ -1136,16 +1143,16 @@ class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
             response_dim,
             item_feat_dim,
             step_feat_dim,
-            hidden_dim = 64,
-            ability_merge = 'mean',
-            replace_missing_with_prior = True,
+            hidden_dim=64,
+            ability_merge='mean',
+            replace_missing_with_prior=True,
     ):
         super().__init__(
             ability_dim,
             response_dim,
-            hidden_dim = hidden_dim,
-            ability_merge = ability_merge,
-            replace_missing_with_prior = replace_missing_with_prior,
+            hidden_dim=hidden_dim,
+            ability_merge=ability_merge,
+            replace_missing_with_prior=replace_missing_with_prior,
         )
         self.ability_dim = ability_dim
         self.response_dim = response_dim
@@ -1159,17 +1166,20 @@ class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
             self.response_dim + self.item_feat_dim + self.step_feat_dim,
             self.hidden_dim,
             self.ability_dim * 2,
-            )
+        )
 
     def forward(self, response, mask, item_feat, step_feat, step_mask):
         num_person, num_item, response_dim = response.size()
         item_feat_dim = item_feat.size(1)
         response_flat = response.view(num_person * num_item, response_dim)
         item_feat_flat = item_feat.unsqueeze(0).repeat(num_person, 1, 1)
-        item_feat_flat = item_feat_flat.view(num_person * num_item, item_feat_dim)
-        step_feat_flat = step_feat.view(num_person * num_item, self.step_feat_dim)
+        item_feat_flat = item_feat_flat.view(
+            num_person * num_item, item_feat_dim)
+        step_feat_flat = step_feat.view(
+            num_person * num_item, self.step_feat_dim)
 
-        mlp_input = torch.cat([response_flat, item_feat_flat, step_feat_flat], dim=1)
+        mlp_input = torch.cat(
+            [response_flat, item_feat_flat, step_feat_flat], dim=1)
 
         return getattr(self, f'_forward_{self.ability_merge}')(
             mlp_input,
@@ -1195,8 +1205,6 @@ class ItemInferenceNetwork(nn.Module):
         return mu, logvar
 
 
-
-
 class StepEncoder(nn.Module):
     def __init__(self, info_dim, step_feat_dim, hidden_dim=16):
         super().__init__()
@@ -1210,7 +1218,8 @@ class StepEncoder(nn.Module):
         self.embedding_dim = info_dim
 
     def forward(self, steps, step_mask):
-        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(
+            1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
 
         for s, (i, j, _) in enumerate(steps_idx):
@@ -1239,7 +1248,8 @@ class ConpoleStepEncoder(nn.Module):
         self.embedding_dim = embedding_dim
 
     def forward(self, steps, step_mask):
-        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim).to(step_mask.device)
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(
+            1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         step_embedding_masked = self.q_fn.embed_states(
             [environment.State([steps[i][j][-1]], [], 0) for i, j, _ in steps_idx]).detach()
@@ -1252,6 +1262,7 @@ class ConpoleStepEncoder(nn.Module):
         logvar = step_mulogvar[:, :, self.step_feat_dim:]
         return mu, logvar
 
+
 class DuoSentenceEncoder(nn.Module):
     def __init__(self, words, step_feat_dim=16, hidden_dim=16):
         super().__init__()
@@ -1259,9 +1270,9 @@ class DuoSentenceEncoder(nn.Module):
         self.words = words
         nlp = en_core_web_lg.load()
         self.embedding = len(nlp('The').vector)
-        self.embedding = nn.Embedding(len(words), embedding_dim)    
+        self.embedding = nn.Embedding(len(words), embedding_dim)
         for w, i in enumerate(words):
-            self.embedding[i, :] = nlp(w).vector    
+            self.embedding[i, :] = nlp(w).vector
 
         self.mlp = nn.Embedding(
             nn.Linear(embedding_dim+1, hidden_dim),
@@ -1271,20 +1282,21 @@ class DuoSentenceEncoder(nn.Module):
         self.step_feat_dim = step_feat_dim
 
     def forward(self, steps, step_mask):
-        word_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim+1).to(step_mask.device)
+        word_embedding = torch.zeros(step_mask.size(0), step_mask.size(
+            1), self.embedding_dim+1).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         for x, y in steps_idx:
             sentence_embeds = []
             for word, res in steps[x][y]:
-                embed = torch.cat([self.embedding[self.words.index(word)], torch.tensor([res])]).detach()
+                embed = torch.cat(
+                    [self.embedding[self.words.index(word)], torch.tensor([res])]).detach()
                 wr_embed = self.mlp(embed)
                 sentence_embeds.append(wr_embed)
-            word_embedding[x, y, :] = torch.stack(sentence_embeds,dim=-1).mean(-1)
+            word_embedding[x, y, :] = torch.stack(
+                sentence_embeds, dim=-1).mean(-1)
         mu = word_embedding
         logvar = mu
         return mu, logvar
-
-
 
 
 class ConpoleEncoder(nn.Module):
@@ -1305,6 +1317,7 @@ class ConpoleEncoder(nn.Module):
 
         return mu, logvar
 
+
 class BertEncoder(nn.Module):
     def __init__(self, bert, problems, item_feat_dim, embedding_dim=512):
         super().__init__()
@@ -1315,7 +1328,8 @@ class BertEncoder(nn.Module):
         self.logvar = nn.Linear(embedding_dim, item_feat_dim)
 
     def forward(self, item_index):
-        item_embedding = self.bert.embed_batch([self.problems[i] for i in item_index.flatten()]).detach()
+        item_embedding = self.bert.embed_batch(
+            [self.problems[i] for i in item_index.flatten()]).detach()
 
         mu = self.mu(item_embedding)
         logvar = self.logvar(item_embedding)
@@ -1323,9 +1337,10 @@ class BertEncoder(nn.Module):
         return mu, logvar
 
 
-def irt_model_1pl(ability, item_feat, return_logit = False):
+def irt_model_1pl(ability, item_feat, return_logit=False):
     difficulty = item_feat
-    logit = (torch.sum(ability, dim=1, keepdim=True) + difficulty.T).unsqueeze(2)
+    logit = (torch.sum(ability, dim=1, keepdim=True) +
+             difficulty.T).unsqueeze(2)
 
     if return_logit:
         return logit
@@ -1334,12 +1349,12 @@ def irt_model_1pl(ability, item_feat, return_logit = False):
         return response_mu
 
 
-def irt_model_2pl(ability, item_feat, return_logit = False):
+def irt_model_2pl(ability, item_feat, return_logit=False):
     ability_dim = ability.size(1)
     discrimination = item_feat[:, :ability_dim]
     difficulty = item_feat[:, ability_dim:]
     logit = (torch.mm(ability, -discrimination.T) + difficulty.T).unsqueeze(2)
-    
+
     if return_logit:
         return logit
     else:
@@ -1347,34 +1362,34 @@ def irt_model_2pl(ability, item_feat, return_logit = False):
         return response_mu
 
 
-def irt_model_3pl(ability, item_feat, return_logit = False):
+def irt_model_3pl(ability, item_feat, return_logit=False):
     ability_dim = ability.size(1)
     discrimination = item_feat[:, :ability_dim]
     difficulty = item_feat[:, ability_dim:ability_dim+1]
     guess_logit = item_feat[:, ability_dim+1:ability_dim+2]
     guess = torch.sigmoid(guess_logit)
     logit = (torch.mm(ability, -discrimination.T) + difficulty.T).unsqueeze(2)
-    
+
     if return_logit:
         return logit, guess
     else:
-        guess = guess.unsqueeze(0)  
+        guess = guess.unsqueeze(0)
         response_mu = guess + (1. - guess) * torch.sigmoid(logit)
         return response_mu
 
 
 class LinkedIRT(nn.Module):
 
-    def __init__(self, irt_model = '1pl', hidden_dim = 64):
+    def __init__(self, irt_model='1pl', hidden_dim=64):
         super().__init__()
         assert irt_model in ['1pl', '2pl', '3pl']
         self.irt_model = irt_model
         self.hidden_dim = hidden_dim
         self.link = nn.Sequential(
             nn.Linear(1, self.hidden_dim),
-            nn.ELU(inplace = True),
+            nn.ELU(inplace=True),
             nn.Linear(self.hidden_dim, self.hidden_dim),
-            nn.ELU(inplace = True),
+            nn.ELU(inplace=True),
             nn.Linear(self.hidden_dim, 1),
             nn.Sigmoid(),
         )
@@ -1382,17 +1397,17 @@ class LinkedIRT(nn.Module):
 
     def forward(self, ability, item_feat):
         if self.irt_model == '1pl':
-            logit = irt_model_1pl(ability, item_feat, return_logit = True)
+            logit = irt_model_1pl(ability, item_feat, return_logit=True)
             response_mu = self.link(logit)
-        
+
         elif self.irt_model == '2pl':
-            logit = irt_model_2pl(ability, item_feat, return_logit = True)
+            logit = irt_model_2pl(ability, item_feat, return_logit=True)
             response_mu = self.link(logit)
-            
+
         elif self.irt_model == '3pl':
-            logit, guess = irt_model_3pl(ability, item_feat, return_logit = True)
+            logit, guess = irt_model_3pl(ability, item_feat, return_logit=True)
             response_mu = guess + (1. - guess) * self.link(logit)
-        
+
         else:
             raise Exception(f'Unsupported irt_model {self.irt_model}.')
 
@@ -1401,7 +1416,8 @@ class LinkedIRT(nn.Module):
     @staticmethod
     def weights_init(m):
         if isinstance(m, (nn.Linear, nn.Conv2d)):
-            init.xavier_normal_(m.weight.data, gain=init.calculate_gain('relu'))
+            init.xavier_normal_(
+                m.weight.data, gain=init.calculate_gain('relu'))
             init.constant_(m.bias.data, 0)
         elif isinstance(m, nn.BatchNorm1d):
             pass
@@ -1409,7 +1425,7 @@ class LinkedIRT(nn.Module):
 
 class DeepIRT(nn.Module):
 
-    def __init__(self, latent_dim, irt_model = '1pl', hidden_dim = 64):
+    def __init__(self, latent_dim, irt_model='1pl', hidden_dim=64):
         super().__init__()
         assert irt_model in ['1pl', '2pl', '3pl']
         self.latent_dim = latent_dim
@@ -1426,16 +1442,16 @@ class DeepIRT(nn.Module):
 
         self.mlp_item_feat = nn.Sequential(
             nn.Linear(self.item_feat_dim, self.hidden_dim),
-            nn.ELU(inplace = True),
+            nn.ELU(inplace=True),
             nn.Linear(self.hidden_dim, self.hidden_dim),
-            nn.ELU(inplace = True),
+            nn.ELU(inplace=True),
             nn.Linear(self.hidden_dim, self.hidden_dim),
         )
         self.mlp_ability = nn.Sequential(
             nn.Linear(self.ability_dim, self.hidden_dim),
-            nn.ELU(inplace = True),
+            nn.ELU(inplace=True),
             nn.Linear(self.hidden_dim, self.hidden_dim),
-            nn.ELU(inplace = True),
+            nn.ELU(inplace=True),
             nn.Linear(self.hidden_dim, self.hidden_dim),
         )
         self.mlp_concat = nn.Sequential(
@@ -1446,13 +1462,13 @@ class DeepIRT(nn.Module):
             nn.Linear(self.hidden_dim, 1),
         )
         self.apply(self.weights_init)
-    
+
     def forward(self, ability, item_feat):
         num_person, num_item = ability.size(0), item_feat.size(0)
 
         hid_ability = self.mlp_ability(ability)
         hid_item_feat = self.mlp_item_feat(item_feat)
-        
+
         hid_ability = hid_ability.unsqueeze(1).repeat(1, num_item, 1)
         hid_item_feat = hid_item_feat.unsqueeze(0).repeat(num_person, 1, 1)
 
@@ -1464,19 +1480,20 @@ class DeepIRT(nn.Module):
     @staticmethod
     def weights_init(m):
         if isinstance(m, (nn.Linear, nn.Conv2d)):
-            init.xavier_normal_(m.weight.data, gain=init.calculate_gain('relu'))
+            init.xavier_normal_(
+                m.weight.data, gain=init.calculate_gain('relu'))
             init.constant_(m.bias.data, 0)
         elif isinstance(m, nn.BatchNorm1d):
             pass
 
 
 class ResidualIRT(DeepIRT):
-    
-    def __init__(self, latent_dim, irt_model = '1pl', hidden_dim = 64):
+
+    def __init__(self, latent_dim, irt_model='1pl', hidden_dim=64):
         super().__init__(
-            latent_dim, 
-            irt_model = irt_model, 
-            hidden_dim = hidden_dim,
+            latent_dim,
+            irt_model=irt_model,
+            hidden_dim=hidden_dim,
         )
         self.apply(self.zero_init)
 
@@ -1493,17 +1510,18 @@ class ResidualIRT(DeepIRT):
         res_logit = self.residual_forward(ability, item_feat)
 
         if self.irt_model == '1pl':
-            irt_logit = irt_model_1pl(ability, item_feat, return_logit = True)
+            irt_logit = irt_model_1pl(ability, item_feat, return_logit=True)
             return torch.sigmoid(res_logit + irt_logit)
 
         elif self.irt_model == '2pl':
-            irt_logit = irt_model_2pl(ability, item_feat, return_logit = True)
+            irt_logit = irt_model_2pl(ability, item_feat, return_logit=True)
             return torch.sigmoid(res_logit + irt_logit)
 
         elif self.irt_model == '3pl':
-            irt_logit, guess = irt_model_3pl(ability, item_feat, return_logit = True)
+            irt_logit, guess = irt_model_3pl(
+                ability, item_feat, return_logit=True)
             return guess + (1. - guess) * torch.sigmoid(res_logit + irt_logit)
-        
+
         else:
             raise Exception(f'Unsupported irt_model {self.irt_model}.')
 
