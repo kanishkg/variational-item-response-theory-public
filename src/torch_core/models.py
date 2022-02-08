@@ -18,6 +18,7 @@ from src.utils import (
     product_of_experts,
 )
 from src.torch_core.flows import NormalizingFlows
+import en_core_web_lg
 
 
 class MLE_1PL(nn.Module):
@@ -1250,6 +1251,39 @@ class ConpoleStepEncoder(nn.Module):
         mu = step_mulogvar[:, :, :self.step_feat_dim]
         logvar = step_mulogvar[:, :, self.step_feat_dim:]
         return mu, logvar
+
+class DuoSentenceEncoder(nn.Module):
+    def __init__(self, words, step_feat_dim=16, hidden_dim=16):
+        super().__init__()
+
+        self.words = words
+        nlp = en_core_web_lg.load()
+        self.embedding = len(nlp('The').vector)
+        self.embedding = nn.Embedding(len(words), embedding_dim)    
+        for w, i in enumerate(words):
+            self.embedding[i, :] = nlp(w).vector    
+
+        self.mlp = nn.Embedding(
+            nn.Linear(embedding_dim+1, hidden_dim),
+            nn.ELU(inplace=True),
+            nn.Linear(hidden_dim, step_feat_dim),
+        )
+        self.step_feat_dim = step_feat_dim
+
+    def forward(self, steps, step_mask):
+        word_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.embedding_dim+1).to(step_mask.device)
+        steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+        for x, y in steps_idx:
+            sentence_embeds = []
+            for word, res in steps[x][y]:
+                embed = torch.cat([self.embedding[self.words.index(word)], torch.tensor([res])]).detach()
+                wr_embed = self.mlp(embed)
+                sentence_embeds.append(wr_embed)
+            word_embedding[x, y, :] = torch.stack(sentence_embeds,dim=-1).mean(-1)
+        mu = word_embedding
+        logvar = mu
+        return mu, logvar
+
 
 
 

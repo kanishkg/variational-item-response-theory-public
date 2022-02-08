@@ -635,15 +635,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         assert sub_problem in ['fr_en', 'en_es', 'es_en']
         mode = "train" if train else "dev"
         cache_score_matrix_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'score_matrix_{mode}_{sub_problem}.npy')
+            DUOLINGO_LANG_DIR, f'score_matrix_train_{sub_problem}.npy')
         cache_token_id_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'token_id_{mode}_{sub_problem}.npy')
+            DUOLINGO_LANG_DIR, f'token_id_train_{sub_problem}.npy')
         cache_user_id_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'user_id_{mode}_{sub_problem}.npy')
+            DUOLINGO_LANG_DIR, f'user_id_train_{sub_problem}.npy')
         cache_dataset_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'data_{mode}_{sub_problem}.json')
+            DUOLINGO_LANG_DIR, f'data_train_{sub_problem}.json')
         cache_step_file = os.path.join(
-            DUOLINGO_LANG_DIR, f'step_{mode}_{sub_problem}.json')
+            DUOLINGO_LANG_DIR, f'step_train_{sub_problem}.json')
  
         MAX_COUNTRY = 40
 
@@ -676,6 +676,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         rs = np.random.RandomState(42)
         swapper = np.arange(response.shape[0])
         rs.shuffle(swapper)
+        # TODO implement randomization
         # response = response[swapper]
         # steps = steps[swapper]
         
@@ -694,10 +695,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         response_mask_base = np.ones_like(response)
         response_mask_base[response == -1] = 0
-        print(response_mask_base.shape)
         response_mask = np.ones((response.shape[0], response.shape[1]))
-        print(response_mask.shape)
-        print(np.sum(response_mask_base, 2).shape)
         response_mask[np.sum(response_mask_base, 2) == 0] = 0
 
         self.binarize = binarize
@@ -707,46 +705,34 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.response = np.sum(response*response_mask_base, 2)/ count
         if binarize:
             self.response = np.round(self.response)
+
         # TODO fill in item data
+        split = slice(0, num_person*0.8) if mode=='train' else slice(num_person*0.8, num_person)
+        self.response = self.response[split]
         self.item_id = np.zeros_like(self.response)-1
-        self.mask = response_mask
-        self.step_mask = response_mask_base
+        self.response_mask_base = response_mask_base[split]
+        self.mask = response_mask[split]
+        self.step_mask = self.mask
         
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
         self.words = item_id 
-        # self.countries = [c['country'] for c in dataset]
-        # self.words = [w['word'] for w in dataset]
-        # self.sentence = [s['sentence'] for s in dataset]
-        # self.prompts = [s['prompt'] for s in dataset]
-        # self.times = [t['time'] for t in dataset]
-        # self.format = [f['format'] for f in dataset]
-        # self.days = [d['days'] for d in dataset]
-        # self.history = [d['history'] for d in dataset]
-        # self.max_history = max([len(d['history']) for d in dataset])
         MAX_HISTORY = 20
         self.max_history = MAX_HISTORY
 
-        self.steps = steps
+        self.steps = steps[split]
         self.encoder_mask = None
 
     def make_score_matrix(self, sub_problem, mode):
         filename = os.path.join(
-            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.{mode}')
+            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
 
         train_filename = os.path.join(
             DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.train')
         train_instances, train_labels = load_duolingo(train_filename)
 
-        val_filename = os.path.join(
-            DUOLINGO_LANG_DIR, f'{sub_problem}.slam.20190204.dev')
-        val_instances = load_duolingo(val_filename)
-        val_labels = load_labels(val_filename+'.key')
-        if mode == 'train':
-            instances, labels = train_instances, train_labels
-        else:
-            instances, labels = val_instances, val_labels
+        instances, labels = train_instances, train_labels
 
         words = []
         format = ['reverse_translate', 'reverse_tap', 'listen']
@@ -754,7 +740,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         word_to_attempt = dict()
         word_to_response = dict()
-        word_to_exercise = dict()
         for i in tqdm(range(len(train_instances))):
             instance = train_instances[i]
             # TODO why not all sessions?
@@ -775,13 +760,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
                     instance.days]
                 word_to_response[(instance.user, instance.token)] = [
                     train_labels[instance.instance_id]]
-
-        for instance in tqdm(val_instances):
-            if instance.session != 'lesson':
-                continue
-            word = instance.token
-            words.append(word)
-            country += instance.countries
 
         instance_to_sentence = dict()
 
@@ -854,17 +832,15 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         # -1 => missing data (we might have every student answer every q)
         MAX_HISTORY = 20
         steps = np.empty((num_persons, num_tokens, MAX_HISTORY)).tolist()
-        score_matrix = np.zeros((num_persons, num_tokens, MAX_HISTORY))-1
+        score_matrix = np.zeros((num_persons, num_tokens, self.max_history))-1
         count_matrix = np.zeros((num_persons, num_tokens))
         for i in range(len(dataset)):
+            score_matrix[unique_ids[dataset[i]['user']], dataset[i]['token'],
+                        len(dataset[i]['history'])] = dataset[i]['response']
+            count_matrix[unique_ids[dataset[i]['user']],
+                        dataset[i]['token']] += 1.
             if len(dataset[i]['history']) < MAX_HISTORY:
-                score_matrix[unique_ids[dataset[i]['user']], dataset[i]['token'],
-                            len(dataset[i]['history'])] = dataset[i]['response']
-                count_matrix[unique_ids[dataset[i]['user']],
-                            dataset[i]['token']] += 1.
                 steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] = dataset[i]['sentence']
-                if steps[unique_ids[dataset[i]['user']]][dataset[i]['token']][len(dataset[i]['history'])] == 0.0:
-                    print(dataset[i]) 
 
         return score_matrix, words, unique_ids, dataset, steps
 
