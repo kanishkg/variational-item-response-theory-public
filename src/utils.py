@@ -53,9 +53,9 @@ def masked_bernoulli_log_pdf(x, mask, probs):
     # for abacus
     # log_prob = ((1-x)*0.69 + 0.31 * x) * dist.log_prob(x.relu())
     # for duolingo
-    # log_prob = ((1-x)*0.874 + 0.126 * x) * dist.log_prob(x.relu())
+    log_prob = ((1-x)*0.874 + 0.126 * x) * dist.log_prob(x.relu())
     # focal loss for duolingo
-    log_prob = (1-probs)**2*((1-x)*0.874 + 0.126 * x) * dist.log_prob(x.relu())
+    # log_prob = (1-probs)**2*((1-x)*0.874 + 0.126 * x) * dist.log_prob(x.relu())
 
     # for all
     # log_prob = dist.log_prob(x.relu())
