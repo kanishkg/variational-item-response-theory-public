@@ -1280,7 +1280,7 @@ class DuoSentenceEncoder(nn.Module):
         for i, w in enumerate(self.words):
             self.embedding[i, :] = torch.tensor(nlp(w).vector)
 
-        self.mlp = nn.Embedding(
+        self.mlp = nn.Sequential(
             nn.Linear(self.embedding_dim+1, hidden_dim),
             nn.ELU(inplace=True),
             nn.Linear(hidden_dim, step_feat_dim),
