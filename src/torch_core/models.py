@@ -1276,9 +1276,9 @@ class DuoSentenceEncoder(nn.Module):
         self.words = [str(w) for w in words]
         nlp = en_core_web_lg.load()
         self.embedding_dim = len(nlp('The').vector)
-        self.embedding = nn.Embedding(len(words), self.embedding_dim)
+        self.embedding = torch.zeros(len(words), self.embedding_dim)
         for i, w in enumerate(self.words):
-            self.embedding[i, :] = nlp(w).vector
+            self.embedding[i, :] = torch.tensor(nlp(w).vector)
 
         self.mlp = nn.Embedding(
             nn.Linear(self.embedding_dim+1, hidden_dim),
@@ -1288,6 +1288,7 @@ class DuoSentenceEncoder(nn.Module):
         self.step_feat_dim = step_feat_dim
 
     def forward(self, steps, step_mask):
+        device = step_mask.device
         word_embedding = torch.zeros(step_mask.size(0), step_mask.size(
             1), self.embedding_dim+1).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
@@ -1295,7 +1296,7 @@ class DuoSentenceEncoder(nn.Module):
             sentence_embeds = []
             for word, res in steps[x][y]:
                 embed = torch.cat(
-                    [self.embedding[self.words.index(word)], torch.tensor([res])]).detach()
+                    [self.embedding[self.words.index(word)].to(device), torch.tensor([res]).to(device)]).detach()
                 wr_embed = self.mlp(embed)
                 sentence_embeds.append(wr_embed)
             word_embedding[x, y, :] = torch.stack(
