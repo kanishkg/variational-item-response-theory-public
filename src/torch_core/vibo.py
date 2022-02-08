@@ -215,6 +215,7 @@ if __name__ == "__main__":
     if 'step' in args.dataset:
         side_info = True
 
+    print("loading train dataset")
     train_dataset = load_dataset(
         dataset_name,
         train=True,
@@ -225,6 +226,7 @@ if __name__ == "__main__":
         max_num_item=args.max_num_item,
         side_info=side_info
     )
+    print("loading test dataset")
     test_dataset = load_dataset(
         dataset_name,
         train=False,
@@ -235,6 +237,7 @@ if __name__ == "__main__":
         max_num_item=args.max_num_item,
         side_info=side_info
     )
+    print("finished loading datasets")
 
     if args.artificial_missing_perc > 0:
         train_dataset = artificially_mask_dataset(
