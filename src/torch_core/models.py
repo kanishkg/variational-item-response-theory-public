@@ -1280,6 +1280,7 @@ class DuoSentenceEncoder(nn.Module):
         for w, i in enumerate(words):
             self.embedding[i, :] = nlp(w).vector
 
+        self.dict_words = {w:1 for w in words}
         self.mlp = nn.Embedding(
             nn.Linear(self.embedding_dim+1, hidden_dim),
             nn.ELU(inplace=True),
@@ -1294,10 +1295,11 @@ class DuoSentenceEncoder(nn.Module):
         for x, y in steps_idx:
             sentence_embeds = []
             for word, res in steps[x][y]:
-                embed = torch.cat(
-                    [self.embedding[self.words.index(word)], torch.tensor([res])]).detach()
-                wr_embed = self.mlp(embed)
-                sentence_embeds.append(wr_embed)
+                if word in self.dict_words:
+                    embed = torch.cat(
+                        [self.embedding[self.words.index(word)], torch.tensor([res])]).detach()
+                    wr_embed = self.mlp(embed)
+                    sentence_embeds.append(wr_embed)
             word_embedding[x, y, :] = torch.stack(
                 sentence_embeds, dim=-1).mean(-1)
         mu = word_embedding
