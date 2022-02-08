@@ -1273,11 +1273,11 @@ class DuoSentenceEncoder(nn.Module):
     def __init__(self, words, step_feat_dim=16, hidden_dim=16):
         super().__init__()
 
-        self.words = words
+        self.words = [str(w) for w in words]
         nlp = en_core_web_lg.load()
         self.embedding_dim = len(nlp('The').vector)
         self.embedding = nn.Embedding(len(words), self.embedding_dim)
-        for i, w in enumerate(words):
+        for i, w in enumerate(self.words):
             self.embedding[i, :] = nlp(w).vector
 
         self.mlp = nn.Embedding(
