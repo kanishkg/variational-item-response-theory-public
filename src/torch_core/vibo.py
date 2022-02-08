@@ -239,6 +239,7 @@ if __name__ == "__main__":
     )
     print("finished loading datasets")
 
+    print("masking datasets")
     if args.artificial_missing_perc > 0:
         train_dataset = artificially_mask_dataset(
             train_dataset,
@@ -258,6 +259,8 @@ if __name__ == "__main__":
                 train_dataset,
                 args.side_artificial_perc,
             )
+    print("finished masking datasets")
+    print("creating encoder mask")
     train_dataset = create_encoder_mask(
         train_dataset,
         args.num_encode
@@ -267,6 +270,7 @@ if __name__ == "__main__":
         test_dataset,
         args.num_encode
     )
+    print("finished creating encoder mask")
     num_person = train_dataset.num_person
     num_item = train_dataset.num_item
 
@@ -748,7 +752,8 @@ if __name__ == "__main__":
                         predicted = []
                         correct, count = 0, 0
                         for missing_index, missing_label in zip(missing_indices, missing_labels):
-                            inferred_label = inferred_response[missing_index[0], missing_index[1]]
+                            inferred_label = inferred_response[missing_index[0],
+                                                               missing_index[1]]
                             actual.append(missing_label[0])
                             predicted.append(inferred_label.item())
                             if inferred_label.item() == missing_label[0]:
@@ -756,7 +761,7 @@ if __name__ == "__main__":
                             count += 1
                         test_metrics = evaluate_metrics(actual, predicted)
                         test_missing_imputation_accuracy = test_metrics['accuracy']
-                        print("manual acc",correct/float(count))
+                        print("manual acc", correct/float(count))
 
                 if 'best' in checkpoint_name:
                     with open('results_algebra', 'a') as f:
