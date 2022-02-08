@@ -1,4 +1,5 @@
 import os
+from re import S
 import sys
 import math
 import torch
@@ -635,6 +636,9 @@ class VIBO_STEP_1PL(nn.Module):
         self._set_step_feat_dim()
         if 'scalar' in side_info_model:
             self.step_feat_dim = 8
+        if 'duo' in side_info_model:
+            self.step_feat_dim = 16
+ 
         self._set_item_feat_dim()
         self._set_irt_num()
 
@@ -675,6 +679,8 @@ class VIBO_STEP_1PL(nn.Module):
             side_info_model.to(device)
             self.step_encoder = ConpoleStepEncoder(
                 side_info_model, self.step_feat_dim)
+        elif 'duo' in side_info_model:
+            side_info_model = DuoSentenceEncoder(problems, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(

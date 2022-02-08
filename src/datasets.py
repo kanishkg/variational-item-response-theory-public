@@ -717,7 +717,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.length = response.shape[0]
         self.num_person = response.shape[0]
         self.num_item = response.shape[1]
-        self.words = item_id 
+        self.problems = item_id 
         MAX_HISTORY = 20
         self.max_history = MAX_HISTORY
 
@@ -832,7 +832,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         # -1 => missing data (we might have every student answer every q)
         MAX_HISTORY = 20
         steps = np.empty((num_persons, num_tokens, MAX_HISTORY)).tolist()
-        score_matrix = np.zeros((num_persons, num_tokens, self.max_history))-1
+        score_matrix = np.zeros((num_persons, num_tokens, self.max_history+1))-1
         count_matrix = np.zeros((num_persons, num_tokens))
         for i in range(len(dataset)):
             score_matrix[unique_ids[dataset[i]['user']], dataset[i]['token'],
