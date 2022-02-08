@@ -1277,7 +1277,7 @@ class DuoSentenceEncoder(nn.Module):
         nlp = en_core_web_lg.load()
         self.embedding_dim = len(nlp('The').vector)
         self.embedding = nn.Embedding(len(words), self.embedding_dim)
-        for w, i in enumerate(words):
+        for i, w in enumerate(words):
             self.embedding[i, :] = nlp(w).vector
 
         self.dict_words = {w:1 for w in words}

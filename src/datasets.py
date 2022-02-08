@@ -681,7 +681,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         # steps = steps[swapper]
         
 
-        word_start =  15
+        num_person = response.shape[0]
 
         if max_num_person is not None:
             response = response[:max_num_person]
@@ -692,8 +692,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
 
         rows_to_remove = np.sum(np.sum(response, 2),1) == (-1 * response.shape[1]* response.shape[2])
         response = response[~rows_to_remove]
-        response = response[:, word_start:, :]
-        num_person = response.shape[0]
+
         response_mask_base = np.ones_like(response)
         response_mask_base[response == -1] = 0
         response_mask = np.ones((response.shape[0], response.shape[1]))
@@ -718,13 +717,11 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.length = self.response.shape[0]
         self.num_person = self.response.shape[0]
         self.num_item = self.response.shape[1]
-        self.problems = item_id[word_start:] 
+        self.problems = item_id 
         MAX_HISTORY = 30
         self.max_history = MAX_HISTORY
 
         self.steps = steps[split]
-        for s in range(len(self.steps)):
-            self.steps[s] = self.steps[s][word_start:]
         self.encoder_mask = None
 
     def make_score_matrix(self, sub_problem, mode):
