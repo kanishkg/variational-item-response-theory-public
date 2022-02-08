@@ -46,9 +46,15 @@ def bernoulli_log_pdf(x, probs):
 
 def masked_bernoulli_log_pdf(x, mask, probs):
     dist = torch.distributions.bernoulli.Bernoulli(probs=probs)
-    log_prob = ((1-x)*0.86 + 0.14 * x) * dist.log_prob(x.relu())
+    # for roar
+    # log_prob = ((1-x)*0.86 + 0.14 * x) * dist.log_prob(x.relu())
+    # focal loss for roar
     # log_prob = (1-probs)**0*((1-x)*0.86 + 0.14 * x) * dist.log_prob(x.relu())
+    # for abacus
     # log_prob = ((1-x)*0.69 + 0.31 * x) * dist.log_prob(x.relu())
+    # for duolingo
+    log_prob = ((1-x)*0.874 + 0.126 * x) * dist.log_prob(x.relu())
+    # for all
     # log_prob = dist.log_prob(x.relu())
     return log_prob * mask.float()
 
