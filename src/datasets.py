@@ -714,9 +714,9 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         self.mask = response_mask[split]
         self.step_mask = self.mask
         
-        self.length = response.shape[0]
-        self.num_person = response.shape[0]
-        self.num_item = response.shape[1]
+        self.length = self.response.shape[0]
+        self.num_person = self.response.shape[0]
+        self.num_item = self.response.shape[1]
         self.problems = item_id 
         MAX_HISTORY = 30
         self.max_history = MAX_HISTORY
