@@ -707,7 +707,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
             self.response = np.round(self.response)
 
         # TODO fill in item data
-        split = slice(0, num_person*0.8) if mode=='train' else slice(num_person*0.8, num_person)
+        split = slice(0, int(num_person*0.8)) if mode=='train' else slice(int(num_person*0.8), num_person)
         self.response = self.response[split]
         self.item_id = np.zeros_like(self.response)-1
         self.response_mask_base = response_mask_base[split]
