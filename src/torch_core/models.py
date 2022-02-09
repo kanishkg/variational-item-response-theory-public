@@ -1296,7 +1296,7 @@ class DuoSentenceEncoder(nn.Module):
             sentence_embeds = []
             for word, res in steps[x][y]:
                 embed = torch.cat(
-                    [self.embedding[self.words.index(word)].to(device), torch.tensor([res]).to(device)]).detach()
+                    [self.embedding[self.words.index(word)].to(device), torch.tensor([res]).to(device)], dim=-1).detach()
                 wr_embed = self.mlp(embed)
                 sentence_embeds.append(wr_embed)
             word_embedding[x, y, :] = torch.stack(
