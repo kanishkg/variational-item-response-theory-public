@@ -883,6 +883,8 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
                 chosen_idx = np.random.choice(true_indices)
                 step = self.steps[index][i][chosen_idx]
                 steps.append(step)
+            else:
+                steps.append(0.0)
             
         response = torch.from_numpy(response).float().unsqueeze(1)
         item_id = torch.from_numpy(item_id).long().unsqueeze(1)
