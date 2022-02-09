@@ -891,7 +891,7 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
         step_mask = torch.from_numpy(step_mask).bool().unsqueeze(1)
 
         return index, response, item_id, mask, \
-            steps, step_mask, e_mask
+            steps, mask, e_mask
 
         
 
