@@ -1290,7 +1290,7 @@ class DuoSentenceEncoder(nn.Module):
     def forward(self, steps, step_mask):
         device = step_mask.device
         word_embedding = torch.zeros(step_mask.size(0), step_mask.size(
-            1), self.embedding_dim+1).to(step_mask.device)
+            1), self.step_feat_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         for x, y, _ in steps_idx:
             sentence_embeds = []
