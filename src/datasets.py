@@ -698,6 +698,7 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         response_mask = np.ones((response.shape[0], response.shape[1]))
         response_mask[np.sum(response_mask_base, 2) == 0] = 0
 
+        word_start = 
         self.binarize = binarize
         self.response_base = response
         count = np.sum(response_mask_base,2)
@@ -879,7 +880,7 @@ class DuoLingo_LanguageAcquisition_Step(DuoLingo_LanguageAcquisition):
         steps = []
         for i in range(response.shape[0]):
             if step_mask[i] == 1:
-                true_indices =  np.argwhere(response_base[i][:self.max_history] == response[i][0])[:, 0]
+                true_indices =  np.argwhere(response_base[i] == response[i])[:, 0]
                 chosen_idx = np.random.choice(true_indices)
                 step = self.steps[index][i][chosen_idx]
                 steps.append(step)
