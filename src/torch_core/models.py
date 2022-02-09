@@ -680,7 +680,7 @@ class VIBO_STEP_1PL(nn.Module):
             self.step_encoder = ConpoleStepEncoder(
                 side_info_model, self.step_feat_dim)
         elif 'duo' in side_info_model:
-            side_info_model = DuoSentenceEncoder(problems, self.step_feat_dim)
+            self.step_encoder = DuoSentenceEncoder(problems, self.step_feat_dim)
 
         if self.n_norm_flows > 0:
             self.ability_norm_flows = NormalizingFlows(
