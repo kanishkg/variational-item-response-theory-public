@@ -1292,7 +1292,7 @@ class DuoSentenceEncoder(nn.Module):
         word_embedding = torch.zeros(step_mask.size(0), step_mask.size(
             1), self.embedding_dim+1).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
-        for x, y in steps_idx:
+        for x, y, _ in steps_idx:
             sentence_embeds = []
             for word, res in steps[x][y]:
                 embed = torch.cat(
