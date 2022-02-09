@@ -698,7 +698,6 @@ class DuoLingo_LanguageAcquisition(torch.utils.data.Dataset):
         response_mask = np.ones((response.shape[0], response.shape[1]))
         response_mask[np.sum(response_mask_base, 2) == 0] = 0
 
-        word_start = 
         self.binarize = binarize
         self.response_base = response
         count = np.sum(response_mask_base,2)
