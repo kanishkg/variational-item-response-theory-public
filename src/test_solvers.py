@@ -27,6 +27,7 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps, debug=False):
     model.to(device)
     env = environment.RustEnvironment("equations-ct")
     responses = []
+    histories = []
     scores = 0.
     total = 0.
     pbar = tqdm(problems)
@@ -34,7 +35,8 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps, debug=False):
     for state in pbar:
         total += 1
         success, history = model.rollout(env, state,
-                                         max_steps, beam_size, )
+                                         max_steps, beam_size, debug)
+        histories.append(history)
         if success:
             scores += 1
             responses.append(1)
