@@ -47,44 +47,53 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    cuda = True
-    max_steps = 70  # Maximum length of an episode.
-    beam_size = 5  # Size of the beam in beam search.
-    debug = False  # Whether to print all steps during evaluation.
-    ckpt_path = '/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/'
-    max_depth = 30
-    ckpt = 88
-    population_type = "epoch"
-    num_states = None
+    parser.add_argument('--population-type', type=str, default='epoch',
+                        choices=['epoch', 'depth', 'beam'],
+                        help='epoch|depth|beam (default: epoch)')
+    parser.add_argument('--ckpt-path', type=str, default='/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/',
+                        help='path to checkpoints')
+    parser.add_argument('--max-depth', type=int, default=30,
+                        help='maximum depth of search')
+    parser.add_argument('--beam-size', type=int, default=5,
+                        help='size of beam search')
+    parser.add_argument('--ckpt', type=int, default=88,
+                        help='number of the best epoch')
+    parser.add_argument('--num-states', type=int, default=None,
+                        help='number of problems to evaluate')
+    parser.add_argument('--debug', action='store_true', default=False,
+                        help='whether to print debug info like steps')
+    parser.add_argument('--cuda', action='store_true', default=True,
+                        help='whether to use cuda')    
+    args = parser.parse_args()
 
-    if population_type == 'beam-size':
+    if args.population_type == 'beam-size':
         population_parameters = {'beam-size': reversed([i + 1 for i in range(18)])}
-    elif population_type == 'epoch':
+    elif args.population_type == 'epoch':
         best_epoch = 88
-        population_parameters = {'epoch': [best_epoch - i for i in range(30)]}
-    elif population_type == 'depth':
+        population_parameters = {'epoch': [args.best_epoch - i for i in range(30)]}
+    elif args.population_type == 'depth':
         population_parameters = {'depth': [i + 1 for i in range(90)]}
 
-    device = torch.device("cuda" if cuda else "cpu")
+    device = torch.device("cuda" if args.cuda else "cpu")
 
     train_dataset = load_dataset('json', is_train=True)
-    problem_states = get_algebra_data(num_states)
+    problem_states = get_algebra_data(args.num_states)
     responses = []
     dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[], 'steps':[],
                    'problems': train_dataset.problems}
 
-    for p in population_parameters[population_type]:
-        epoch = ckpt
-        depth = max_depth
-        beam = beam_size
-        if population_type == 'beam-size':
-            res, steps = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), p, max_depth)
+    for p in population_parameters[args.population_type]:
+        epoch = args.ckpt
+        depth = args.max_depth
+        beam = args.beam_size
+        if args.population_type == 'beam-size':
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), p, args.max_depth)
             beam = p
-        elif population_type == 'epoch':
-            res, steps = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{p}.pt'), beam_size, max_depth)
+        elif args.population_type == 'epoch':
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{p}.pt'), args.beam_size, args.max_depth)
             epoch = p
-        elif population_type == 'depth':
-            res, steps = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), beam_size, p)
+        elif args.population_type == 'depth':
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), args.beam_size, p)
             depth = p
         dataset['response'].append(res)
         dataset['epoch'].append(epoch)
