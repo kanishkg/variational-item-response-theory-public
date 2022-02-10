@@ -91,13 +91,13 @@ if __name__ == "__main__":
         depth = args.max_depth
         beam = args.beam_size
         if args.population_type == 'beam-size':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), p, args.max_depth, args.debug)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), p, args.max_depth, args.debug)
             beam = p
         elif args.population_type == 'epoch':
             res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{p}.pt'), args.beam_size, args.max_depth, args.debug)
             epoch = p
         elif args.population_type == 'depth':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), args.beam_size, p, args.debug)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, p, args.debug)
             depth = p
         dataset['response'].append(res)
         dataset['epoch'].append(epoch)
