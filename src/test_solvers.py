@@ -52,6 +52,10 @@ if __name__ == "__main__":
                         help='epoch|depth|beam (default: epoch)')
     parser.add_argument('--ckpt-path', type=str, default='/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/',
                         help='path to checkpoints')
+    parser.add_argument('--save-path', type=str, default='/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
+                        help='path where to save the results')
+    parser.add_argument('--save-file', type=str, default='algebra_steps.pth',
+                        help='name of the file to save the results')
     parser.add_argument('--max-depth', type=int, default=30,
                         help='maximum depth of search')
     parser.add_argument('--beam-size', type=int, default=5,
@@ -102,5 +106,5 @@ if __name__ == "__main__":
         dataset['score'].append(sum(res)/len(res))
         dataset['steps'].append(steps)
         print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}")
-        torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
-                                     'algebra_steps.pth'))
+        torch.save(dataset, os.path.join(args.save_path,
+                                     args.save_file))
