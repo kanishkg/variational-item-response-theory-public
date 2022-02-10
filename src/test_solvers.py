@@ -83,7 +83,7 @@ if __name__ == "__main__":
                    'problems': train_dataset.problems}
 
     for p in population_parameters[args.population_type]:
-        epoch = args.ckpt
+        epoch = args.best_epoch
         depth = args.max_depth
         beam = args.beam_size
         if args.population_type == 'beam-size':
