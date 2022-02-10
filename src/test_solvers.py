@@ -22,7 +22,7 @@ def get_algebra_data(num_states=None):
     return problem_states
 
 
-def evaluate_solver(problems, checkpoint, beam_size, max_steps):
+def evaluate_solver(problems, checkpoint, beam_size, max_steps, debug=False):
     model = torch.load(checkpoint, map_location=device)
     model.to(device)
     env = environment.RustEnvironment("equations-ct")
@@ -34,7 +34,7 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps):
     for state in pbar:
         total += 1
         success, history = model.rollout(env, state,
-                                         max_steps, beam_size, debug)
+                                         max_steps, beam_size, )
         if success:
             scores += 1
             responses.append(1)
@@ -87,13 +87,13 @@ if __name__ == "__main__":
         depth = args.max_depth
         beam = args.beam_size
         if args.population_type == 'beam-size':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), p, args.max_depth)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), p, args.max_depth, args.debug)
             beam = p
         elif args.population_type == 'epoch':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{p}.pt'), args.beam_size, args.max_depth)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{p}.pt'), args.beam_size, args.max_depth, args.debug)
             epoch = p
         elif args.population_type == 'depth':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), args.beam_size, p)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.ckpt}.pt'), args.beam_size, p, args.debug)
             depth = p
         dataset['response'].append(res)
         dataset['epoch'].append(epoch)
