@@ -41,7 +41,7 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps):
         else:
             responses.append(0)
         pbar.set_description(f"current score {scores / total}")
-    return responses
+    return responses, history
 
 
 if __name__ == "__main__":
@@ -49,19 +49,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     cuda = True
     max_steps = 70  # Maximum length of an episode.
-    beam_size = 20  # Size of the beam in beam search.
+    beam_size = 5  # Size of the beam in beam search.
     debug = False  # Whether to print all steps during evaluation.
     ckpt_path = '/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/'
-    max_depth = 50
+    max_depth = 30
     ckpt = 88
-    population_type = "depth"
+    population_type = "epoch"
     num_states = None
 
     if population_type == 'beam-size':
         population_parameters = {'beam-size': reversed([i + 1 for i in range(18)])}
     elif population_type == 'epoch':
         best_epoch = 88
-        population_parameters = {'epoch': [best_epoch - i for i in range(40)]}
+        population_parameters = {'epoch': [best_epoch - i for i in range(30)]}
     elif population_type == 'depth':
         population_parameters = {'depth': [i + 1 for i in range(90)]}
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     train_dataset = load_dataset('json', is_train=True)
     problem_states = get_algebra_data(num_states)
     responses = []
-    dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[],
+    dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[], 'steps':[],
                    'problems': train_dataset.problems}
 
     for p in population_parameters[population_type]:
@@ -78,19 +78,20 @@ if __name__ == "__main__":
         depth = max_depth
         beam = beam_size
         if population_type == 'beam-size':
-            res = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), p, max_depth)
+            res, steps = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), p, max_depth)
             beam = p
         elif population_type == 'epoch':
-            res = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{p}.pt'), beam_size, max_depth)
+            res, steps = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{p}.pt'), beam_size, max_depth)
             epoch = p
         elif population_type == 'depth':
-            res = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), beam_size, p)
+            res, steps = evaluate_solver(problem_states, os.path.join(ckpt_path, f'{ckpt}.pt'), beam_size, p)
             depth = p
         dataset['response'].append(res)
         dataset['epoch'].append(epoch)
         dataset['beam'].append(beam)
         dataset['depth'].append(depth)
         dataset['score'].append(sum(res)/len(res))
+        dataset['steps'].append(steps)
         print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}")
         torch.save(dataset, os.path.join('/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
-                                     'algebra4.pth'))
+                                     'algebra_steps.pth'))
