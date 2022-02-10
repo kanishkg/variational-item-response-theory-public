@@ -56,7 +56,7 @@ if __name__ == "__main__":
                         help='maximum depth of search')
     parser.add_argument('--beam-size', type=int, default=5,
                         help='size of beam search')
-    parser.add_argument('--ckpt', type=int, default=88,
+    parser.add_argument('--best-epoch', type=int, default=88,
                         help='number of the best epoch')
     parser.add_argument('--num-states', type=int, default=None,
                         help='number of problems to evaluate')
