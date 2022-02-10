@@ -43,7 +43,7 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps, debug=False):
         else:
             responses.append(0)
         pbar.set_description(f"current score {scores / total}")
-    return responses, history
+    return responses, histories
 
 
 if __name__ == "__main__":
