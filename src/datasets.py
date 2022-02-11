@@ -50,7 +50,7 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return ChessAIDataset(train=train, **kwargs)
     elif dataset_name == 'algebraai':
         return AlgebraAIDataset(train=train, **kwargs)
-    elif dataset_name == 'algebraai':
+    elif dataset_name == 'algebraaistep':
         return AlgebraAIStepDataset(train=train, **kwargs)
     elif dataset_name == 'roar':
         return ROARDataset(train=train, **kwargs)
