@@ -1309,7 +1309,8 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['score'] += d['score']
             dataset['steps'] += d['steps']
             dataset['problems'] = d['problems']
-
+        # shuffle lists together 
+        np.set_random_seed()
         res = np.array(dataset['response'], dtype=int)
         self.n_students = len(dataset['response'])
         self.n_problems = res.shape[1]
