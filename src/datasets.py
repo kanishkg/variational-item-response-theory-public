@@ -1310,11 +1310,20 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['steps'] += d['steps']
             dataset['problems'] = d['problems']
         # shuffle lists together 
-        np.set_random_seed()
+        rs = np.random.RandomState(42)
+        indices = np.arange(len(dataset['response']))
+        rs.shuffle(indices)
+        dataset['response'] = d['response'][indices]
+        dataset['epoch'] = d['epoch'][indices]
+        dataset['beam'] = d['beam'][indices]
+        dataset['depth'] = d['depth'][indices]
+        dataset['score'] = d['score'][indices]
+        dataset['steps'] = d['steps'][indices]
+    
+
         res = np.array(dataset['response'], dtype=int)
         self.n_students = len(dataset['response'])
         self.n_problems = res.shape[1]
-        num_correct = res.sum(0)
         self.problems = dataset['problems']
         self.response = np.array(dataset['response'], dtype=int)
         self.problem_id = np.array(
@@ -1329,15 +1338,22 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                 self.steps[s][p] = dataset['steps'][s][p][-1][0]
                 self.step_mask[s][p] = 1
 
+        num_train = int(0.8 * len(self.response))
+        split = slice(0, num_train) if is_train else slice(num_train, -1)
+
         self.response = np.expand_dims(
-            self.response, axis=2).astype(np.float32)
+            self.response[split], axis=2).astype(np.float32)
         self.mask = np.expand_dims(
-            self.response_mask, axis=2).astype(np.int)
+            self.response_mask[split], axis=2).astype(np.int)
+        self.steps = self.steps[split]
+        self.step_mask = np.expand_dims(
+            self.step_mask[split], axis=2).astype(np.int)
+        self.problem_id = self.problem_id[split]
         self.num_person = len(self.response)
         self.num_item = self.response.shape[1]
         self.encoder_mask = None
         print(
-            f"loaded algebra ai dataset with responses {self.response.shape}, students: {self.num_person}, problems: {self.problem_id.shape}")
+            f"loaded algebra ai dataset with responses {self.response.shape}, students: {self.num_person}, problems: {self.problem_id.shape}, ratio_correct: {self.response.mean()}")
 
     def __len__(self):
         return self.response.shape[0]

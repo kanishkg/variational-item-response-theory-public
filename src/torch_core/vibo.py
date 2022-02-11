@@ -254,7 +254,7 @@ if __name__ == "__main__":
             args.mask_items,
         )
 
-        if args.side_artificial_perc:
+        if args.side_artificial_perc > 0:
             train_dataset = artificially_mask_side_info(
                 train_dataset,
                 args.side_artificial_perc,
