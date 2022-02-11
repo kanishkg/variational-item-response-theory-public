@@ -1293,6 +1293,65 @@ class JSONDataset(torch.utils.data.Dataset):
 class AlgebraAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
+        data_files = ['algebra_steps.pth', 'algebra_depth.pth']
+
+        dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],
+                   'problems': [], 'steps': []}
+
+        for a in data_files:
+            d = torch.load(os.path.join(DATA_DIR, f'algebra/{a}'))
+            dataset['response'] += d['response']
+            dataset['epoch'] += d['epoch']
+            dataset['beam'] += d['beam']
+            dataset['depth'] += d['depth']
+            dataset['score'] += d['score']
+            dataset['steps'] += d['steps']
+            dataset['problems'] = d['problems']
+
+        res = np.array(dataset['response'], dtype=int)
+        self.n_students = len(dataset['response'])
+        self.n_problems = res.shape[1]
+        num_correct = res.sum(0)
+        self.problems = dataset['problems']
+        self.response = np.array(dataset['response'], dtype=int)
+        self.problem_id = np.array(
+            [np.arange(self.n_problems) for _ in range(self.n_students)])
+        self.response_mask = np.ones(
+            (self.n_students, self.n_problems), dtype=int)
+        self.steps = np.empty((self.n_students, self.n_problems)).tolist()
+        self.step_mask = np.zeros(
+            (self.n_students, self.n_problems), dtype=int)
+        for s in range(self.n_students):
+            for p in range(self.n_problems):
+                self.steps[s][p] = dataset['steps'][s][p][-1][0]
+                self.step_mask[s][p] = 1
+
+        self.response = np.expand_dims(
+            self.response, axis=2).astype(np.float32)
+        self.mask = np.expand_dims(
+            self.response_mask, axis=2).astype(np.int)
+        self.num_person = len(self.response)
+        self.num_item = self.response.shape[1]
+        self.encoder_mask = None
+        print(
+            f"loaded algebra ai dataset with responses {self.response.shape}, students: {self.num_person}, problems: {self.problem_id.shape}")
+
+    def __len__(self):
+        return self.response.shape[0]
+
+    def __getitem__(self, index):
+        return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
+
+
+class AlgebraAIDatasetStep(AlgebraAIDataset):
+    def __getitem__(self, index):
+        return index, self.response[index], self.problem_id[index], self.mask[index], \
+    self.steps[index], self.steps_mask[index], self.encoder_mask[index]
+
+
+class AlgebraAIHumanDataset(torch.utils.data.Dataset):
+    def __init__(self, is_train=True, **kwargs):
+        super().__init__()
         data_files = ['algebra.pth', 'algebra2.pth',
                       'algebra3.pth', 'algebra4.pth']
         dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],

@@ -674,11 +674,19 @@ class VIBO_STEP_1PL(nn.Module):
 
         if side_info_model == 'scalar':
             self.step_encoder = StepEncoder(1, self.step_feat_dim)
+
+        elif side_info_model == 'conpole_state':
+            side_info_model = torch.load('/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/88.pt', map_location=device)
+            side_info_model.to(device)
+            self.step_encoder = ConpoleStateEncoder(
+                side_info_model, self.step_feat_dim)
+
         elif 'conpole' in side_info_model:
             side_info_model = torch.load(side_info_model, map_location=device)
             side_info_model.to(device)
             self.step_encoder = ConpoleStepEncoder(
                 side_info_model, self.step_feat_dim)
+ 
         elif 'duo' in side_info_model:
             self.step_encoder = DuoSentenceEncoder(problems, self.step_feat_dim)
 
@@ -1268,6 +1276,34 @@ class ConpoleStepEncoder(nn.Module):
         logvar = step_mulogvar[:, :, self.step_feat_dim:]
         return mu, logvar
 
+class ConpoleStateEncoder(nn.Module):
+    def __init__(self, q_fn, step_feat_dim, embedding_dim=1024, hidden_dim=16):
+        super().__init__()
+
+        self.q_fn = q_fn
+
+        self.mlp = nn.Sequential(
+            nn.Linear(embedding_dim, hidden_dim),
+            nn.ELU(inplace=True),
+            nn.Linear(hidden_dim, step_feat_dim*2),
+        )
+        self.step_feat_dim = step_feat_dim
+        self.embedding_dim = embedding_dim
+
+    def forward(self, steps, step_mask):
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(
+            1), self.embedding_dim).to(step_mask.device)
+        steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+        step_embedding_masked = self.q_fn.embed_states(
+            [([steps[i][j]], [], 0) for i, j, _ in steps_idx]).detach()
+        for s, (i, j, _) in enumerate(steps_idx):
+            step_embedding[i, j, :] = step_embedding_masked[s, :]
+
+        step_embedding = step_embedding.detach()
+        step_mulogvar = self.mlp(step_embedding)
+        mu = step_mulogvar[:, :, :self.step_feat_dim]
+        logvar = step_mulogvar[:, :, self.step_feat_dim:]
+        return mu, logvar
 
 class DuoSentenceEncoder(nn.Module):
     def __init__(self, words, step_feat_dim=16, hidden_dim=16):
