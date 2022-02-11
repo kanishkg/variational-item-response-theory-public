@@ -50,6 +50,8 @@ def load_dataset(dataset_name, train=True, **kwargs):
         return ChessAIDataset(train=train, **kwargs)
     elif dataset_name == 'algebraai':
         return AlgebraAIDataset(train=train, **kwargs)
+    elif dataset_name == 'algebraai':
+        return AlgebraAIStepDataset(train=train, **kwargs)
     elif dataset_name == 'roar':
         return ROARDataset(train=train, **kwargs)
     elif dataset_name == 'roarstep':
@@ -1343,7 +1345,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         return index, self.response[index], self.problem_id[index], self.mask[index], self.encoder_mask[index]
 
 
-class AlgebraAIDatasetStep(AlgebraAIDataset):
+class AlgebraAIStepDataset(AlgebraAIDataset):
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], self.mask[index], \
     self.steps[index], self.steps_mask[index], self.encoder_mask[index]
