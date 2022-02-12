@@ -56,7 +56,7 @@ if __name__ == "__main__":
                         help='path to checkpoints')
     parser.add_argument('--save-path', type=str, default='/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
                         help='path where to save the results')
-    parser.add_argument('--save-file', type=str, default='algebra_steps.pth',
+    parser.add_argument('--save-file', type=str, default='algebra_steps',
                         help='name of the file to save the results')
     parser.add_argument('--max-depth', type=int, default=30,
                         help='maximum depth of search')
@@ -70,25 +70,33 @@ if __name__ == "__main__":
                         help='whether to print debug info like steps')
     parser.add_argument('--cuda', action='store_true', default=True,
                         help='whether to use cuda')    
+    parser.add_argument('--min', action='int', default=0,
+                        help='what is the minimun amount of parameters')
+    parser.add_argument('--max', action='int', default=0,
+                        help='what is the maximum amount of parameters')
+
+
+
     args = parser.parse_args()
+    min_param = args.min
+    max_param = args.max
 
     if args.population_type == 'beam-size':
-        population_parameters = {'beam-size': reversed([i + 1 for i in range(18)])}
+        population_parameters = {'beam-size': reversed([i + 1 for i in range(min_param, max_param)])}
     elif args.population_type == 'epoch':
         best_epoch = 88
-        population_parameters = {'epoch': [args.best_epoch - i for i in range(30)]}
+        population_parameters = {'epoch': [args.best_epoch - i for i in range(min_param, max_param)]}
     elif args.population_type == 'depth':
-        population_parameters = {'depth': [i + 1 for i in range(args.max_depth)]}
+        population_parameters = {'depth': [i + 1 for i in range(min_param, max_param)]}
 
     device = torch.device("cuda" if args.cuda else "cpu")
 
     train_dataset = load_dataset('json', is_train=True)
     problem_states = get_algebra_data(args.num_states)
     responses = []
-    dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[], 'steps':[],
-                   'problems': train_dataset.problems}
-
     for p in population_parameters[args.population_type]:
+        dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[], 'steps':[],
+                   'problems': train_dataset.problems}
         epoch = args.best_epoch
         depth = args.max_depth
         beam = args.beam_size
@@ -101,6 +109,7 @@ if __name__ == "__main__":
         elif args.population_type == 'depth':
             res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, p, args.debug)
             depth = p
+
         dataset['response'].append(res)
         dataset['epoch'].append(epoch)
         dataset['beam'].append(beam)
@@ -109,4 +118,4 @@ if __name__ == "__main__":
         dataset['steps'].append(steps)
         print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}")
         torch.save(dataset, os.path.join(args.save_path,
-                                     args.save_file))
+                                     f'{args.save_file}_{epoch}_{beam}_{depth}.pth'))
