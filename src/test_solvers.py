@@ -70,9 +70,9 @@ if __name__ == "__main__":
                         help='whether to print debug info like steps')
     parser.add_argument('--cuda', action='store_true', default=True,
                         help='whether to use cuda')    
-    parser.add_argument('--min', type='int', default=0,
+    parser.add_argument('--min', type=int, default=0,
                         help='what is the minimun amount of parameters')
-    parser.add_argument('--max', type='int', default=0,
+    parser.add_argument('--max', type=int, default=0,
                         help='what is the maximum amount of parameters')
 
 
