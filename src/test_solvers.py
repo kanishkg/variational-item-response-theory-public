@@ -60,7 +60,7 @@ if __name__ == "__main__":
                         help='name of the file to save the results')
     parser.add_argument('--max-depth', type=int, default=30,
                         help='maximum depth of search')
-    parser.add_argument('--beam-size', type=int, default=5,
+    parser.add_argument('--beam-size', type=int, default=10,
                         help='size of beam search')
     parser.add_argument('--best-epoch', type=int, default=88,
                         help='number of the best epoch')
