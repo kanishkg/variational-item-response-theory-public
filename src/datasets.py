@@ -1301,7 +1301,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],
                    'problems': [], 'steps': []}
 
-        for a in data_files:
+        for a in tqdm(data_files):
             d = torch.load(os.path.join(DATA_DIR, f'algebra/{a}'))
             dataset['response'] += d['response']
             dataset['epoch'] += d['epoch']
