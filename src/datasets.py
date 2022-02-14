@@ -1295,7 +1295,8 @@ class JSONDataset(torch.utils.data.Dataset):
 class AlgebraAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
-        data_files = ['algebra_steps.pth', 'algebra_depth.pth']
+        algebra_dir = os.path.join(DATA_DIR, 'algebra')
+        data_files = [x for x in os.listdir(algebra_dir) if 'algebra_' in x and x.endswith('.pth')]
 
         dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],
                    'problems': [], 'steps': []}
@@ -1309,6 +1310,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['score'] += d['score']
             dataset['steps'].append([s[-1][0] for s in d['steps'][0]])
             dataset['problems'] = d['problems']
+            del(d)
         # shuffle lists together 
         rs = np.random.RandomState(42)
         indices = np.arange(len(dataset['response']))
