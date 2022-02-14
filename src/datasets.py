@@ -1295,14 +1295,14 @@ class JSONDataset(torch.utils.data.Dataset):
 class AlgebraAIDataset(torch.utils.data.Dataset):
     def __init__(self, is_train=True, **kwargs):
         super().__init__()
-        algebra_dir = os.path.join(DATA_DIR, 'algebra')
+        algebra_dir = os.path.join(DATA_DIR, 'algebra', 'solvers')
         data_files = [x for x in os.listdir(algebra_dir) if 'algebra_' in x and x.endswith('.pth')]
 
         dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],
                    'problems': [], 'steps': []}
 
         for a in tqdm(data_files):
-            d = torch.load(os.path.join(DATA_DIR, f'algebra/solvers/{a}'))
+            d = torch.load(os.path.join(algebra_dir, f'{a}'))
             dataset['response'] += d['response']
             dataset['epoch'] += d['epoch']
             dataset['beam'] += d['beam']
