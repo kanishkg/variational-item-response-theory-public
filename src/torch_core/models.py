@@ -636,8 +636,12 @@ class VIBO_STEP_1PL(nn.Module):
         self._set_step_feat_dim()
         if 'scalar' in side_info_model:
             self.step_feat_dim = 8
-        if 'duo' in side_info_model:
+        elif 'duo' in side_info_model:
             self.step_feat_dim = 16
+        elif side_info_model == 'conpole_state':
+            self.step_feat_dim = 16
+
+
  
         self._set_item_feat_dim()
         self._set_irt_num()

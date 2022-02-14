@@ -1302,13 +1302,13 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                    'problems': [], 'steps': []}
 
         for a in tqdm(data_files):
-            d = torch.load(os.path.join(DATA_DIR, f'algebra/{a}'))
+            d = torch.load(os.path.join(DATA_DIR, f'algebra/solvers/{a}'))
             dataset['response'] += d['response']
             dataset['epoch'] += d['epoch']
             dataset['beam'] += d['beam']
             dataset['depth'] += d['depth']
             dataset['score'] += d['score']
-            dataset['steps'].append([s[-1][0] for s in d['steps'][0]])
+            dataset['steps'] += d['steps']
             dataset['problems'] = d['problems']
             del(d)
         # shuffle lists together 
