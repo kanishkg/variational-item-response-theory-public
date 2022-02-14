@@ -1307,7 +1307,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['beam'] += d['beam']
             dataset['depth'] += d['depth']
             dataset['score'] += d['score']
-            dataset['steps'] += d['steps']
+            dataset['steps'].append([s[-1][0] for s in d['steps'][0]])
             dataset['problems'] = d['problems']
         # shuffle lists together 
         rs = np.random.RandomState(42)
@@ -1335,7 +1335,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             (self.n_students, self.n_problems), dtype=int)
         for s in range(self.n_students):
             for p in range(self.n_problems):
-                self.steps[s][p] = dataset['steps'][s][p][-1][0]
+                self.steps[s][p] = dataset['steps'][s][p]
                 self.step_mask[s][p] = 1
 
         num_train = int(0.8 * len(self.response))
