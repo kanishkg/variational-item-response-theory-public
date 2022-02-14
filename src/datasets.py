@@ -1315,6 +1315,8 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         rs = np.random.RandomState(42)
         indices = np.arange(len(dataset['response']))
         rs.shuffle(indices)
+        indices = indices.tolist()
+
         dataset['response'] = dataset['response'][indices]
         dataset['epoch'] = dataset['epoch'][indices]
         dataset['beam'] = dataset['beam'][indices]
