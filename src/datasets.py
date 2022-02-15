@@ -1342,8 +1342,8 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                 self.steps[s][p] = dataset['steps'][s][p]
                 self.step_mask[s][p] = 1
 
-        num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if is_train else slice(num_train, -1)
+        num_train = int(0.8 * len(self.response)) 
+        split = slice(0, num_train) if train else slice(num_train, -1)
 
         self.response = np.expand_dims(
             self.response[split], axis=2).astype(np.float32)
