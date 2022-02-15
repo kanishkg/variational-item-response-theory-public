@@ -1293,7 +1293,7 @@ class JSONDataset(torch.utils.data.Dataset):
 
 
 class AlgebraAIDataset(torch.utils.data.Dataset):
-    def __init__(self, is_train=True, **kwargs):
+    def __init__(self, train=True, **kwargs):
         super().__init__()
         algebra_dir = os.path.join(DATA_DIR, 'algebra', 'solvers')
         data_files = [x for x in os.listdir(algebra_dir) if 'algebra_' in x and x.endswith('.pth')]
