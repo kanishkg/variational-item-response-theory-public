@@ -1317,12 +1317,12 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         rs.shuffle(indices)
         indices = indices.tolist()
 
-        dataset['response'] = dataset['response'][indices]
-        dataset['epoch'] = dataset['epoch'][indices]
-        dataset['beam'] = dataset['beam'][indices]
-        dataset['depth'] = dataset['depth'][indices]
-        dataset['score'] = dataset['score'][indices]
-        dataset['steps'] = dataset['steps'][indices]
+        dataset['response'] = [dataset['response'][i] for i in indices]
+        dataset['epoch'] = [dataset['epoch'][i] for i in indices]
+        dataset['beam'] = [dataset['beam'][i] for i in indices]
+        dataset['depth'] = [dataset['depth'][i] for i in indices]
+        dataset['score'] = [dataset['score'][i] for i in indices]
+        dataset['steps'] = [dataset['steps'][i] for i in indices]
     
 
         res = np.array(dataset['response'], dtype=int)
