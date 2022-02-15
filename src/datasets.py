@@ -1296,7 +1296,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
     def __init__(self, train=True, **kwargs):
         super().__init__()
         algebra_dir = os.path.join(DATA_DIR, 'algebra', 'solvers')
-        data_files = [x for x in os.listdir(algebra_dir) if 'algebra_' in x and x.endswith('.pth')]
+        data_files = sorted([x for x in os.listdir(algebra_dir) if 'algebra_' in x and x.endswith('.pth')])
 
         dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],
                    'problems': [], 'steps': []}
