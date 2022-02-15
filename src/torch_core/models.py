@@ -1299,7 +1299,7 @@ class ConpoleStateEncoder(nn.Module):
             1), self.embedding_dim).to(step_mask.device)
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
         step_embedding_masked = self.q_fn.embed_states(
-            [steps[i][j] for i, j, _ in steps_idx]).detach()
+            [environment.State([steps[i][j].facts[-1]], [], 0) for i, j, _ in steps_idx]).detach()
         for s, (i, j, _) in enumerate(steps_idx):
             step_embedding[i, j, :] = step_embedding_masked[s, :]
 
