@@ -53,6 +53,7 @@ if __name__ == "__main__":
                             'jsonstep',
                             'chessai',
                             'algebraai',
+                            'algebraaistep',
                             'roar',
                             'roarstep',
                             'abacus',
