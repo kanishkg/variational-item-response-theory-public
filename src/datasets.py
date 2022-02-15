@@ -1369,7 +1369,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
 class AlgebraAIStepDataset(AlgebraAIDataset):
     def __getitem__(self, index):
         return index, self.response[index], self.problem_id[index], self.mask[index], \
-    self.steps[index], self.steps_mask[index], self.encoder_mask[index]
+    self.steps[index], self.step_mask[index], self.encoder_mask[index]
 
 
 class AlgebraAIHumanDataset(torch.utils.data.Dataset):
