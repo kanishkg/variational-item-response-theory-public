@@ -76,7 +76,7 @@ def rollout(model,
 
         ns = list(set([a.next_state for a in actions]) - seen)
         ns.sort(key=lambda s: s.value, reverse=True)
-        if random.uniform() < corrupt:
+        if random.uniform(0, 1) < corrupt:
             ns = [corrupt_state(s) for s in ns] 
         if debug:
             print(f'Candidates: {[(s, s.value) for s in ns]}')
