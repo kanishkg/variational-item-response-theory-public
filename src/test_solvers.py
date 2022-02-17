@@ -163,8 +163,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--population-type', type=str, default='epoch',
-                        choices=['epoch', 'depth', 'beam'],
-                        help='epoch|depth|beam (default: epoch)')
+                        choices=['epoch', 'depth', 'beam', 'corrupt'],
+                        help='epoch|depth|beam|corrupt (default: epoch)')
     parser.add_argument('--ckpt-path', type=str, default='/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/',
                         help='path to checkpoints')
     parser.add_argument('--save-path', type=str, default='/mnt/fs1/kanishkg/rich-irt/variational-item-response-theory-public/data/algebra',
