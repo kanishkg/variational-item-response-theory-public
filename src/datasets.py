@@ -1310,7 +1310,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['depth'] += d['depth']
             dataset['score'] += d['score']
             for s, students in enumerate(d['steps']):
-                for steps in students:
+                for q, steps in enumerate(students):
                     if len(steps.facts) > max_len:
                         facts = list(steps.facts)
                         ids = list(range(len(facts)))
@@ -1318,7 +1318,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                         ids = sorted(ids[:max_len])
                         facts = [f for i, f in enumerate(facts) if i in ids]
                         steps.facts = tuple(facts)
-                    d['steps'][s] = steps
+                    d['steps'][s][q] = steps
             dataset['steps'] += d['steps']
             dataset['problems'] = d['problems']
             del(d)
