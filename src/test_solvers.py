@@ -184,7 +184,7 @@ if __name__ == "__main__":
                         help='what is the maximum amount of parameters')
 
 
-
+    random.seed(0)
     args = parser.parse_args()
     min_param = args.min
     max_param = args.max
