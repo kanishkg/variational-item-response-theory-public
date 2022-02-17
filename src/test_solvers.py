@@ -106,9 +106,9 @@ def rollout(model,
         if random.uniform(0, 1) < corrupt:
             ns = [corrupt_state(s) for s in ns] 
             is_corrupt = True
-        fin_fact = s.facts[-1]
-        fin_fact = filter_fact(fin_fact) 
-        ns = [environment.State([fin_fact], [], 0) for s in ns]
+        fin_fact = [s.facts[-1] for s in ns]
+        fin_fact = [filter_fact(f) for f in fin_fact]
+        ns = [environment.State([f], [], 0) for f in fin_fact]
         if debug:
             print(f'Candidates: {[(s, s.value) for s in ns]}')
         beam = ns[:beam_size]
