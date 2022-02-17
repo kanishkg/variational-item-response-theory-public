@@ -23,10 +23,14 @@ def corrupt_state(state):
     if len(sigs) == 0:
         return state
     idx, s = random.choice(sigs)
-    while 1:
-        ns = random.choice(signs)
-        if ns != s:
-            break
+    if s == '-':
+        ns = '+'
+    elif s == '+':
+        ns = '-'
+    elif s == '*':
+        ns = '/'
+    elif s == '/':
+        ns = '*'
     final_fact = list(final_fact)
     final_fact[idx] = ns
     final_fact = "".join(final_fact)
