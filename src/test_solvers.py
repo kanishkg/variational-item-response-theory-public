@@ -40,8 +40,8 @@ def filter_fact(fact):
         fact = fact.replace('= +', '= ')
     if '/ +' in fact:
         fact = fact.replace('/ +', '/ ')
-    if fact!=init_fact:
-        print(f'{init_fact} -> {fact}')
+    # if fact!=init_fact:
+    #     print(f'{init_fact} -> {fact}')
     return fact
 
 def corrupt_state(state):
@@ -57,10 +57,8 @@ def corrupt_state(state):
             ns = '+'
         elif s == '+':
             ns = '-'
-        new_fact = list(final_fact)
-        new_fact[idx] = ns
-        new_fact = "".join(new_fact)
         found = True
+        break
     final_fact = list(final_fact)
     final_fact[idx] = ns
     final_fact = "".join(final_fact)
@@ -205,6 +203,9 @@ if __name__ == "__main__":
         population_parameters = {'epoch': [args.best_epoch - i for i in range(min_param, max_param)]}
     elif args.population_type == 'depth':
         population_parameters = {'depth': [i + 1 for i in range(min_param, max_param)]}
+    elif args.population_type == 'corrupt':
+        population_parameters = {'corrupt': [i for i in range(min_param, max_param, 0.001)]}
+
 
     device = torch.device("cuda" if args.cuda else "cpu")
 
@@ -212,11 +213,12 @@ if __name__ == "__main__":
     problem_states = get_algebra_data(args.num_states)
     responses = []
     for p in population_parameters[args.population_type]:
-        dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[], 'steps':[],
+        dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score':[], 'steps':[], 'corrupt':[],
                    'problems': train_dataset.problems}
         epoch = args.best_epoch
         depth = args.max_depth
         beam = args.beam_size
+        corrupt = args.corrupt
         if args.population_type == 'beam-size':
             res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), p, args.max_depth, args.corrupt, args.debug)
             beam = p
@@ -226,13 +228,16 @@ if __name__ == "__main__":
         elif args.population_type == 'depth':
             res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, p, args.corrupt, args.debug)
             depth = p
-
+        elif args.population_type == 'corruption':
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, args.max_depth, p, args.debug)
+            corrupt = p
         dataset['response'].append(res)
         dataset['epoch'].append(epoch)
         dataset['beam'].append(beam)
         dataset['depth'].append(depth)
         dataset['score'].append(sum(res)/len(res))
         dataset['steps'].append(steps)
+        dataset['corrupt'].append(corrupt)
         print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}, corrupt: {args.corrupt}")
         torch.save(dataset, os.path.join(args.save_path,
-                                     f'{args.save_file}_{epoch}_{beam}_{depth}_{args.corrupt}.pth'))
+                                     f'{args.save_file}_{epoch}_{beam}_{depth}_{corrupt}.pth'))
