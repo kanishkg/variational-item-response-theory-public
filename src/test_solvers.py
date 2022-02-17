@@ -40,7 +40,9 @@ def filter_state(state):
         fact = fact.replace('= +', '= ')
     if '/ +' in fact:
         fact = fact.replace('/ +', '/ ')
-    state.facts[-1] = fact
+    facts = list(state.facts)
+    facts[-1] = fact
+    state.facts = tuple(facts)
     # if fact!=init_fact:
     #     print(f'{init_fact} -> {fact}')
     return state
