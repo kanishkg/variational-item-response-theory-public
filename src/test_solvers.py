@@ -28,7 +28,7 @@ def corrupt_state(state):
         idx = i
         if final_fact[idx-2] == '-' or final_fact[idx-3] == '-' or final_fact[idx-3] == '+':
             continue
-        if s=='+' and final_fact[idx-1] == '(':
+        if s=='-' and final_fact[idx-1] == '(':
             continue
         if s == '-':
             ns = '+'
