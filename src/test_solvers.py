@@ -151,7 +151,7 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps, corrupt=0., debu
         total += 1
         success, history = rollout(model, env, state,
                                          max_steps, beam_size, corrupt, debug)
-        histories.append(history)
+        histories.append(history[-1])
         if success:
             scores += 1
             responses.append(1)

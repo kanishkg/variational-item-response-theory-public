@@ -2,6 +2,7 @@ import os
 from re import S
 import sys
 import math
+from unicodedata import bidirectional
 import torch
 import numpy as np
 from torch import nn
@@ -685,6 +686,13 @@ class VIBO_STEP_1PL(nn.Module):
             self.step_encoder = ConpoleStateEncoder(
                 side_info_model, self.step_feat_dim)
 
+        elif side_info_model == 'conpole_trajectory':
+            side_info_model = torch.load('/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/88.pt', map_location=device)
+            side_info_model.to(device)
+            self.step_encoder = ConpoleStateEncoder(
+                side_info_model, self.step_feat_dim)
+
+
         elif 'conpole' in side_info_model:
             side_info_model = torch.load(side_info_model, map_location=device)
             side_info_model.to(device)
@@ -1306,6 +1314,55 @@ class ConpoleStateEncoder(nn.Module):
             mu[i, j, :] = embed
         logvar = mu
         return mu, logvar
+
+class ConpoleTrajectoryEncoder(nn.Module):
+    """
+    Encodes the trajectory using an lstm
+    """
+    def __init__(self, q_fn, step_feat_dim, embedding_dim=1024, max_len=20, hidden_dim=16):
+        super().__init__()
+
+        self.q_fn = q_fn
+        self.lstm = nn.LSTM(hidden_dim, hidden_dim, 2, bidirectional=True, batch_first=True)
+        self.mlp = nn.Sequential(
+            nn.Linear(embedding_dim, hidden_dim),
+            nn.ReLU(inplace=True))
+        self.out_mlp = nn.Sequential(
+            nn.Linear(hidden_dim, step_feat_dim),
+        )
+        self.max_len = max_len
+        self.step_feat_dim = step_feat_dim
+        self.embedding_dim = embedding_dim
+        self.hidden_dim = hidden_dim
+
+    def forward(self, steps, step_mask):
+        # should be on cpu?
+        step_lens = torch.tensor([[len(prob) for prob in per] for per in steps]).to(torch.int64)
+    
+        step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.max_len,
+                                     self.hidden_dim).to(step_mask.device)
+        steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+        for s, (i, j, _) in enumerate(steps_idx):
+            with torch.no_grad():
+                # steps x embedding_dim
+                step_embedding_masked = self.q_fn.embed_states(
+                    [environment.State(list(steps[i][j].facts), [], 0)]).detach()
+            # step x hidden_dim
+            embed = self.mlp(step_embedding_masked)
+            step_embedding[i, j, :step_lens[i, j], :] = embed
+        p, q, s, e = step_embedding.size()
+        # person*questions x step x hidden_dim
+        step_embedding = step_embedding.view(p*q, s, e)
+        step_lens = step_lens.view(p*q)
+        # embed trajectory
+        x_lstm = torch.nn.utils.rnn.pack_padded_sequence(step_embedding, step_lens, batch_first=True, enforce_sorted=False)
+        x_lstm, _ = self.lstm(x_lstm)
+        x_lstm, _ = torch.nn.utils.rnn.pad_packed_sequence(x_lstm, batch_first=True)
+        x_out = x_lstm[:, -1, :]
+        x_out = x_out.view(p, q, -1)
+        x_out = self.out_mlp(x_out)
+        return x_out, x_out
+
 
 class DuoSentenceEncoder(nn.Module):
     def __init__(self, words, step_feat_dim=16, hidden_dim=16):
