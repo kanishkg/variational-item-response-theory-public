@@ -66,7 +66,7 @@ def rollout(model,
     history = [beam]
     seen = set([state])
     success = False
-    corrupt = False
+    is_corrupt = False
 
     for i in range(max_steps):
         if debug:
@@ -96,13 +96,13 @@ def rollout(model,
         ns.sort(key=lambda s: s.value, reverse=True)
         if random.uniform(0, 1) < corrupt:
             ns = [corrupt_state(s) for s in ns] 
-            corrupt = True
+            is_corrupt = True
         if debug:
             print(f'Candidates: {[(s, s.value) for s in ns]}')
         beam = ns[:beam_size]
         history.append(ns)
         seen.update(ns)
-    if corrupt:
+    if is_corrupt:
         success = False
     return success, history
 
