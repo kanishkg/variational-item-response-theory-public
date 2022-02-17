@@ -25,6 +25,8 @@ def filter_fact(fact):
         fact.replace('- +', '- ')
     if '(+' in fact:
         fact.replace('(+','(')
+    if '+ +' in fact:
+        fact.replace('+ +', '+ ')
     return fact
 
 def corrupt_state(state):
