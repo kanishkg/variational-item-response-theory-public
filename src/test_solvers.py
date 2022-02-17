@@ -18,29 +18,6 @@ sys.path.append('../../socratic-tutor/')
 signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
-def normalize_solutions(solutions):
-    'Uses the Racket parser to syntactically normalize solutions in the equations domain.'
-    all_steps = []
-
-    for s in solutions:
-        all_steps.extend(s)
-
-    with open('input.txt', 'w') as f:
-        for l in all_steps:
-            f.write(l)
-            f.write('\n')
-
-    sp = subprocess.run(["racket", "-tm", "canonicalize-terms.rkt"], capture_output=True)
-    print(sp)
-    steps = list(filter(None, sp.stdout.decode("utf8").split("\n")))
-
-    new_solutions = []
-    for s in solutions:
-        new_solutions.append([steps.pop(0) for _ in range(len(s))])
-
-    return new_solutions
-
-
 def corrupt_state(state):
     final_fact = state.facts[-1]
     sigs = [(i, s) for i, s in enumerate(final_fact) if s in signs]
@@ -50,12 +27,6 @@ def corrupt_state(state):
     found = False
     for i, s in sigs:
         idx = i
-        # if final_fact[idx-2] == '-' or final_fact[idx-3] == '-' or final_fact[idx-3] == '+':
-        #     continue
-        # if s=='-' and final_fact[idx-1] == '(':
-        #     continue
-        # if s=='-' and final_fact[idx+2] == '(':
-        #     continue
         if s == '-':
             ns = '+'
         elif s == '+':
@@ -63,13 +34,6 @@ def corrupt_state(state):
         new_fact = list(final_fact)
         new_fact[idx] = ns
         new_fact = "".join(new_fact)
-        try:
-            new_fact = normalize_solutions([new_fact])[0]
-            _ = environment.State([new_fact], [], 0)
-            found = True
-        except:
-            print (f"Could not find a valid state, {new_fact}")
-            continue
         
     # elif s == '*':
     #     ns = '/'
