@@ -1,4 +1,5 @@
 import os
+import random
 import ast
 import bisect
 import copy
@@ -1297,7 +1298,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
         super().__init__()
         algebra_dir = os.path.join(DATA_DIR, 'algebra', 'solvers')
         data_files = sorted([x for x in os.listdir(algebra_dir) if 'algebra_' in x and x.endswith('.pth')])
-
+        max_len = 20
         dataset = {'response': [], 'epoch': [], 'beam': [], 'depth': [], 'score': [],
                    'problems': [], 'steps': []}
 
@@ -1308,6 +1309,16 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['beam'] += d['beam']
             dataset['depth'] += d['depth']
             dataset['score'] += d['score']
+            for s, students in enumerate(d['steps']):
+                for steps in students:
+                    if len(steps.facts) > max_len:
+                        facts = list(steps.facts)
+                        ids = list(range(len(facts)))
+                        random.shuffle(ids)
+                        ids = sorted(ids[:max_len])
+                        facts = [f for i, f in enumerate(facts) if i in ids]
+                        steps.facts = tuple(facts)
+                    d['steps'][s] = steps
             dataset['steps'] += d['steps']
             dataset['problems'] = d['problems']
             del(d)
