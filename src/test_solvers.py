@@ -34,6 +34,7 @@ def corrupt_state(state):
         new_fact = list(final_fact)
         new_fact[idx] = ns
         new_fact = "".join(new_fact)
+        found = True
         
     # elif s == '*':
     #     ns = '/'
