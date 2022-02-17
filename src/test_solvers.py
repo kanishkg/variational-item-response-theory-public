@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 import sys
 import subprocess
-
+import copy
 import torch
 
 from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step
@@ -19,7 +19,7 @@ signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
 def filter_fact(fact):
-    init_fact = fact.copy()
+    init_fact = copy.deepcopy(fact)
     if  '+ (+' in fact:
         fact.replace('+ (+', '+ (')
     if '- +' in fact:
