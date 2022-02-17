@@ -27,10 +27,10 @@ def corrupt_state(state):
         ns = '+'
     elif s == '+':
         ns = '-'
-    elif s == '*':
-        ns = '/'
-    elif s == '/':
-        ns = '*'
+    # elif s == '*':
+    #     ns = '/'
+    # elif s == '/':
+    #     ns = '*'
     final_fact = list(final_fact)
     final_fact[idx] = ns
     final_fact = "".join(final_fact)
