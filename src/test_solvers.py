@@ -14,7 +14,7 @@ import argparse
 
 sys.path.append('../../socratic-tutor/')
 
-signs = ['+', '-', '*', '/']
+signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
 def corrupt_state(state):
@@ -22,17 +22,23 @@ def corrupt_state(state):
     sigs = [(i, s) for i, s in enumerate(final_fact) if s in signs]
     if len(sigs) == 0:
         return state
-    idx, s = random.choice(sigs)
-    if s == '-':
-        ns = '+'
-    elif s == '+':
-        ns = '-'
-    else:
-        ns = s
+    random.shuffle(sigs)
+    found = False
+    for i, s in sigs:
+        idx = i
+        if final_fact[idx-2] == '-':
+            continue
+        if s == '-':
+            ns = '+'
+        elif s == '+':
+            ns = '-'
+        found = True
     # elif s == '*':
     #     ns = '/'
     # elif s == '/':
     #     ns = '*'
+    if not found:
+        return state
     final_fact = list(final_fact)
     final_fact[idx] = ns
     final_fact = "".join(final_fact)
