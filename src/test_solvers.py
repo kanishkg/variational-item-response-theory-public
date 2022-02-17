@@ -18,6 +18,15 @@ sys.path.append('../../socratic-tutor/')
 signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
+def filter_fact(fact):
+    if  '+ (+' in fact:
+        fact.replace('+ (+', '+ (')
+    if '- +' in fact:
+        fact.replace('- +', '- ')
+    if '(+' in fact:
+        fact.replace('(+','(')
+    return fact
+
 def corrupt_state(state):
     final_fact = state.facts[-1]
     sigs = [(i, s) for i, s in enumerate(final_fact) if s in signs]
@@ -34,12 +43,6 @@ def corrupt_state(state):
         new_fact = list(final_fact)
         new_fact[idx] = ns
         new_fact = "".join(new_fact)
-        if  '+ (+' in new_fact:
-            continue
-        if '- +' in new_fact:
-            continue
-        if '(+' in new_fact:
-            continue
         found = True
         
     # elif s == '*':
@@ -103,7 +106,9 @@ def rollout(model,
         if random.uniform(0, 1) < corrupt:
             ns = [corrupt_state(s) for s in ns] 
             is_corrupt = True
-        ns = [environment.State([s.facts[-1]], [], 0) for s in ns]
+        fin_fact = s.facts[-1]
+        fin_fact = filter_fact(fin_fact) 
+        ns = [environment.State([fin_fact], [], 0) for s in ns]
         if debug:
             print(f'Candidates: {[(s, s.value) for s in ns]}')
         beam = ns[:beam_size]
