@@ -34,6 +34,8 @@ def corrupt_state(state):
         new_fact = list(final_fact)
         new_fact[idx] = ns
         new_fact = "".join(new_fact)
+        if  '+ (+' in new_fact:
+            continue
         found = True
         
     # elif s == '*':
