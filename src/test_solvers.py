@@ -228,7 +228,7 @@ if __name__ == "__main__":
         elif args.population_type == 'depth':
             res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, p, args.corrupt, args.debug)
             depth = p
-        elif args.population_type == 'corruption':
+        elif args.population_type == 'corrupt':
             res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, args.max_depth, p, args.debug)
             corrupt = p
         dataset['response'].append(res)
