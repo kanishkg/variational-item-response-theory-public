@@ -19,6 +19,7 @@ signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
 def filter_fact(fact):
+    init_fact = fact.copy()
     if  '+ (+' in fact:
         fact.replace('+ (+', '+ (')
     if '- +' in fact:
@@ -29,7 +30,10 @@ def filter_fact(fact):
         fact.replace('+ +', '+ ')
     if '[+' in fact:
         fact.replace('[+', '[')
-
+    if '- +' in fact:
+        fact.replace('- +', '- ')
+    if fact!=init_fact:
+        print(f'{init_fact} -> {fact}')
     return fact
 
 def corrupt_state(state):
@@ -103,11 +107,8 @@ def rollout(model,
             ns = [corrupt_state(s) for s in ns] 
             is_corrupt = True
         fin_fact = [s.facts[-1] for s in ns]
-        print("init", fin_fact)
         fin_fact = [filter_fact(f) for f in fin_fact]
-        print("fin", fin_fact)
         ns = [environment.State([f], [], 0) for f in fin_fact]
-        print("ns", ns)
         if debug:
             print(f'Candidates: {[(s, s.value) for s in ns]}')
         beam = ns[:beam_size]
