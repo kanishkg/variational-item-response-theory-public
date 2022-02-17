@@ -38,6 +38,8 @@ def corrupt_state(state):
             continue
         if '- +' in new_fact:
             continue
+        if '(+' in new_fact:
+            continue
         found = True
         
     # elif s == '*':
