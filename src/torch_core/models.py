@@ -689,7 +689,7 @@ class VIBO_STEP_1PL(nn.Module):
         elif side_info_model == 'conpole_trajectory':
             side_info_model = torch.load('/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/88.pt', map_location=device)
             side_info_model.to(device)
-            self.step_encoder = ConpoleStateEncoder(
+            self.step_encoder = ConpoleTrajectoryEncoder(
                 side_info_model, self.step_feat_dim)
 
 
@@ -1316,9 +1316,6 @@ class ConpoleStateEncoder(nn.Module):
         return mu, logvar
 
 class ConpoleTrajectoryEncoder(nn.Module):
-    """
-    Encodes the trajectory using an lstm
-    """
     def __init__(self, q_fn, step_feat_dim, embedding_dim=1024, max_len=20, hidden_dim=16):
         super().__init__()
 
@@ -1338,10 +1335,12 @@ class ConpoleTrajectoryEncoder(nn.Module):
     def forward(self, steps, step_mask):
         # should be on cpu?
         step_lens = torch.tensor([[len(prob) for prob in per] for per in steps]).to(torch.int64)
-    
+        # empty embedding for padding: person x questions x max_len x hidden_dim
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.max_len,
                                      self.hidden_dim).to(step_mask.device)
+
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+        # embedding for each trajectory; can be done in parallel but GPU memory is limited
         for s, (i, j, _) in enumerate(steps_idx):
             with torch.no_grad():
                 # steps x embedding_dim
