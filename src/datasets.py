@@ -1269,9 +1269,9 @@ class JSONDataset(torch.utils.data.Dataset):
 
         for i, s_obs in enumerate(data_by_student.values()):
             for j, (problem, correct) in enumerate(s_obs):
-                self.response[i][j] = float(correct)
-                self.problem_id[i][j] = problem
-                self.response_mask[i][j] = 1
+                self.response[i][problem] = float(correct)
+                self.problem_id[i][problem] = problem
+                self.response_mask[i][problem] = 1
 
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if is_train else slice(num_train, -1)
@@ -1591,12 +1591,12 @@ class JSONStepDataset(torch.utils.data.Dataset):
 
         for i, s_obs in enumerate(data_by_student.values()):
             for j, (problem, correct, steps) in enumerate(s_obs):
-                self.response[i][j] = float(correct)
-                self.problem_id[i][j] = problem
-                self.response_mask[i][j] = 1
-                self.steps[i][j] = steps
+                self.response[i][problem] = float(correct)
+                self.problem_id[i][problem] = problem
+                self.response_mask[i][problem] = 1
+                self.steps[i][problem] = steps
                 if len(steps) != 0:
-                    self.step_mask[i][j] = 1
+                    self.step_mask[i][problem] = 1
 
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if is_train else slice(num_train, -1)
