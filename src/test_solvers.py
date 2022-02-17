@@ -237,6 +237,6 @@ if __name__ == "__main__":
         dataset['score'].append(sum(res)/len(res))
         dataset['steps'].append(steps)
         dataset['corrupt'].append(corrupt)
-        print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}, corrupt: {args.corrupt}")
+        print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}, corrupt: {corrupt}")
         torch.save(dataset, os.path.join(args.save_path,
                                      f'{args.save_file}_{epoch}_{beam}_{depth}_{corrupt:.3f}.pth'))
