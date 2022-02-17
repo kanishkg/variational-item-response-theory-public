@@ -54,7 +54,7 @@ def corrupt_state(state):
                     
 
 def rollout(model,
-            environment,
+            env,
             state,
             max_steps,
             beam_size=1,
@@ -75,7 +75,7 @@ def rollout(model,
         if not beam:
             break
 
-        rewards, s_actions = zip(*environment.step(beam))
+        rewards, s_actions = zip(*env.step(beam))
         actions = [a for s_a in s_actions for a in s_a]
 
         if max(rewards):
