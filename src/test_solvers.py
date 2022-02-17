@@ -112,6 +112,7 @@ def rollout(model,
         if debug:
             print(f'Candidates: {[(s, s.value) for s in ns]}')
         beam = ns[:beam_size]
+        print(beam)
         history.append(ns)
         seen.update(ns)
     if is_corrupt:
