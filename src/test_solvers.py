@@ -26,7 +26,7 @@ def corrupt_state(state):
     found = False
     for i, s in sigs:
         idx = i
-        if final_fact[idx-2] == '-':
+        if final_fact[idx-2] == '-' or final_fact[idx-3] == '-' or final_fact[idx-3] == '+':
             continue
         if s == '-':
             ns = '+'
