@@ -40,8 +40,8 @@ def corrupt_state(state):
     #     ns = '/'
     # elif s == '/':
     #     ns = '*'
-    if not found:
-        return state
+    # if not found:
+    #     return state
     print("init", final_fact)
     final_fact = list(final_fact)
     final_fact[idx] = ns
