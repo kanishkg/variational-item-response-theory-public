@@ -21,17 +21,17 @@ symbols = ['(', ')', ' ']
 def filter_fact(fact):
     init_fact = copy.deepcopy(fact)
     if  '+ (+' in fact:
-        fact.replace('+ (+', '+ (')
+        fact = fact.replace('+ (+', '+ (')
     if '- +' in fact:
-        fact.replace('- +', '- ')
+        fact = fact = fact.replace('- +', '- ')
     if '(+' in fact:
-        fact.replace('(+','(')
+        fact = fact.replace('(+','(')
     if '+ +' in fact:
-        fact.replace('+ +', '+ ')
+        fact = fact.replace('+ +', '+ ')
     if '[+' in fact:
-        fact.replace('[+', '[')
+        fact = fact.replace('[+', '[')
     if '- +' in fact:
-        fact.replace('- +', '- ')
+        fact = fact.replace('- +', '- ')
     if fact!=init_fact:
         print(f'{init_fact} -> {fact}')
     return fact
