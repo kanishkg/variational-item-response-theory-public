@@ -26,15 +26,25 @@ def corrupt_state(state):
     found = False
     for i, s in sigs:
         idx = i
-        if final_fact[idx-2] == '-' or final_fact[idx-3] == '-' or final_fact[idx-3] == '+':
-            continue
-        if s=='-' and final_fact[idx-1] == '(':
-            continue
+        # if final_fact[idx-2] == '-' or final_fact[idx-3] == '-' or final_fact[idx-3] == '+':
+        #     continue
+        # if s=='-' and final_fact[idx-1] == '(':
+        #     continue
+        # if s=='-' and final_fact[idx+2] == '(':
+        #     continue
         if s == '-':
             ns = '+'
         elif s == '+':
             ns = '-'
-        found = True
+        new_fact = list(final_fact)
+        new_fact[idx] = ns
+        new_fact = "".join(new_fact)
+        try:
+            _ = environment.State([new_fact], [], 0)
+            found = True
+        except:
+            print (f"Could not find a valid state, {new_fact}")
+            continue
         
     # elif s == '*':
     #     ns = '/'
