@@ -34,6 +34,8 @@ def filter_fact(fact):
         fact = fact.replace('- +', '- ')
     if fact[0] == '+':
         fact = fact[1:]
+    if '* +' in fact:
+        fact = fact.replace('* +', '* ')
     if fact!=init_fact:
         print(f'{init_fact} -> {fact}')
     return fact
