@@ -27,6 +27,8 @@ def corrupt_state(state):
         ns = '+'
     elif s == '+':
         ns = '-'
+    else:
+        ns = s
     # elif s == '*':
     #     ns = '/'
     # elif s == '/':
