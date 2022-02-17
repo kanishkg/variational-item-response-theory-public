@@ -35,15 +35,18 @@ def corrupt_state(state):
         elif s == '+':
             ns = '-'
         found = True
+        
     # elif s == '*':
     #     ns = '/'
     # elif s == '/':
     #     ns = '*'
     if not found:
         return state
+    print("init", final_fact)
     final_fact = list(final_fact)
     final_fact[idx] = ns
     final_fact = "".join(final_fact)
+    print("final", final_fact)
     facts = list(state.facts)
     facts[-1] = final_fact
     state.facts = tuple(facts)
