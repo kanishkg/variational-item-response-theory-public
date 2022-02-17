@@ -204,7 +204,7 @@ if __name__ == "__main__":
     elif args.population_type == 'depth':
         population_parameters = {'depth': [i + 1 for i in range(min_param, max_param)]}
     elif args.population_type == 'corrupt':
-        population_parameters = {'corrupt': [i * 1e-3 for i in range(min_param, max_param)]}
+        population_parameters = {'corrupt': reversed([i * 1e-3 for i in range(min_param, max_param)])}
 
 
     device = torch.device("cuda" if args.cuda else "cpu")
