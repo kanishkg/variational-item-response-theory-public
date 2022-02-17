@@ -1,5 +1,6 @@
 import os
 import time
+import random
 import math
 import numpy as np
 from tqdm import tqdm
@@ -13,6 +14,79 @@ import argparse
 
 sys.path.append('../../socratic-tutor/')
 
+signs = ['+', '-', '*', '/']
+symbols = ['(', ')', ' ']
+
+def corrupt_state(state):
+    final_fact = state.facts[-1]
+    sigs = [(i, s) for i, s in enumerate(final_fact) if s in signs]
+    if len(sigs) == 0:
+        return state
+    idx, s = random.choice(sigs)
+    while 1:
+        ns = random.choice(signs)
+        if ns != s:
+            break
+    final_fact = list(final_fact)
+    final_fact[idx] = ns
+    final_fact = "".join(final_fact)
+    facts = list(state.facts)
+    facts[-1] = final_fact
+    state.facts = tuple(facts)
+    return state
+                    
+
+def rollout(model,
+            environment,
+            state,
+            max_steps,
+            beam_size=1,
+            corrupt=0.,
+            debug=False):
+    """Runs beam search using the Q value until either
+    max_steps have been made or reached a terminal state."""
+    beam = [state]
+    history = [beam]
+    seen = set([state])
+    success = False
+
+    for i in range(max_steps):
+        if debug:
+            print(f'Beam #{i}: {beam}')
+
+        if not beam:
+            break
+
+        rewards, s_actions = zip(*environment.step(beam))
+        actions = [a for s_a in s_actions for a in s_a]
+
+        if max(rewards):
+            success = True
+            break
+
+        if len(actions) == 0:
+            success = False
+            break
+
+        with torch.no_grad():
+            q_values = model(actions).tolist()
+
+        for a, v in zip(actions, q_values):
+            a.next_state.value = model.aggregate(a.state.value, v)
+
+        ns = list(set([a.next_state for a in actions]) - seen)
+        ns.sort(key=lambda s: s.value, reverse=True)
+        if random.uniform() < corrupt:
+            ns = [corrupt_state(s) for s in ns] 
+        if debug:
+            print(f'Candidates: {[(s, s.value) for s in ns]}')
+        beam = ns[:beam_size]
+        history.append(ns)
+        seen.update(ns)
+    return success, history
+
+
+
 
 def get_algebra_data(num_states=None):
     train_dataset = load_dataset('json', is_train=True)
@@ -22,7 +96,7 @@ def get_algebra_data(num_states=None):
     return problem_states
 
 
-def evaluate_solver(problems, checkpoint, beam_size, max_steps, debug=False):
+def evaluate_solver(problems, checkpoint, beam_size, max_steps, corrupt=0., debug=False):
     model = torch.load(checkpoint, map_location=device)
     model.to(device)
     env = environment.RustEnvironment("equations-ct")
@@ -34,8 +108,8 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps, debug=False):
 
     for state in pbar:
         total += 1
-        success, history = model.rollout(env, state,
-                                         max_steps, beam_size, debug)
+        success, history = rollout(model, env, state,
+                                         max_steps, beam_size, corrupt, debug)
         histories.append(history)
         if success:
             scores += 1
@@ -62,6 +136,8 @@ if __name__ == "__main__":
                         help='maximum depth of search')
     parser.add_argument('--beam-size', type=int, default=10,
                         help='size of beam search')
+    parser.add_argument('--corrupt', type=float, default=0.,
+                        help='probability of corrupting states')
     parser.add_argument('--best-epoch', type=int, default=88,
                         help='number of the best epoch')
     parser.add_argument('--num-states', type=int, default=None,
@@ -101,13 +177,13 @@ if __name__ == "__main__":
         depth = args.max_depth
         beam = args.beam_size
         if args.population_type == 'beam-size':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), p, args.max_depth, args.debug)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), p, args.max_depth, args.corrupt, args.debug)
             beam = p
         elif args.population_type == 'epoch':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{p}.pt'), args.beam_size, args.max_depth, args.debug)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{p}.pt'), args.beam_size, args.max_depth, args.corrupt, args.debug)
             epoch = p
         elif args.population_type == 'depth':
-            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, p, args.debug)
+            res, steps = evaluate_solver(problem_states, os.path.join(args.ckpt_path, f'{args.best_epoch}.pt'), args.beam_size, p, args.corrupt, args.debug)
             depth = p
 
         dataset['response'].append(res)
@@ -116,6 +192,6 @@ if __name__ == "__main__":
         dataset['depth'].append(depth)
         dataset['score'].append(sum(res)/len(res))
         dataset['steps'].append(steps)
-        print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}")
+        print(f"epoch: {epoch}, beam: {beam}, depth: {depth}, score: {sum(res)/len(res)}, corrupt: {args.corrupt}")
         torch.save(dataset, os.path.join(args.save_path,
                                      f'{args.save_file}_{epoch}_{beam}_{depth}.pth'))
