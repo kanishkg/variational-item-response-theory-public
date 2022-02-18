@@ -641,7 +641,8 @@ class VIBO_STEP_1PL(nn.Module):
             self.step_feat_dim = 16
         elif side_info_model == 'conpole_state':
             self.step_feat_dim = 16
-
+        elif side_info_model == 'conpole_trajectory':
+            self.step_feat_dim = 16
 
  
         self._set_item_feat_dim()
