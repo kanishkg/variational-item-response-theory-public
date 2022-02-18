@@ -28,7 +28,6 @@ from src.config import OUT_DIR, IS_REAL_WORLD
 import environment
 
 sys.path.append('../../socratic-tutor/')
-wandb.init(project="rich-irt", entity="kanishkgandhi")
 
 if __name__ == "__main__":
     import argparse
@@ -147,8 +146,10 @@ if __name__ == "__main__":
                         help='Use the given pre-trained BERT model to embed problems.')
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='enables CUDA training (default: False)')
+    parser.add_argument('--name', type=str, default=None, help='Name of the experiment')
     args = parser.parse_args()
 
+    wandb.init(project="rich-irt", entity="kanishkgandhi", name=f"{args.name}")
     side_info = None
     if args.n_norm_flows > 0:
         args.no_infer_dict = True
