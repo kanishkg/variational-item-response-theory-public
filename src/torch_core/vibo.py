@@ -149,7 +149,7 @@ if __name__ == "__main__":
     parser.add_argument('--name', type=str, default=None, help='Name of the experiment')
     args = parser.parse_args()
 
-    wandb.init(project="rich-irt", entity="kanishkgandhi", name={args.name})
+    wandb.init(project="rich-irt", entity="kanishkgandhi", name=args.name)
     side_info = None
     if args.n_norm_flows > 0:
         args.no_infer_dict = True
