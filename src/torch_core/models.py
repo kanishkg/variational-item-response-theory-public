@@ -1326,7 +1326,7 @@ class ConpoleTrajectoryEncoder(nn.Module):
             nn.Linear(embedding_dim, hidden_dim),
             nn.ReLU(inplace=True))
         self.out_mlp = nn.Sequential(
-            nn.Linear(hidden_dim, step_feat_dim),
+            nn.Linear(hidden_dim*2, step_feat_dim),
         )
         self.max_len = max_len
         self.step_feat_dim = step_feat_dim
