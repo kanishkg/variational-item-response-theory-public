@@ -690,13 +690,13 @@ class VIBO_STEP_1PL(nn.Module):
             self.step_encoder = StepEncoder(1, self.step_feat_dim)
 
         elif side_info_model == 'conpole_state':
-            side_info_model = torch.load('/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/88.pt', map_location=device)
+            side_info_model = torch.load('/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/220.pt', map_location=device)
             side_info_model.to(device)
             self.step_encoder = ConpoleStateEncoder(
                 side_info_model, self.step_feat_dim)
 
         elif side_info_model == 'conpole_trajectory':
-            side_info_model = torch.load('/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/88.pt', map_location=device)
+            side_info_model = torch.load('/mnt/fs3/poesia/socratic-tutor/output/algebra-solver/ConPoLe/equations-ct/run0/checkpoints/220.pt', map_location=device)
             side_info_model.to(device)
             self.step_encoder = ConpoleTrajectoryEncoder(
                 side_info_model, self.step_feat_dim)
