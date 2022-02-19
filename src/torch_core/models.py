@@ -23,6 +23,14 @@ from src.torch_core.flows import NormalizingFlows
 import en_core_web_lg
 
 
+def expected_reward_loss(response, mask, ability_mu):
+    empirical_ability = (response * mask).sum(1) / mask.sum(1)
+    ability_estimate = F.sigmoid(ability_mu)
+    loss = F.mse_loss(empirical_ability, ability_estimate, reduction='mean')
+    return loss
+
+    
+
 class MLE_1PL(nn.Module):
 
     def __init__(

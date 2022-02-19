@@ -1,5 +1,6 @@
 from distutils import core
 import os
+from re import A
 import time
 import math
 import numpy as np
@@ -19,6 +20,7 @@ from src.torch_core.models import (
     VIBO_STEP_1PL,
     VIBO_STEP_2PL,
     VIBO_STEP_3PL,
+    expected_reward_loss
 )
 from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, artificially_mask_side_info, \
     create_encoder_mask
@@ -133,6 +135,9 @@ if __name__ == "__main__":
                         help='constant multiplier on KL (default: 1.0)')
     parser.add_argument('--predict', type=str,
                         help='File with words/nonwords to predict parameters.')
+    parser.add_argument('--loss', type=str, default='elbo',
+                        help='which loss should be used for training the model')
+
 
     parser.add_argument('--seed', type=int, default=42, metavar='S',
                         help='random seed (default: 42)')
@@ -391,8 +396,12 @@ if __name__ == "__main__":
                                     step_mask, encoder_mask)
                 else:
                     outputs = model(response, mask, encoder_mask)
-                loss = model.elbo(*outputs, annealing_factor=annealing_factor,
+                if args.loss == 'elbo':
+                    loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                   use_kl_divergence=True)/args.batch_size
+                elif args.loss == 'mse':
+                    response, mask, _, _, ability_mu, _, _, _, _ = outputs
+                    loss = expected_reward_loss(response, mask, ability_mu)
             loss.backward()
             total_norm = -1
             weight_norm = 1
@@ -461,7 +470,12 @@ if __name__ == "__main__":
                                         step_mask, encoder_mask)
                     else:
                         outputs = model(response, mask, encoder_mask)
-                    loss = model.elbo(*outputs)/args.batch_size
+                if args.loss == 'elbo':
+                    loss = model.elbo(*outputs, annealing_factor=annealing_factor,
+                                  use_kl_divergence=True)/args.batch_size
+                elif args.loss == 'mse':
+                    response, mask, _, _, ability_mu, _, _, _, _ = outputs
+                    loss = expected_reward_loss(response, mask, ability_mu)
                 test_loss.update(loss.item(), mb)
                 wandb.log({'test_loss': test_loss.avg, 'epoch': epoch})
                 pbar.update()
