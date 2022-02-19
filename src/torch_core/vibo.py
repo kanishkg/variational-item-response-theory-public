@@ -400,8 +400,8 @@ if __name__ == "__main__":
                     loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                   use_kl_divergence=True)/args.batch_size
                 elif args.loss == 'mse':
-                    response, mask, _, _, ability_mu, _, _, _, _ = outputs
-                    loss = expected_reward_loss(response, mask, ability_mu)
+                    # response, mask, _, _, ability_mu, _, _, _, _ = outputs
+                    loss = expected_reward_loss(outputs[0], outputs[1], outputs[4])
             loss.backward()
             total_norm = -1
             weight_norm = 1
@@ -474,8 +474,8 @@ if __name__ == "__main__":
                     loss = model.elbo(*outputs, annealing_factor=annealing_factor,
                                   use_kl_divergence=True)/args.batch_size
                 elif args.loss == 'mse':
-                    response, mask, _, _, ability_mu, _, _, _, _ = outputs
-                    loss = expected_reward_loss(response, mask, ability_mu)
+                    # response, mask, _, _, ability_mu, _, _, _, _ = outputs
+                    loss = expected_reward_loss(outputs[0], outputs[1], outputs[4])
                 test_loss.update(loss.item(), mb)
                 wandb.log({'test_loss': test_loss.avg, 'epoch': epoch})
                 pbar.update()
