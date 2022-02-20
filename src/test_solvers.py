@@ -183,10 +183,13 @@ def get_algebra_data(num_states=None):
         num_states = train_dataset.n_problems
     problem_states = []
     changed = 0
+    f = open('changed_problems.txt', 'w')
     for p in train_dataset.problems[:num_states]:
         init_p = copy.deepcopy(p)
         p = filter_problem(p)
         if init_p != p:
+
+            f.write(f"{init_p} -> {p}\n")
             changed +=1
         problem_states += [environment.State([filter_problem(p)], [], 0)]
     print(f'Changed {changed} out of {num_states}')
