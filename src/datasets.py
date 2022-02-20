@@ -23,6 +23,27 @@ from src.config import (
     DATA_DIR,
 )
 
+def filter_problem(problem):
+    # remove parsing error of x in denominator
+    xids = [i for i, c in enumerate(problem) if c == 'x']
+    for _ in range(len(xids)):
+        nums = re.findall('[0-9]+', problem)
+        ids = [m.start(0) for m in re.finditer('[0-9]+', problem)]
+        # ids = [problem.index(n) for n in nums]
+        for j, (idx, num) in enumerate(zip(ids, nums)): 
+            if idx+len(num) >= len(problem):
+                continue
+            if problem[idx+len(num)] == 'x':
+                if problem[idx-2] == '/':
+                    prev_num = [ids[j-1], nums[j-1]]
+                    if problem[prev_num[0]-1] != '-':
+                        problem = problem[:prev_num[0]]+'('+problem[prev_num[0]:idx+len(num)] + ') * '  + problem[idx+len(num):]
+                    else:
+                        problem = problem[:prev_num[0]-1]+'('+problem[prev_num[0]-1:idx+len(num)] + ') * '  + problem[idx+len(num):]
+                    break
+    return problem    
+
+
 
 def load_dataset(dataset_name, train=True, **kwargs):
     if dataset_name == '1pl_simulation':
@@ -1236,7 +1257,7 @@ class JSONDataset(torch.utils.data.Dataset):
         with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
             observations = json.load(f)
 
-        all_problems = list(set([row['problem'] for row in observations]))
+        all_problems = list(set([filter_problem(row['problem']) for row in observations]))
         problem_id = dict(zip(all_problems, range(len(all_problems))))
 
         if 'timestamp' in observations[0]:
@@ -1323,6 +1344,7 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
             dataset['problems'] = d['problems']
             del(d)
         # shuffle lists together 
+        dataset['problems'] = [filter_problem(x) for x in dataset['problems']]
         rs = np.random.RandomState(42)
         indices = np.arange(len(dataset['response']))
         rs.shuffle(indices)
@@ -1594,6 +1616,7 @@ class JSONStepDataset(torch.utils.data.Dataset):
                 self.response[i][problem] = float(correct)
                 self.problem_id[i][problem] = problem
                 self.response_mask[i][problem] = 1
+                steps = [filter_problem(s) for s in steps]
                 self.steps[i][problem] = steps
                 if len(steps) != 0:
                     self.step_mask[i][problem] = 1
