@@ -176,7 +176,12 @@ def get_algebra_data(num_states=None):
     train_dataset = load_dataset('json', is_train=True)
     if num_states is None:
         num_states = train_dataset.n_problems
-    problem_states = [environment.State([filter_problem(p)], [], 0) for p in train_dataset.problems[:num_states]]
+    problem_states = []
+    for p in train_dataset.problems[:num_states]:
+        print(p)
+        p = filter_problem(p)
+        print(p)
+        problem_states += [environment.State([filter_problem(p)], [], 0)]
     return problem_states
 
 
