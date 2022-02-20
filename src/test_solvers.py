@@ -179,11 +179,14 @@ def get_algebra_data(num_states=None):
     if num_states is None:
         num_states = train_dataset.n_problems
     problem_states = []
+    changed = 0
     for p in train_dataset.problems[:num_states]:
-        print(p)
+        init_p = copy.deepcopy(p)
         p = filter_problem(p)
-        print(p)
+        if init_p != p:
+            changed +=1
         problem_states += [environment.State([filter_problem(p)], [], 0)]
+    print(f'Changed {changed} out of {num_states}')
     return problem_states
 
 
