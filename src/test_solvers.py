@@ -32,7 +32,10 @@ def filter_problem(problem):
             if problem[idx+len(num)] == 'x':
                 if problem[idx-2] == '/':
                     prev_num = [ids[j-1], nums[j-1]]
-                    problem = problem[:prev_num[0]]+'('+problem[prev_num[0]:idx+len(num)] + ') * '  + problem[idx+len(num):]
+                    if problem[prev_num[0]-1] != '-':
+                        problem = problem[:prev_num[0]]+'('+problem[prev_num[0]:idx+len(num)] + ') * '  + problem[idx+len(num):]
+                    else:
+                        problem = problem[:prev_num[0]-1]+'('+problem[prev_num[0]-1:idx+len(num)] + ') * '  + problem[idx+len(num):]
                     break
     return problem    
 
