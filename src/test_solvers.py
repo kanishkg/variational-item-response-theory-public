@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import random
 import math
@@ -17,6 +18,21 @@ sys.path.append('../../socratic-tutor/')
 
 signs = ['+', '-']
 symbols = ['(', ')', ' ']
+
+
+def filter_problem(problem):
+    # remove parsing error of x in denominator
+    xids = [i for i, c in enumerate(problem) if c == 'x']
+    for _ in range(len(xids)):
+        nums = re.findall('[0-9]+', problem)
+        ids = [problem.index(n) for n in nums]
+        for j, (idx, num) in enumerate(zip(ids, nums)): 
+            if problem[idx+len(num)] == 'x':
+                if problem[idx-2] == '/':
+                    prev_num = [ids[j-1], nums[j-1]]
+                    problem = problem[:prev_num[0]]+'('+problem[prev_num[0]:idx+len(num)] + ') * '  + problem[idx+len(num):]
+                    break
+    return problem    
 
 def filter_state(state):
     fact = state.facts[-1]
@@ -46,6 +62,33 @@ def filter_state(state):
     # if fact!=init_fact:
     #     print(f'{init_fact} -> {fact}')
     return state
+
+def corrupt_vars(fact):
+    init_fact = fact
+    # randomly delete a var from the equation
+    if fact.count('x') == 1:
+        return fact
+    # get ids of characters in fact
+    ids = [i for i, c in enumerate(fact) if c == 'x']
+    # randomly choose an id and delete variables
+    idx = random.choice(ids)
+    fact = fact.delete(idx)
+
+    # randomly add a variable to the equation
+    nums = re.findall('[0-9]+', fact)
+    ids = [fact.index(n) for n in nums]
+
+    ids_nums = list(zip(ids, nums))
+    random.shuffle(ids_nums)
+    found = False
+    for i, n in ids_nums:
+        if fact[i+len(n)] == 'x':
+            continue
+        
+        if found:
+            break
+    return fact
+
 
 def corrupt_state(state):
     final_fact = state.facts[-1]
@@ -133,7 +176,7 @@ def get_algebra_data(num_states=None):
     train_dataset = load_dataset('json', is_train=True)
     if num_states is None:
         num_states = train_dataset.n_problems
-    problem_states = [environment.State([p], [], 0) for p in train_dataset.problems[:num_states]]
+    problem_states = [environment.State([filter_problem(p)], [], 0) for p in train_dataset.problems[:num_states]]
     return problem_states
 
 
