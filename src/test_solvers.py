@@ -25,7 +25,8 @@ def filter_problem(problem):
     xids = [i for i, c in enumerate(problem) if c == 'x']
     for _ in range(len(xids)):
         nums = re.findall('[0-9]+', problem)
-        ids = [problem.index(n) for n in nums]
+        ids = [m.start(0) for m in re.finditer('[0-9]+', problem)]
+        # ids = [problem.index(n) for n in nums]
         for j, (idx, num) in enumerate(zip(ids, nums)): 
             if idx+len(num) >= len(problem):
                 continue
@@ -188,11 +189,11 @@ def get_algebra_data(num_states=None):
         init_p = copy.deepcopy(p)
         p = filter_problem(p)
         if init_p != p:
-
             f.write(f"{init_p} -> {p}\n")
             changed +=1
         problem_states += [environment.State([filter_problem(p)], [], 0)]
     print(f'Changed {changed} out of {num_states}')
+    f.close()
     return problem_states
 
 
