@@ -27,7 +27,7 @@ def filter_problem(problem):
         nums = re.findall('[0-9]+', problem)
         ids = [problem.index(n) for n in nums]
         for j, (idx, num) in enumerate(zip(ids, nums)): 
-            if idx+len(num) > len(problem):
+            if idx+len(num) >= len(problem):
                 continue
             if problem[idx+len(num)] == 'x':
                 if problem[idx-2] == '/':
