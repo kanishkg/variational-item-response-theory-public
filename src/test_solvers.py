@@ -113,6 +113,7 @@ def corrupt_sigs(fact):
 
 def corrupt_state(state):
     final_fact = state.facts[-1]
+    success = True
     # choose how to corrupt the equation
     p = random.uniform(0, 1)
     sigs = [(i, s) for i, s in enumerate(final_fact) if s in signs]
@@ -122,10 +123,12 @@ def corrupt_state(state):
         final_fact = corrupt_sigs(final_fact)
     else:
         final_fact = corrupt_vars(final_fact)
+    if final_fact == state.facts[-1]:
+        success = False
     facts = list(state.facts)
     facts[-1] = final_fact
     state.facts = tuple(facts)
-    return state
+    return state, success
                     
 
 def rollout(model,
@@ -170,8 +173,9 @@ def rollout(model,
         ns = list(set([a.next_state for a in actions]) - seen)
         ns.sort(key=lambda s: s.value, reverse=True)
         if random.uniform(0, 1) < corrupt:
-            ns = [corrupt_state(s) for s in ns] 
-            is_corrupt = True
+            ns, corruption_result = [corrupt_state(s) for s in ns] 
+            # if corruption is not successful, we don't want to change the response
+            is_corrupt = corruption_result 
         ns = [filter_state(s) for s in ns]
         # ns = [environment.State([f], [], 0) for f in fin_fact]
         if debug:
