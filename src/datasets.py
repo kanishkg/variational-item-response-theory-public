@@ -1,6 +1,7 @@
 import os
 import random
 import ast
+import re
 import bisect
 import copy
 from sympy import Not
