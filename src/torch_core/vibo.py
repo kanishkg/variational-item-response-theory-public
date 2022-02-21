@@ -433,6 +433,7 @@ if __name__ == "__main__":
         model.eval()
         test_loss = AverageMeter()
         pbar = tqdm(total=len(test_loader))
+        annealing_factor = get_annealing_factor(epoch, 0)
 
         with torch.no_grad():
             for batch in test_loader:
