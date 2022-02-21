@@ -71,49 +71,57 @@ def filter_state(state):
 
 def corrupt_vars(fact):
     init_fact = fact
+    # choose to add or delete variables
+    prob = random.uniform(0, 1)
     # randomly delete a var from the equation
     if fact.count('x') == 1:
-        return fact
-    # get ids of characters in fact
-    ids = [i for i, c in enumerate(fact) if c == 'x']
-    # randomly choose an id and delete variables
-    idx = random.choice(ids)
-    fact = fact.delete(idx)
+        prob = 1.
+    if prob < 0.5:
+        # get ids of characters in fact
+        ids = [i for i, c in enumerate(fact) if c == 'x']
+        # randomly choose an id and delete variables
+        idx = random.choice(ids)
+        fact = fact.delete(idx)
+    else:
+        # randomly add a variable to the equation
+        nums = re.findall('[0-9]+', fact)
+        # get start and end positions of numbers
+        ids = [(m.start(0), m.end(0)) for m in re.finditer('[0-9]+', fact)]
 
-    # randomly add a variable to the equation
-    nums = re.findall('[0-9]+', fact)
-    ids = [fact.index(n) for n in nums]
-
-    ids_nums = list(zip(ids, nums))
-    random.shuffle(ids_nums)
-    found = False
-    for i, n in ids_nums:
-        if fact[i+len(n)] == 'x':
-            continue
-        
-        if found:
+        ids_nums = list(zip(ids, nums))
+        random.shuffle(ids_nums)
+        for i, n in ids_nums:
+            if fact[i[1]] == 'x':
+                continue
+            fact = fact[:i[1]]+'x'+fact[i[1]:]
             break
+    return fact
+
+def corrupt_sigs(fact):
+    sigs = [(i, s) for i, s in enumerate(fact) if s in signs]
+    random.shuffle(sigs)
+    idx, s = sigs[0]
+    if s == '-':
+        ns = '+'
+    elif s == '+':
+        ns = '-'
+    fact = list(fact)
+    fact[idx] = ns
+    fact = "".join(fact)
     return fact
 
 
 def corrupt_state(state):
     final_fact = state.facts[-1]
+    # choose how to corrupt the equation
+    p = random.uniform(0, 1)
     sigs = [(i, s) for i, s in enumerate(final_fact) if s in signs]
     if len(sigs) == 0:
-        return state
-    random.shuffle(sigs)
-    found = False
-    for i, s in sigs:
-        idx = i
-        if s == '-':
-            ns = '+'
-        elif s == '+':
-            ns = '-'
-        found = True
-        break
-    final_fact = list(final_fact)
-    final_fact[idx] = ns
-    final_fact = "".join(final_fact)
+        p = 1.
+    if p < 0.5:
+        final_fact = corrupt_sigs(final_fact)
+    else:
+        final_fact = corrupt_vars(final_fact)
     facts = list(state.facts)
     facts[-1] = final_fact
     state.facts = tuple(facts)
