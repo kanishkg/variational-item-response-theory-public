@@ -93,6 +93,12 @@ def corrupt_vars(fact):
         for i, n in ids_nums:
             if fact[i[1]] == 'x':
                 continue
+            if fact[i[1]] == ']':
+                continue
+            if fact[i[0]-1] == '[':
+                continue
+            if fact[i[0]-1] == '/':
+                continue
             fact = fact[:i[1]]+'x'+fact[i[1]:]
             break
     return fact
