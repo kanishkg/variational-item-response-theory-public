@@ -74,8 +74,12 @@ def corrupt_vars(fact):
     # choose to add or delete variables
     prob = random.uniform(0, 1)
     # randomly delete a var from the equation
-    if fact.count('x') == 1:
+    nums = re.findall('[0-9]+', fact)
+    num_x = fact.count('x')
+    if num_x == 1:
         prob = 1.
+    if len(nums)-1 == num_x:
+        prob = 0.
     if prob < 0.5:
         # get ids of characters in fact
         ids = [i for i, c in enumerate(fact) if c == 'x']
@@ -133,6 +137,10 @@ def corrupt_state(state):
     # choose how to corrupt the equation
     p = random.uniform(0, 1)
     sigs = [(i, s) for i, s in enumerate(final_fact) if s in signs]
+    nums = re.findall('[0-9]+', final_fact)
+    num_x = final_fact.count('x')
+    if num_x == 1 and len(nums)-1 == num_x:
+        p = 0.
     if len(sigs) == 0:
         p = 1.
     if p < 0.5:
