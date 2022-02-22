@@ -1258,7 +1258,7 @@ class JSONDataset(torch.utils.data.Dataset):
         with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
             observations = json.load(f)
 
-        all_problems = list(set([filter_problem(row['problem']) for row in observations]))
+        all_problems = sorted(list(set([filter_problem(row['problem']) for row in observations])))
         problem_id = dict(zip(all_problems, range(len(all_problems))))
 
         if 'timestamp' in observations[0]:
@@ -1574,7 +1574,7 @@ class JSONStepDataset(torch.utils.data.Dataset):
         with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
             observations = json.load(f)
 
-        all_problems = list(set([row['problem'] for row in observations]))
+        all_problems = sorted(list(set([filter_problem(row['problem']) for row in observations])))
         problem_id = dict(zip(all_problems, range(len(all_problems))))
 
         if 'timestamp' in observations[0]:
@@ -1584,7 +1584,7 @@ class JSONStepDataset(torch.utils.data.Dataset):
         data_by_problem = collections.defaultdict(list)
 
         for row in observations:
-            data_by_student[row['student']].append((problem_id[row['problem']],
+            data_by_student[row['student']].append((problem_id[filter_problem(row['problem'])],
                                                     int(row['correct']),
                                                     row['steps']))
             data_by_problem[row['problem']].append((row['student'],

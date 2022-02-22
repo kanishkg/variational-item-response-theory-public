@@ -173,9 +173,11 @@ def rollout(model,
         ns = list(set([a.next_state for a in actions]) - seen)
         ns.sort(key=lambda s: s.value, reverse=True)
         if random.uniform(0, 1) < corrupt:
-            ns, corruption_result = [corrupt_state(s) for s in ns] 
+            corruption_results = [corrupt_state(s) for s in ns]
+            ns = [s for s, _ in corruption_results] 
+            corruption = [s for _, s in corruption_results] 
             # if corruption is not successful, we don't want to change the response
-            is_corrupt = corruption_result 
+            is_corrupt = True 
         ns = [filter_state(s) for s in ns]
         # ns = [environment.State([f], [], 0) for f in fin_fact]
         if debug:
@@ -183,8 +185,10 @@ def rollout(model,
         beam = ns[:beam_size]
         history.append(ns)
         seen.update(ns)
+    answer_facts = history[-1][0].facts
     if is_corrupt:
         success = False
+    
     return success, history
 
 
