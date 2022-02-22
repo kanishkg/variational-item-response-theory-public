@@ -1348,9 +1348,11 @@ class ConpoleTrajectoryEncoder(nn.Module):
 
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
 
+        step_lens = torch.zeros(step_mask.size(0), step_mask.size(1)).to(torch.int64)
         # should be on cpu?
         if type(steps[steps_idx[0][0]][steps_idx[0][1]]) == list:
-            step_lens = torch.tensor([[len(prob) for prob in per] for per in steps]).to(torch.int64)
+            for s, (i, j, _) in enumerate(steps_idx):
+                step_lens[i, j] = len(steps[i][j])
         elif type(steps[0][0]) == environment.State:
             step_lens = torch.tensor([[len(prob.facts) for prob in per] for per in steps]).to(torch.int64)
 
