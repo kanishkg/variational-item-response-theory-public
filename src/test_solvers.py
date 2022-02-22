@@ -81,7 +81,7 @@ def corrupt_vars(fact):
         ids = [i for i, c in enumerate(fact) if c == 'x']
         # randomly choose an id and delete variables
         idx = random.choice(ids)
-        fact = fact.delete(idx)
+        fact = fact[:idx]+fact[idx+1:]
     else:
         # randomly add a variable to the equation
         nums = re.findall('[0-9]+', fact)
