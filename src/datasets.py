@@ -1345,7 +1345,8 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                         facts = [f for i, f in enumerate(facts) if i in ids]
                         steps.facts = tuple(facts)
                     d['steps'][s][q] = steps
-            dataset['steps'] += [[d['steps'][per][so] for so in sorted_indices] for per in range(len(d['response']))]            del(d)
+            dataset['steps'] += [[d['steps'][per][so] for so in sorted_indices] for per in range(len(d['response']))]
+            del(d)
         # shuffle lists together 
         dataset['problems'] = sorted([filter_problem(x) for x in dataset['problems']])
         rs = np.random.RandomState(42)
