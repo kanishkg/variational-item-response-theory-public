@@ -87,7 +87,8 @@ def corrupt_vars(fact):
         random.shuffle(ids)
         for idx in ids:
             if idx == 0:
-                fact = '0' + fact[1:]
+                # fact = '0' + fact[1:]
+                continue
             if fact[idx-2] == '*':
                 fact = fact[:idx-3] + fact[idx+1:]
             elif fact[idx-1] == ' ' or fact[idx-1] == '(':
