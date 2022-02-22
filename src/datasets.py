@@ -99,7 +99,7 @@ def load_dataset(dataset_name, train=True, **kwargs):
 
 def create_encoder_mask(old_dataset, num_encode):
     if num_encode == -1:
-        old_dataset.encoder_mask = mask
+        old_dataset.encoder_mask = old_dataset.mask
         return old_dataset
     dataset = copy.deepcopy(old_dataset)
     mask = dataset.mask
