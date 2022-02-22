@@ -1342,16 +1342,18 @@ class ConpoleTrajectoryEncoder(nn.Module):
         self.hidden_dim = hidden_dim
 
     def forward(self, steps, step_mask):
-        # should be on cpu?
-        if type(steps[0][0]) == list:
-            step_lens = torch.tensor([[len(prob) for prob in per] for per in steps]).to(torch.int64)
-        else:
-            step_lens = torch.tensor([[len(prob.facts) for prob in per] for per in steps]).to(torch.int64)
         # empty embedding for padding: person x questions x max_len x hidden_dim
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.max_len,
                                      self.hidden_dim).to(step_mask.device)
 
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
+
+        # should be on cpu?
+        if type(steps[steps_idx[0][0]][steps_idx[0][1]]) == list:
+            step_lens = torch.tensor([[len(prob) for prob in per] for per in steps]).to(torch.int64)
+        elif type(steps[0][0]) == environment.State:
+            step_lens = torch.tensor([[len(prob.facts) for prob in per] for per in steps]).to(torch.int64)
+
         # embedding for each trajectory; can be done in parallel but GPU memory is limited
         for s, (i, j, _) in enumerate(steps_idx):
             with torch.no_grad():
