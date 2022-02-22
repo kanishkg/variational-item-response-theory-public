@@ -80,8 +80,12 @@ def corrupt_vars(fact):
         # get ids of characters in fact
         ids = [i for i, c in enumerate(fact) if c == 'x']
         # randomly choose an id and delete variables
-        idx = random.choice(ids)
-        fact = fact[:idx]+fact[idx+1:]
+        random.shuffle(ids)
+        for idx in ids:
+            if fact[idx-2] == '*':
+                fact = fact[:idx-3] + fact[idx+1:]
+            fact = fact[:idx]+fact[idx+1:]
+            break
     else:
         # randomly add a variable to the equation
         nums = re.findall('[0-9]+', fact)
