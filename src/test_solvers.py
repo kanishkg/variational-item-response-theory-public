@@ -91,10 +91,11 @@ def corrupt_vars(fact):
         ids_nums = list(zip(ids, nums))
         random.shuffle(ids_nums)
         for i, n in ids_nums:
-            if fact[i[1]] == 'x':
-                continue
-            if fact[i[1]] == ']':
-                continue
+            if i[1] < len(fact):
+                if fact[i[1]] == 'x':
+                    continue
+                if fact[i[1]] == ']':
+                    continue
             if fact[i[0]-1] == '[':
                 continue
             if fact[i[0]-1] == '/':
