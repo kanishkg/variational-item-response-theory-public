@@ -1348,7 +1348,7 @@ class ConpoleTrajectoryEncoder(nn.Module):
 
         steps_idx = torch.nonzero(step_mask, as_tuple=False).tolist()
 
-        step_lens = torch.zeros(step_mask.size(0), step_mask.size(1)).to(torch.int64)
+        step_lens = torch.ones(step_mask.size(0), step_mask.size(1)).to(torch.int64)
         # should be on cpu?
         if type(steps[steps_idx[0][0]][steps_idx[0][1]]) == list:
             for s, (i, j, _) in enumerate(steps_idx):
