@@ -1251,7 +1251,7 @@ class IRTSimulation(torch.utils.data.Dataset):
 
 
 class JSONDataset(torch.utils.data.Dataset):
-    def __init__(self, is_train=True, **kwargs):
+    def __init__(self, train=True, **kwargs):
         super().__init__()
 
         with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
@@ -1295,7 +1295,7 @@ class JSONDataset(torch.utils.data.Dataset):
                 self.response_mask[i][problem] = 1
 
         num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if is_train else slice(num_train, -1)
+        split = slice(0, num_train) if train else slice(num_train, -1)
 
         self.response = np.expand_dims(
             self.response[split], axis=2).astype(np.float32)
@@ -1570,7 +1570,7 @@ def collate_function_step(batch):
 
 
 class JSONStepDataset(torch.utils.data.Dataset):
-    def __init__(self, is_train=True, **kwargs):
+    def __init__(self, train=True, **kwargs):
         super().__init__()
 
         with open(os.path.join(DATA_DIR, 'dataset.json')) as f:
@@ -1625,7 +1625,7 @@ class JSONStepDataset(torch.utils.data.Dataset):
                     self.step_mask[i][problem] = 1
 
         num_train = int(0.8 * len(self.response))
-        split = slice(0, num_train) if is_train else slice(num_train, -1)
+        split = slice(0, num_train) if train else slice(num_train, -1)
 
         self.response = np.expand_dims(
             self.response[split], axis=2).astype(np.float32)
