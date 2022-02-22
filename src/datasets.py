@@ -1268,7 +1268,7 @@ class JSONDataset(torch.utils.data.Dataset):
         data_by_problem = collections.defaultdict(list)
 
         for row in observations:
-            data_by_student[row['student']].append((problem_id[row['problem']],
+            data_by_student[row['student']].append((problem_id[filter_problem(row['problem'])],
                                                     int(row['correct'])))
             data_by_problem[row['problem']].append((row['student'],
                                                     int(row['correct'])))
