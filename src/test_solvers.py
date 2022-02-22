@@ -84,7 +84,8 @@ def corrupt_vars(fact):
         for idx in ids:
             if fact[idx-2] == '*':
                 fact = fact[:idx-3] + fact[idx+1:]
-            fact = fact[:idx]+fact[idx+1:]
+            else:
+                fact = fact[:idx]+fact[idx+1:]
             break
     else:
         # randomly add a variable to the equation
