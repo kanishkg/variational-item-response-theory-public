@@ -1410,7 +1410,7 @@ class DuoSentenceEncoder(nn.Module):
 
 
 class ConpoleEncoder(nn.Module):
-    def __init__(self, q_fn, problems, item_feat_dim, embedding_dim=512):
+    def __init__(self, q_fn, problems, item_feat_dim, embedding_dim=1024):
         super().__init__()
 
         self.q_fn = q_fn
