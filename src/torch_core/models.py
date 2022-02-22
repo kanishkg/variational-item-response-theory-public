@@ -1353,6 +1353,7 @@ class ConpoleTrajectoryEncoder(nn.Module):
         for s, (i, j, _) in enumerate(steps_idx):
             with torch.no_grad():
                 # steps x embedding_dim
+                print("type", type(steps[i][j]))
                 if type(steps[i][j]) == list:
                     step_embedding_masked = self.q_fn.embed_states(
                         [environment.State(step, [], 0) for step in steps[i][j]]).detach()
