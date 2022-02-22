@@ -176,7 +176,7 @@ def rollout(model,
             corruption_results = [corrupt_state(s) for s in ns]
             ns = [s for s, _ in corruption_results] 
             corruption = [s for _, s in corruption_results] 
-            # if corruption is not successful, we don't want to change the response
+            # TODO: if corruption is not successful, we don't want to change the response
             is_corrupt = True 
         ns = [filter_state(s) for s in ns]
         # ns = [environment.State([f], [], 0) for f in fin_fact]
