@@ -1343,7 +1343,10 @@ class ConpoleTrajectoryEncoder(nn.Module):
 
     def forward(self, steps, step_mask):
         # should be on cpu?
-        step_lens = torch.tensor([[len(prob.facts) for prob in per] for per in steps]).to(torch.int64)
+        if type(steps[0][0]) == list:
+            step_lens = torch.tensor([[len(prob) for prob in per] for per in steps]).to(torch.int64)
+        else:
+            step_lens = torch.tensor([[len(prob.facts) for prob in per] for per in steps]).to(torch.int64)
         # empty embedding for padding: person x questions x max_len x hidden_dim
         step_embedding = torch.zeros(step_mask.size(0), step_mask.size(1), self.max_len,
                                      self.hidden_dim).to(step_mask.device)
