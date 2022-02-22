@@ -91,7 +91,8 @@ def corrupt_vars(fact):
             if fact[idx-2] == '*':
                 fact = fact[:idx-3] + fact[idx+1:]
             elif fact[idx-1] == ' ' or fact[idx-1] == '(':
-                fact = fact[:idx] + '0' + fact[idx+1:]
+                # fact = fact[:idx] + '0' + fact[idx+1:]
+                continue
             else:
                 fact = fact[:idx]+fact[idx+1:]
             break
