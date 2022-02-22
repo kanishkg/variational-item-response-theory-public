@@ -1326,7 +1326,11 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
 
         for a in tqdm(data_files):
             d = torch.load(os.path.join(algebra_dir, f'{a}'))
-            dataset['response'] += d['response']
+            problems = [filter_problem(p) for p in d['problems']]
+            sorted_problems = sorted(problems)
+            sorted_indices = [problems.index(p) for p in sorted_problems]
+            dataset['problems'] = [d['problems'][so] for so in sorted_indices]
+            dataset['response'] += [[d['response'][per][so] for so in sorted_indices] for per in range(len(d['response']))]
             dataset['epoch'] += d['epoch']
             dataset['beam'] += d['beam']
             dataset['depth'] += d['depth']
@@ -1341,11 +1345,9 @@ class AlgebraAIDataset(torch.utils.data.Dataset):
                         facts = [f for i, f in enumerate(facts) if i in ids]
                         steps.facts = tuple(facts)
                     d['steps'][s][q] = steps
-            dataset['steps'] += d['steps']
-            dataset['problems'] = d['problems']
-            del(d)
+            dataset['steps'] += [[d['steps'][per][so] for so in sorted_indices] for per in range(len(d['response']))]            del(d)
         # shuffle lists together 
-        dataset['problems'] = [filter_problem(x) for x in dataset['problems']]
+        dataset['problems'] = sorted([filter_problem(x) for x in dataset['problems']])
         rs = np.random.RandomState(42)
         indices = np.arange(len(dataset['response']))
         rs.shuffle(indices)
