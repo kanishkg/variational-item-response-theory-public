@@ -96,7 +96,7 @@ def corrupt_vars(fact):
                     continue
                 if fact[i[1]] == ']':
                     continue
-            if fact[i[0]-1] == '[':
+            if fact[i[0]-1] == '[' or fact[i[0]-2:i[0]] == '[-':
                 continue
             if fact[i[0]-1] == '/':
                 continue
