@@ -357,8 +357,8 @@ if __name__ == "__main__":
 
                 inferred_response_train = np.round(np.tile(empirical_ability_train, (test_dataset_masked.response.shape[1], 1))).T
                 inferred_response_test = np.round(np.tile(empirical_ability_test, (test_dataset_masked.response.shape[1], 1))).T
-                inferred_labels_train = [inferred_response_train[x, y, 0] for x, y in missing_indices_train]
-                inferred_labels_test = [inferred_response_test[x, y, 0] for x, y in missing_indices_test]
+                inferred_labels_train = [inferred_response_train[x, y] for x, y in missing_indices_train]
+                inferred_labels_test = [inferred_response_test[x, y] for x, y in missing_indices_test]
                 inferred_labels = inferred_labels_train + inferred_labels_test
 
 
@@ -396,8 +396,8 @@ if __name__ == "__main__":
                 response_set_test = sample_posterior_mean(model, test_loader, args.step).squeeze()
                 inferred_response_train = torch.round(response_set_train).cpu().numpy()
                 inferred_response_test = torch.round(response_set_test).cpu().numpy()
-                inferred_labels_train = [inferred_response_train[x, y, 0] for x, y in missing_indices_train]
-                inferred_labels_test = [inferred_response_test[x, y, 0] for x, y in missing_indices_test]
+                inferred_labels_train = [inferred_response_train[x, y] for x, y in missing_indices_train]
+                inferred_labels_test = [inferred_response_test[x, y] for x, y in missing_indices_test]
                 inferred_labels = inferred_labels_train + inferred_labels_test
 
                 
@@ -410,6 +410,8 @@ if __name__ == "__main__":
                 auroc = 1.
                 f1 = 1.
             else:
+                print(inferred_labels)
+                print(missing_labels)
                 metrics = evaluate_metrics(missing_labels, inferred_labels)
                 acc = metrics['accuracy']
                 auroc = metrics['auroc']
