@@ -344,16 +344,16 @@ if __name__ == "__main__":
             r = stats.stats.pearsonr(ability_predicted, empirical_ability)[0]
 
             # calculate accuracy, auROC, and F1
-            if args.model_name != 'empirical' and num_encode != -1:
+            if args.model_name == 'empirical' and num_encode == -1:
+                acc = 1.
+                auroc = 1.
+                f1 = 1.
+            else:
                 metrics = evaluate_metrics(missing_labels, inferred_labels)
                 acc = metrics['accuracy']
                 auroc = metrics['auroc']
                 f1 = metrics['F1']
-            else:
-                acc = 1.
-                auroc = 1.
-                f1 = 1.
-            
+           
             # write to file
             out_file = f'{args.model_name}_{args.model_enc}_{args.step}_{args.sample_choice}.csv'
             with open(out_file, 'a') as f:
