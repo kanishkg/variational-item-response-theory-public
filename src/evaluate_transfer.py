@@ -157,7 +157,6 @@ def get_missing(dataset):
     missing_indices = []
     missing_labels = []
     for i in range(mask.shape[0]):
-        print(i)
         cols = np.where(mask[i, :, 0] != 0)[0]
         cols_encoder = np.where(encoder_mask[i, :, 0] != 0)[0]
         missing_indices += [[i, c] for c in cols if c not in cols_encoder]
@@ -294,8 +293,11 @@ if __name__ == "__main__":
                 seen_response_train = train_dataset_masked.response * train_dataset_masked.encoder_mask
                 empirical_estimate_train = (seen_response_train.sum(1)/train_dataset_masked.encoder_mask.sum(1)).squeeze()
                 ability_predicted = np.concatenate((empirical_estimate_train, empirical_estimate_test))
+                print(empirical_ability_train.shape)
+
                 inferred_response_train = np.round(np.tile(empirical_ability_train, (test_dataset_masked.response.shape[1], 1)))
                 inferred_response_test = np.round(np.tile(empirical_ability_test, (test_dataset_masked.response.shape[1], 1)))
+                print(inferred_response_train.shape)
                 inferred_labels_train = [inferred_response_train[x, y] for x, y in missing_indices_train]
                 inferred_labels_test = [inferred_response_test[x, y] for x, y in missing_indices_test]
                 inferred_labels = inferred_labels_test + inferred_labels_train
