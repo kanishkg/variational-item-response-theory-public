@@ -1214,7 +1214,7 @@ class ConditionalAbilityStepInferenceNetwork(AbilityInferenceNetwork):
             num_person * num_item, self.step_feat_dim)
 
         mlp_input = torch.cat(
-            [response_flat*0, item_feat_flat*0, step_feat_flat], dim=1)
+            [response_flat, item_feat_flat, step_feat_flat], dim=1)
 
         return getattr(self, f'_forward_{self.ability_merge}')(
             mlp_input,
