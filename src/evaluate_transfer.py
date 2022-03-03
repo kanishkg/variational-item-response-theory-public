@@ -345,7 +345,7 @@ if __name__ == "__main__":
             r = stats.stats.pearsonr(ability_predicted, empirical_ability)[0]
 
             # calculate accuracy, auROC, and F1
-            if args.model_name == 'empirical' and num_encode == -1:
+            if num_encode == -1:
                 acc = 1.
                 auroc = 1.
                 f1 = 1.
