@@ -295,8 +295,8 @@ if __name__ == "__main__":
                 ability_predicted = np.concatenate((empirical_estimate_train, empirical_estimate_test))
                 print(empirical_ability_train.shape)
 
-                inferred_response_train = np.round(np.tile(empirical_ability_train, (test_dataset_masked.response.shape[1], 1)))
-                inferred_response_test = np.round(np.tile(empirical_ability_test, (test_dataset_masked.response.shape[1], 1)))
+                inferred_response_train = np.round(np.tile(empirical_ability_train, (test_dataset_masked.response.shape[1], 1))).T
+                inferred_response_test = np.round(np.tile(empirical_ability_test, (test_dataset_masked.response.shape[1], 1))).T
                 print(inferred_response_train.shape)
                 inferred_labels_train = [inferred_response_train[x, y] for x, y in missing_indices_train]
                 inferred_labels_test = [inferred_response_test[x, y] for x, y in missing_indices_test]
