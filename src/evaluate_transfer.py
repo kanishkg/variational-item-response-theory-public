@@ -157,6 +157,7 @@ def get_missing(dataset):
     missing_indices = []
     missing_labels = []
     for i in range(mask.shape[0]):
+        print(i)
         cols = np.where(mask[i, :, 0] != 0)[0]
         cols_encoder = np.where(encoder_mask[i, :, 0] != 0)[0]
         missing_indices += [[i, c] for c in cols if c not in cols_encoder]
