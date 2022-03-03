@@ -335,6 +335,7 @@ if __name__ == "__main__":
                 response_set_test = sample_posterior_mean(model, test_loader, args.step).squeeze(0)
                 inferred_response_train = torch.round(response_set_train).cpu().numpy()
                 inferred_response_test = torch.round(response_set_test).cpu().numpy()
+                print(inferred_response_train.shape)
                 inferred_labels_train = [inferred_response_train[x, y] for x, y in missing_indices_train]
                 inferred_labels_test = [inferred_response_test[x, y] for x, y in missing_indices_test]
                 inferred_labels = inferred_labels_test + inferred_labels_train
