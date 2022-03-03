@@ -293,11 +293,9 @@ if __name__ == "__main__":
                 seen_response_train = train_dataset_masked.response * train_dataset_masked.encoder_mask
                 empirical_estimate_train = (seen_response_train.sum(1)/train_dataset_masked.encoder_mask.sum(1)).squeeze()
                 ability_predicted = np.concatenate((empirical_estimate_train, empirical_estimate_test))
-                print(empirical_ability_train.shape)
 
                 inferred_response_train = np.round(np.tile(empirical_ability_train, (test_dataset_masked.response.shape[1], 1))).T
                 inferred_response_test = np.round(np.tile(empirical_ability_test, (test_dataset_masked.response.shape[1], 1))).T
-                print(inferred_response_train.shape)
                 inferred_labels_train = [inferred_response_train[x, y] for x, y in missing_indices_train]
                 inferred_labels_test = [inferred_response_test[x, y] for x, y in missing_indices_test]
                 inferred_labels = inferred_labels_test + inferred_labels_train
@@ -349,7 +347,7 @@ if __name__ == "__main__":
             metrics = evaluate_metrics(missing_labels, inferred_labels)
             acc = metrics['accuracy']
             auroc = metrics['auroc']
-            f1 = metrics['f1']
+            f1 = metrics['F1']
             
             # write to file
             out_file = f'{args.model_name}_{args.model_enc}_{args.step}_{args.sample_choice}.csv'
