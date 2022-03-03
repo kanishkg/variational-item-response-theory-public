@@ -163,6 +163,61 @@ def get_missing(dataset):
         missing_labels += [response[i, c, 0] for c in cols if c not in cols_encoder]
     return missing_indices, missing_labels
 
+def artificially_mask_dataset(old_dataset, perc, seed, mask_items=False):
+    dataset = copy.deepcopy(old_dataset)
+    assert perc >= 0 and perc <= 1
+    response = dataset.response
+    mask = dataset.mask
+
+    if np.ndim(mask) == 2:
+        row, col = np.where(mask != 0)
+    elif np.ndim(mask) == 3:
+        row, col = np.where(mask[:, :, 0] != 0)
+    pool = np.array(list(zip(row, col)))
+    num_all = pool.shape[0]
+    rs = np.random.RandomState(seed)
+    labels = []
+
+    if not mask_items:
+        # As before, just choose a random subset of the labels.
+        num = int(perc * num_all)
+        indices = np.sort(
+            rs.choice(np.arange(num_all), size=num, replace=False),
+        )
+        label_indices = pool[indices]
+
+        for idx in label_indices:
+            label = copy.deepcopy(response[idx[0], idx[1]])
+            labels.append(label)
+            mask[idx[0], idx[1]] = 0
+            response[idx[0], idx[1]] = -1
+    else:
+        # First choose a random subset of the items, then mask all of their labels.
+        num = int(perc * len(dataset.problems))
+        items = np.sort(
+            rs.choice(np.arange(len(dataset.problems)),
+                      size=num, replace=False),
+        )
+        for item in items:
+            mask[dataset.problem_id == item] = 0
+
+        (rows, cols, _) = np.nonzero(1 - mask)
+        label_indices = np.stack([rows, cols], axis=1)
+
+        for r, c in zip(rows, cols):
+            label = copy.deepcopy(response[r, c])
+            labels.append(label)
+            response[r, c] = -1
+
+    labels = np.array(labels)
+
+    dataset.response = response
+    dataset.mask = mask
+    dataset.missing_labels = labels
+    dataset.missing_indices = label_indices
+
+    return dataset
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-enc', type=int, default=20)
@@ -272,19 +327,25 @@ if __name__ == "__main__":
     empirical_ability = np.concatenate((empirical_ability_train, empirical_ability_test))
 
     for seed in seed_array:
+        train_dataset_masked = artificially_mask_dataset(train_dataset, 0.1, seed) 
+        test_dataset_masked = artificially_mask_dataset(test_dataset, 0.1, seed) 
         for num_encode in tqdm(dataset_encode):
-
             # create encoder mask
             if args.sample_choice == "random":
-                train_dataset_masked =  encoder_mask_fn(train_dataset, num_encode, seed)
-                test_dataset_masked = encoder_mask_fn(test_dataset, num_encode, seed)
+                train_dataset_masked =  encoder_mask_fn(train_dataset_masked, num_encode, seed)
+                test_dataset_masked = encoder_mask_fn(test_dataset_masked, num_encode, seed)
             else:
-                train_dataset_masked = encoder_mask_fn(train_dataset, num_encode, item_param)
-                test_dataset_masked = encoder_mask_fn(test_dataset, num_encode, item_param)
+                train_dataset_masked = encoder_mask_fn(train_dataset_masked, num_encode, item_param)
+                test_dataset_masked = encoder_mask_fn(test_dataset_masked, num_encode, item_param)
 
-            # get missing data
-            missing_indices_train, missing_labels_train = get_missing(train_dataset_masked)
-            missing_indices_test, missing_labels_test = get_missing(test_dataset_masked)
+            # get missing data when using unseen samples from encoder
+#             missing_indices_train, missing_labels_train = get_missing(train_dataset_masked)
+#             missing_indices_test, missing_labels_test = get_missing(test_dataset_masked)
+
+            # get missing data when artificially masking
+            missing_indices_train, missing_labels_train = train_dataset_masked.missing_indices, train_dataset_masked.missing_labels
+            missing_indices_test, missing_labels_test = test_dataset_masked.missing_indices, test_dataset_masked.missing_labels
+
             missing_labels = missing_labels_train + missing_labels_test
 
             if args.model_name == 'empirical': 
