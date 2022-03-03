@@ -410,8 +410,6 @@ if __name__ == "__main__":
                 auroc = 1.
                 f1 = 1.
             else:
-                print(inferred_labels)
-                print(missing_labels)
                 metrics = evaluate_metrics(missing_labels, inferred_labels)
                 acc = metrics['accuracy']
                 auroc = metrics['auroc']
