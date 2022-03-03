@@ -346,7 +346,7 @@ if __name__ == "__main__":
             missing_indices_train, missing_labels_train = train_dataset_masked.missing_indices, train_dataset_masked.missing_labels
             missing_indices_test, missing_labels_test = test_dataset_masked.missing_indices, test_dataset_masked.missing_labels
 
-            missing_labels = missing_labels_train + missing_labels_test
+            missing_labels = missing_labels_train.tolist() + missing_labels_test.tolist()
 
             if args.model_name == 'empirical': 
                 seen_response_test = test_dataset_masked.response * test_dataset_masked.encoder_mask
