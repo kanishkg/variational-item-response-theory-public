@@ -237,7 +237,7 @@ if __name__ == "__main__":
     torch.manual_seed(1)
     np.random.seed(1)
 
-    seed_array = list(range(args.num_seed))
+    seed_array = list(range(args.num_seed-1)) + [42]
 
     # number of samples for the encoder
     dataset_encode = list(range(1,11)) + [-1]
