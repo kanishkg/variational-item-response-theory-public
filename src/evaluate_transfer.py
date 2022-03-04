@@ -326,6 +326,8 @@ if __name__ == "__main__":
     for seed in [42]:
 
         for num_encode in tqdm(dataset_encode):
+            del(train_dataset)
+            del(test_dataset)
             if not args.step:
                 test_dataset = load_dataset('json', train=False)
                 train_dataset = load_dataset('json', train=True)
