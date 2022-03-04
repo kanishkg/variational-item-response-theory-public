@@ -402,11 +402,30 @@ if __name__ == "__main__":
             r = stats.stats.pearsonr(ability_predicted, empirical_ability)[0]
 
             # calculate accuracy, auROC, and F1
-            if num_encode == -1:
+            if num_encode == -1 and args.model_name == 'empirical':
                 acc = 1.
                 auroc = 1.
                 f1 = 1.
             else:
+                missing_indices = train_dataset_masked.missing_indices
+                missing_labels = train_dataset_masked.missing_labels
+                predicted = []
+                actual = []
+                for missing_index, missing_label in zip(missing_indices, missing_labels):
+                    inferred_label = inferred_response_train[missing_index[0],
+                                            missing_index[1]]
+                    actual.append(missing_label[0])
+                    predicted.append(inferred_label.item())
+                missing_indices = test_dataset_masked.missing_indices
+                missing_labels = test_dataset_masked.missing_labels
+
+
+                for missing_index, missing_label in zip(missing_indices, missing_labels):
+                    inferred_label = inferred_response_test[missing_index[0],
+                                                    missing_index[1]]
+                    actual.append(missing_label[0])
+                    predicted.append(inferred_label.item())
+
                 metrics = evaluate_metrics(missing_labels, inferred_labels)
                 acc = metrics['accuracy']
                 auroc = metrics['auroc']
