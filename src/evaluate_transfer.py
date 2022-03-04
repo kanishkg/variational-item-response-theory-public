@@ -326,6 +326,12 @@ if __name__ == "__main__":
     for seed in [42]:
 
         for num_encode in tqdm(dataset_encode):
+            if not args.step:
+                test_dataset = load_dataset('json', train=False)
+                train_dataset = load_dataset('json', train=True)
+            elif args.step:
+                test_dataset = load_dataset('jsonstep', train=False)
+                train_dataset = load_dataset('jsonstep', train=True)
             train_dataset_masked = artificially_mask_dataset(train_dataset, 0.1, seed) 
             test_dataset_masked = artificially_mask_dataset(test_dataset, 0.1, seed) 
             # create encoder mask
@@ -432,3 +438,5 @@ if __name__ == "__main__":
             out_file = f'{args.model_name}_{args.model_enc}_{args.step}_{args.sample_choice}.csv'
             with open(out_file, 'a') as f:
                 f.write(f'{seed},{num_encode},{r},{acc},{auroc},{f1}\n')
+            del(train_dataset_masked)
+            del(test_dataset_masked)
