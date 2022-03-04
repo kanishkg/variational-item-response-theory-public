@@ -428,7 +428,7 @@ if __name__ == "__main__":
             f1 = metrics['F1']
            
             # write to file
-            out_file = f'{args.model_name}_{args.model_enc}_{args.step}_{args.sample_choice}.csv'
+            out_file = f'{args.model_name}_nc_{args.model_enc}_{args.step}_{args.sample_choice}.csv'
             with open(out_file, 'a') as f:
                 f.write(f'{seed},{num_encode},{r},{acc},{auroc},{f1}\n')
             del(train_dataset_masked)
