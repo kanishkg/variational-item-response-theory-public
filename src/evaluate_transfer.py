@@ -324,9 +324,10 @@ if __name__ == "__main__":
     empirical_ability = np.concatenate((empirical_ability_train, empirical_ability_test))
 
     for seed in [42]:
-        train_dataset_masked = artificially_mask_dataset(train_dataset, 0.1, seed) 
-        test_dataset_masked = artificially_mask_dataset(test_dataset, 0.1, seed) 
+
         for num_encode in tqdm(dataset_encode):
+            train_dataset_masked = artificially_mask_dataset(train_dataset, 0.1, seed) 
+            test_dataset_masked = artificially_mask_dataset(test_dataset, 0.1, seed) 
             # create encoder mask
             if args.sample_choice == "random":
                 train_dataset_masked =  encoder_mask_fn(train_dataset_masked, num_encode, seed)
