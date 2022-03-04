@@ -244,7 +244,7 @@ if __name__ == "__main__":
     
     # load checkpoints 
     if not args.step:
-        vibo_all = torch.load(f'./out/VIBO_2pl_algebraai_bernoulli_irt_Noneperson_Noneitem_Nonemaxperson_Nonemaxitem_0.1maskperc_1ability_product__conditional_qseed1_encode{args.model_enc}/model_best.pth.tar',map_location=device)
+        vibo_all = torch.load(f'./out/VIBO_2pl_algebraai_bernoulli_irt_Noneperson_Noneitem_Nonemaxperson_Nonemaxitem_0.1maskperc_1ability_product__conditional_qseed10_encode{args.model_enc}/model_best.pth.tar',map_location=device)
     elif args.step:
         vibo_all = torch.load(f'./out/VIBO_2pl_algebraaistep_bernoulli_irt_Noneperson_Noneitem_Nonemaxperson_Nonemaxitem_0.1maskperc_1ability_product__conditional_qseed1_encode{args.model_enc}/model_best.pth.tar',map_location=device)
 
