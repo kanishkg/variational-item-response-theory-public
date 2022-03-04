@@ -426,7 +426,7 @@ if __name__ == "__main__":
                     actual.append(missing_label[0])
                     predicted.append(inferred_label.item())
 
-                metrics = evaluate_metrics(missing_labels, inferred_labels)
+                metrics = evaluate_metrics(actual, predicted)
                 acc = metrics['accuracy']
                 auroc = metrics['auroc']
                 f1 = metrics['F1']
