@@ -324,16 +324,7 @@ if __name__ == "__main__":
     empirical_ability = np.concatenate((empirical_ability_train, empirical_ability_test))
 
     for seed in [42]:
-
         for num_encode in tqdm(dataset_encode):
-            del(train_dataset)
-            del(test_dataset)
-            if not args.step:
-                test_dataset = load_dataset('json', train=False)
-                train_dataset = load_dataset('json', train=True)
-            elif args.step:
-                test_dataset = load_dataset('jsonstep', train=False)
-                train_dataset = load_dataset('jsonstep', train=True)
             train_dataset_masked = artificially_mask_dataset(train_dataset, 0.1, seed) 
             test_dataset_masked = artificially_mask_dataset(test_dataset, 0.1, seed) 
             # create encoder mask
@@ -361,8 +352,8 @@ if __name__ == "__main__":
                 empirical_estimate_train = (seen_response_train.sum(1)/train_dataset_masked.encoder_mask.sum(1)).squeeze()
                 ability_predicted = np.concatenate((empirical_estimate_train, empirical_estimate_test))
 
-                inferred_response_train = np.round(np.tile(empirical_ability_train, (test_dataset_masked.response.shape[1], 1))).T
-                inferred_response_test = np.round(np.tile(empirical_ability_test, (test_dataset_masked.response.shape[1], 1))).T
+                inferred_response_train = np.round(np.tile(empirical_estimate_train, (test_dataset_masked.response.shape[1], 1))).T
+                inferred_response_test = np.round(np.tile(empirical_estimate_test, (test_dataset_masked.response.shape[1], 1))).T
                 inferred_labels_train = [inferred_response_train[x, y] for x, y in missing_indices_train]
                 inferred_labels_test = [inferred_response_test[x, y] for x, y in missing_indices_test]
                 inferred_labels = inferred_labels_train + inferred_labels_test
