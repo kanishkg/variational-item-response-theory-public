@@ -323,7 +323,7 @@ if __name__ == "__main__":
     empirical_ability_train = total_score/total_attempts
     empirical_ability = np.concatenate((empirical_ability_train, empirical_ability_test))
 
-    for seed in [42]:
+    for seed in seed_array:
         for num_encode in tqdm(dataset_encode):
             train_dataset_masked = artificially_mask_dataset(train_dataset, 0.1, seed) 
             test_dataset_masked = artificially_mask_dataset(test_dataset, 0.1, seed) 
