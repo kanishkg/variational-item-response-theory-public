@@ -143,7 +143,7 @@ def sample_posterior_mean(model, loader, step=0):
             else:
                 _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
                 model.encode(response, encoder_mask)
-
+            item_feat_mu[:, 0] = torch.abs(item_feat_mu[:, 0])
             response_sample = model.decode(ability_mu, item_feat_mu).cpu()
             response_sample_set.append(response_sample.unsqueeze(0))
 
