@@ -1236,7 +1236,6 @@ class ItemInferenceNetwork(nn.Module):
         item_index = item_index.squeeze(1)
         mu = self.mu_lookup(item_index.long())
         logvar = self.logvar_lookup(item_index.long())
-        mu[:, 0] = F.relu(mu[:, 0])
         return mu, logvar
 
 
