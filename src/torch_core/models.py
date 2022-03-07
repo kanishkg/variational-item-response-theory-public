@@ -1234,7 +1234,7 @@ class ItemInferenceNetwork(nn.Module):
 
     def forward(self, item_index):
         item_index = item_index.squeeze(1)
-        mu = self.mu_lookup(item_index.long())
+        mu = F.relu(self.mu_lookup(item_index.long()))
         logvar = self.logvar_lookup(item_index.long())
 
         return mu, logvar
