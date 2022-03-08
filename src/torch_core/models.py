@@ -1471,8 +1471,8 @@ def irt_model_1pl(ability, item_feat, return_logit=False):
 
 def irt_model_2pl(ability, item_feat, return_logit=False):
     ability_dim = ability.size(1)
-    # discrimination = item_feat[:, :ability_dim]
-    discrimination = torch.abs(item_feat[:, :ability_dim])
+    discrimination = item_feat[:, :ability_dim]
+    # discrimination = torch.abs(item_feat[:, :ability_dim])
   
     # discrimination = torch.sigmoid(item_feat[:, :ability_dim])
     # discrimination = torch.tan(discrimination*math.pi/2)
