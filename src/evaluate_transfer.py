@@ -325,8 +325,8 @@ if __name__ == "__main__":
 
     for seed in seed_array:
         for num_encode in tqdm(dataset_encode):
-            train_dataset_masked = artificially_mask_dataset(train_dataset, 0.5, seed) 
-            test_dataset_masked = artificially_mask_dataset(test_dataset, 0.5, seed) 
+            train_dataset_masked = artificially_mask_dataset(train_dataset, 0.1, seed) 
+            test_dataset_masked = artificially_mask_dataset(test_dataset, 0.1, seed) 
             # create encoder mask
             if args.sample_choice == "random":
                 train_dataset_masked =  encoder_mask_fn(train_dataset_masked, num_encode, seed)
