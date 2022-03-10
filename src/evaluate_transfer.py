@@ -405,6 +405,7 @@ if __name__ == "__main__":
 
             missing_indices = train_dataset_masked.missing_indices
             missing_labels = train_dataset_masked.missing_labels
+            missing_indices, missing_labels = get_missing(train_dataset_masked)
             predicted = []
             actual = []
             for missing_index, missing_label in zip(missing_indices, missing_labels):
@@ -415,6 +416,7 @@ if __name__ == "__main__":
             missing_indices = test_dataset_masked.missing_indices
             missing_labels = test_dataset_masked.missing_labels
  
+            missing_indices, missing_labels = get_missing(test_dataset_masked)
 
             for missing_index, missing_label in zip(missing_indices, missing_labels):
                 inferred_label = inferred_response_test[missing_index[0],
