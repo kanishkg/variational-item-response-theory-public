@@ -20,25 +20,6 @@ signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
 
-def filter_problem(problem):
-    # remove parsing error of x in denominator
-    xids = [i for i, c in enumerate(problem) if c == 'x']
-    for _ in range(len(xids)):
-        nums = re.findall('[0-9]+', problem)
-        ids = [m.start(0) for m in re.finditer('[0-9]+', problem)]
-        # ids = [problem.index(n) for n in nums]
-        for j, (idx, num) in enumerate(zip(ids, nums)): 
-            if idx+len(num) >= len(problem):
-                continue
-            if problem[idx+len(num)] == 'x':
-                if problem[idx-2] == '/':
-                    prev_num = [ids[j-1], nums[j-1]]
-                    if problem[prev_num[0]-1] != '-':
-                        problem = problem[:prev_num[0]]+'('+problem[prev_num[0]:idx+len(num)] + ') * '  + problem[idx+len(num):]
-                    else:
-                        problem = problem[:prev_num[0]-1]+'('+problem[prev_num[0]-1:idx+len(num)] + ') * '  + problem[idx+len(num):]
-                    break
-    return problem    
 
 def filter_state(state):
     fact = state.facts[-1]
