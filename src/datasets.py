@@ -24,8 +24,23 @@ from src.config import (
     DATA_DIR,
 )
 
+def parse_parentheses(fact):
+    open_close = {}
+    par_stack = []
+    for i, c in enumerate(fact):
+        if c == '(':
+            par_stack.append(i)
+        elif c == ')':
+            if len(par_stack) == 0:
+                raise IndexError("No matching closing parens at: " + str(i))
+            open_close[par_stack.pop()] = i
+    if len(par_stack) > 0:
+        raise IndexError("No matching opening parens at: " + str(par_stack.pop()))
+    return open_close
+
 def filter_problem(problem):
-    # remove parsing error of x in denominator
+    init_problem = problem
+    # remove parsing error of x in denominator 1 / 2x -> (1 / 2)*x
     xids = [i for i, c in enumerate(problem) if c == 'x']
     for _ in range(len(xids)):
         nums = re.findall('[0-9]+', problem)
@@ -42,7 +57,23 @@ def filter_problem(problem):
                     else:
                         problem = problem[:prev_num[0]-1]+'('+problem[prev_num[0]-1:idx+len(num)] + ') * '  + problem[idx+len(num):]
                     break
-    return problem    
+    # check for the other type of div error 2 / (5 * x) -> (2/5) * x
+    divids = [i for i, c in enumerate(problem) if c == '/']
+    open_close_par = parse_parentheses(problem)
+    for d in divids:
+        nums = re.findall('[0-9]+', problem)
+        ids = [m.start(0) for m in re.finditer('[0-9]+', problem)]
+        if problem[d+2] == '(':
+            matched_close = open_close_par[d+2]
+            prev_open_idx = sorted(list(open_close_par.keys())).index(d+2)-1
+            if prev_open_idx < 0 :
+                prev_open = None
+            else:
+                prev_open = sorted(list(open_close_par.keys()))[prev_open_idx]
+                problem = problem[:prev_open]+'('+ problem[prev_open:d+2] + \
+                    problem[d+3:d+3+len(nums[ids.index(d+3)])] + ') ' +problem[d+3+len(nums[ids.index(d+3)])+1:matched_close] + \
+                    problem[matched_close+1:]
+    return problem
 
 
 
