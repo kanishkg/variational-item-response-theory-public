@@ -3,14 +3,16 @@ import re
 import time
 import random
 import math
+from matplotlib.pyplot import get
 import numpy as np
 from tqdm import tqdm
 import sys
 import subprocess
 import copy
 import torch
+from urllib3 import Retry
 
-from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, filter_problem
+from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, filter_problem, parse_parentheses
 import environment
 import argparse
 
@@ -19,7 +21,70 @@ sys.path.append('../../poesia_socratic/socratic-tutor/')
 signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
+def corrupt_parantheses(fact):
+    # parse parentheses
+    open_close_dict = parse_parentheses(fact)
+    
+    # remove parentheses from the equation
+    topop = []
+    for k, v in open_close_dict.items():
+        if v-k<=3:
+            print('popping')
+            topop.append(k)
+    for k in topop:
+        open_close_dict.pop(k)
+    pars = [k for k, v in open_close_dict.items()] + [v for k, v in open_close_dict.items()] 
+    fact = [c for i, c in enumerate(fact) if i not in pars]
+    fact = ''.join(fact)
 
+    # process lhs and rhs separately; maybe just corrupt one side?
+    lhs, rhs = fact.split('=')
+    lhs = lhs.strip()
+    rhs = rhs.strip()
+    
+    # parse signs
+    sides = []
+    for hs in lhs, rhs:
+        divids = [i for i, c in enumerate(hs) if c == '/']
+        mulids = [i for i, c in enumerate(hs) if c == '*']
+        sigids = [i for i, c in enumerate(hs) if c in ['-','+'] and fact[i-1:i+1]!='(-' and 'x' not in fact[i:i+3]]
+        
+        # skip if there are are either only pos/neg or only mul/div
+        if len(sigids) == 0 or len(mulids)+len(divids) == 0:
+            sides.append(hs)
+            continue
+
+        # start adding paranetheses around the signs
+        all_sigs = sorted(divids+mulids+sigids)
+        num_par = len(all_sigs)
+        for i in range(num_par):
+            idx = random.choice(all_sigs)
+            prev_idx = next_idx = None
+            if all_sigs.index(idx) != 0:
+                prev_idx = all_sigs[all_sigs.index(idx)-1]
+            if all_sigs.index(idx) != len(all_sigs)-1:
+                next_idx = all_sigs[all_sigs.index(idx)+1]
+            if prev_idx is not None and next_idx is not None:
+                hs = hs[:prev_idx+2] + '(' + hs[prev_idx+2:next_idx-1] + ')' + hs[next_idx-1:]
+            elif prev_idx is None and next_idx is None:
+                hs = '(' + hs + ')'
+            elif prev_idx is None:
+                hs = '(' + hs[:next_idx-1] + ')' + hs[next_idx-1:]
+            elif next_idx is None:
+                hs = hs[:prev_idx+2] + '(' + hs[prev_idx+2:] + ')'
+            del all_sigs[all_sigs.index(idx)]
+            new_sigs = []
+            # update the indices after adding parantheses
+            for s in all_sigs:
+                if s > idx:
+                    new_sigs.append(s+2)
+                else:
+                    new_sigs.append(s)
+            all_sigs = new_sigs
+        sides.append(hs)
+    fact = sides[0]+' = ' +sides[1]
+    return fact
+    
 
 def filter_state(state):
     fact = state.facts[-1]
@@ -115,7 +180,6 @@ def corrupt_sigs(fact):
     fact = "".join(fact)
     return fact
 
-
 def corrupt_state(state):
     final_fact = state.facts[-1]
     success = True
@@ -128,17 +192,18 @@ def corrupt_state(state):
         p = 0.
     if len(sigs) == 0:
         p = 1.
-    if p < 0.5:
+    if p < 0.33:
         final_fact = corrupt_sigs(final_fact)
-    else:
+    elif p<0.66:
         final_fact = corrupt_vars(final_fact)
+    else:
+        final_fact = corrupt_parantheses(final_fact)
     if final_fact == state.facts[-1]:
         success = False
     facts = list(state.facts)
     facts[-1] = final_fact
     state.facts = tuple(facts)
     return state, success
-                    
 
 def rollout(model,
             env,
@@ -199,7 +264,6 @@ def rollout(model,
         success = False
     
     return success, history
-
 
 
 
