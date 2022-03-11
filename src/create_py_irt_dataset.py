@@ -1,14 +1,20 @@
 import os
 import json
 
+from sklearn.decomposition import dict_learning
+
 from src.datasets import *
 
 def create_pyirt_dataset(dataset, out_dir, file_name):
     responses = dataset.response.squeeze()
+    mask = dataset.mask.squeeze()
+    data = []
+    for i in range(responses.shape[0]):
+        dict_line = {"subject_id": f"{i}", "responses": {f"j":responses[i,j] for j in range(responses.shape[1] if mask[i,j] == 1)}}
+        data.append(dict_line)
+
     with open(os.path.join(out_dir, file_name), 'w') as f:
-        for i in range(responses.shape[0]):
-            dict_line = {"subject_id": f"{i}", "response": f"{responses[i]}"}
-            f.write(str(responses[i]) + '\n')
+        f.write(',\n'.join(json.dumps(i) for i in data))
 
 if __name__ == "__main__":
     # create py-irt dataset from vibo dataset
