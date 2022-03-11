@@ -48,7 +48,7 @@ def corrupt_parantheses(fact):
     for sid, hs in enumerate([lhs, rhs]):
         divids = [i for i, c in enumerate(hs) if c == '/' if '[' not in fact[i-3:i]]
         mulids = [i for i, c in enumerate(hs) if c == '*']
-        sigids = [i for i, c in enumerate(hs) if c in ['-','+'] and fact[i-1:i+1]!='(-' and 'x' not in fact[i:i+3]]
+        sigids = [i for i, c in enumerate(hs) if c in ['-','+'] and fact[i-1:i+1]!='(-' and 'x' not in fact[i:i+3] and '[' not in fact[i-3:i]]
         
         # skip if there are are either only pos/neg or only mul/div
         if len(sigids) == 0 or len(mulids)+len(divids) == 0:
