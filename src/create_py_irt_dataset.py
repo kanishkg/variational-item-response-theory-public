@@ -10,7 +10,8 @@ def create_pyirt_dataset(dataset, out_dir, file_name):
     mask = dataset.mask.squeeze()
     data = []
     for i in range(responses.shape[0]):
-        dict_line = {"subject_id": f"{i}", "responses": {f"j":responses[i,j] for j in range(responses.shape[1] if mask[i,j] == 1)}}
+        resp_dict = {f"j":responses[i,j] for j in range(responses.shape[1]) if mask[i,j] == 1}
+        dict_line = {"subject_id": f"{i}", "responses": resp_dict}
         data.append(dict_line)
 
     with open(os.path.join(out_dir, file_name), 'w') as f:
