@@ -7,6 +7,7 @@ def create_pyirt_dataset(dataset, out_dir, file_name):
     responses = dataset.response.squeeze()
     with open(os.path.join(out_dir, file_name), 'w') as f:
         for i in range(responses.shape[0]):
+            dict_line = {"subject_id": f"{i}", "response": f"{responses[i]}"}
             f.write(str(responses[i]) + '\n')
 
 if __name__ == "__main__":
