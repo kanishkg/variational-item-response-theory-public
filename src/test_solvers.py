@@ -285,7 +285,6 @@ if __name__ == "__main__":
     if args.population_type == 'beam-size':
         population_parameters = {'beam-size': reversed([i + 1 for i in range(min_param, max_param)])}
     elif args.population_type == 'epoch':
-        best_epoch = 88
         population_parameters = {'epoch': [args.best_epoch - i for i in range(min_param, max_param)]}
     elif args.population_type == 'depth':
         population_parameters = {'depth': [i + 1 for i in range(min_param, max_param)]}
