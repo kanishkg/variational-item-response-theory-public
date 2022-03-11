@@ -22,6 +22,7 @@ signs = ['+', '-']
 symbols = ['(', ')', ' ']
 
 def corrupt_parantheses(fact):
+    init_fact = fact
     # parse parentheses
     open_close_dict = parse_parentheses(fact)
     
@@ -82,6 +83,7 @@ def corrupt_parantheses(fact):
             all_sigs = new_sigs
         sides.append(hs)
     fact = sides[0]+' = ' +sides[1]
+    print(f'{init_fact} -> {fact}')
     return fact
     
 
