@@ -37,7 +37,7 @@ def corrupt_parantheses(fact):
     pars = [k for k, v in open_close_dict.items()] + [v for k, v in open_close_dict.items()] 
     fact = [c for i, c in enumerate(fact) if i not in pars]
     fact = ''.join(fact)
-
+    blank_fact = fact
     # process lhs and rhs separately; maybe just corrupt one side?
     lhs, rhs = fact.split('=')
     lhs = lhs.strip()
@@ -85,7 +85,7 @@ def corrupt_parantheses(fact):
             all_sigs = new_sigs
         sides.append(hs)
     fact = sides[0]+' = ' +sides[1]
-    print(f'{init_fact} -> {fact}')
+    print(f'{init_fact} -> {blank_fact} -> {fact}')
     return fact
     
 
