@@ -3,7 +3,7 @@ import re
 import time
 import random
 import math
-from matplotlib.pyplot import get
+from matplotlib.pyplot import get, hist
 import numpy as np
 from tqdm import tqdm
 import sys
@@ -63,7 +63,6 @@ def corrupt_parantheses(fact):
 
         # start adding paranetheses around the signs
         all_sigs = sorted(divids+mulids+sigids)
-        print(all_sigs)
         num_par = len(all_sigs)
         for i in range(num_par):
             idx = random.choice(all_sigs)
@@ -91,9 +90,6 @@ def corrupt_parantheses(fact):
             all_sigs = new_sigs
         sides.append(hs)
     fact = sides[0]+' = ' +sides[1]
-    with open('debug.txt', 'a') as f:
-        f.write(f'{init_fact} -> \n {blank_fact} ->\n {fact}\n')
-    print(f'{init_fact} -> {blank_fact} -> {fact}')
     return fact
     
 
@@ -270,10 +266,16 @@ def rollout(model,
         beam = ns[:beam_size]
         history.append(ns)
         seen.update(ns)
-    answer_facts = history[-1][0].facts
     if is_corrupt:
         success = False
-    
+
+    if len(history) == 0:
+        beam = [state]
+        history = [beam]
+    if len(history[-1]) == 0:
+        beam = [state]
+        history = [beam]
+        
     return success, history
 
 
