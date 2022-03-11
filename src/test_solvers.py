@@ -25,6 +25,10 @@ def corrupt_parantheses(fact):
     init_fact = fact
     if '- -' in fact:
         fact = fact = fact.replace('- -', '+ ')
+    if '+ -' in fact:
+        fact = fact = fact.replace('+ -', '- ')
+
+
     init_sides = init_fact.split('=')
     # parse parentheses
     open_close_dict = parse_parentheses(fact)
