@@ -45,7 +45,7 @@ def corrupt_parantheses(fact):
     # parse signs
     sides = []
     for hs in lhs, rhs:
-        divids = [i for i, c in enumerate(hs) if c == '/' if '[' not in fact[c-3:c]]
+        divids = [i for i, c in enumerate(hs) if c == '/' if '[' not in fact[i-3:c]]
         mulids = [i for i, c in enumerate(hs) if c == '*']
         sigids = [i for i, c in enumerate(hs) if c in ['-','+'] and fact[i-1:i+1]!='(-' and 'x' not in fact[i:i+3]]
         
