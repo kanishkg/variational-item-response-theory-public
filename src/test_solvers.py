@@ -86,7 +86,7 @@ def corrupt_parantheses(fact):
         sides.append(hs)
     fact = sides[0]+' = ' +sides[1]
     with open('debug.txt', 'a') as f:
-        f.write(f'{init_fact} -> {blank_fact} -> {fact}\n')
+        f.write(f'{init_fact} -> \n {blank_fact} ->\n {fact}\n')
     print(f'{init_fact} -> {blank_fact} -> {fact}')
     return fact
     
