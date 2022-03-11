@@ -29,7 +29,6 @@ def corrupt_parantheses(fact):
     topop = []
     for k, v in open_close_dict.items():
         if v-k<=3:
-            print('popping')
             topop.append(k)
     for k in topop:
         open_close_dict.pop(k)
