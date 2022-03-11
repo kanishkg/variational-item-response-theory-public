@@ -23,6 +23,7 @@ symbols = ['(', ')', ' ']
 
 def corrupt_parantheses(fact):
     init_fact = fact
+    init_sides = init_fact.split('=')
     # parse parentheses
     open_close_dict = parse_parentheses(fact)
     
@@ -44,18 +45,19 @@ def corrupt_parantheses(fact):
     
     # parse signs
     sides = []
-    for hs in lhs, rhs:
+    for sid, hs in enumerate([lhs, rhs]):
         divids = [i for i, c in enumerate(hs) if c == '/' if '[' not in fact[i-3:i]]
         mulids = [i for i, c in enumerate(hs) if c == '*']
         sigids = [i for i, c in enumerate(hs) if c in ['-','+'] and fact[i-1:i+1]!='(-' and 'x' not in fact[i:i+3]]
         
         # skip if there are are either only pos/neg or only mul/div
         if len(sigids) == 0 or len(mulids)+len(divids) == 0:
-            sides.append(hs)
+            sides.append(init_sides[sid])
             continue
 
         # start adding paranetheses around the signs
         all_sigs = sorted(divids+mulids+sigids)
+        print(all_sigs)
         num_par = len(all_sigs)
         for i in range(num_par):
             idx = random.choice(all_sigs)
