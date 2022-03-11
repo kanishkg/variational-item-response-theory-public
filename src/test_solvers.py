@@ -23,6 +23,8 @@ symbols = ['(', ')', ' ']
 
 def corrupt_parantheses(fact):
     init_fact = fact
+    if '- -' in fact:
+        fact = fact = fact.replace('- -', '+ ')
     init_sides = init_fact.split('=')
     # parse parentheses
     open_close_dict = parse_parentheses(fact)
@@ -30,7 +32,7 @@ def corrupt_parantheses(fact):
     # remove parentheses from the equation
     topop = []
     for k, v in open_close_dict.items():
-        if v-k<=3:
+        if v-k<=4:
             topop.append(k)
     for k in topop:
         open_close_dict.pop(k)
