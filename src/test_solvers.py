@@ -46,7 +46,7 @@ def corrupt_parantheses(fact):
     # parse signs
     sides = []
     for sid, hs in enumerate([lhs, rhs]):
-        divids = [i for i, c in enumerate(hs) if c == '/' and '[' not in hs[i-3:i]]
+        divids = [i for i, c in enumerate(hs) if c == '/' and '[' not in hs[i-4:i]]
         mulids = [i for i, c in enumerate(hs) if c == '*']
         sigids = [i for i, c in enumerate(hs) if c in ['-','+'] and hs[i-1:i+1]!='(-' and 'x' not in hs[i:i+3] and '[' not in hs[i-3:i]]
         
@@ -57,6 +57,7 @@ def corrupt_parantheses(fact):
 
         # start adding paranetheses around the signs
         all_sigs = sorted(divids+mulids+sigids)
+        print(all_sigs)
         num_par = len(all_sigs)
         for i in range(num_par):
             idx = random.choice(all_sigs)
@@ -84,6 +85,9 @@ def corrupt_parantheses(fact):
             all_sigs = new_sigs
         sides.append(hs)
     fact = sides[0]+' = ' +sides[1]
+    with open('debug.txt', 'a') as f:
+        f.write(f'{init_fact} -> \n {blank_fact} ->\n {fact}\n')
+    print(f'{init_fact} -> {blank_fact} -> {fact}')
     return fact
     
 
