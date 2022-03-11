@@ -57,7 +57,6 @@ def corrupt_parantheses(fact):
 
         # start adding paranetheses around the signs
         all_sigs = sorted(divids+mulids+sigids)
-        print(all_sigs)
         num_par = len(all_sigs)
         for i in range(num_par):
             idx = random.choice(all_sigs)
@@ -85,9 +84,6 @@ def corrupt_parantheses(fact):
             all_sigs = new_sigs
         sides.append(hs)
     fact = sides[0]+' = ' +sides[1]
-    with open('debug.txt', 'a') as f:
-        f.write(f'{init_fact} -> \n {blank_fact} ->\n {fact}\n')
-    print(f'{init_fact} -> {blank_fact} -> {fact}')
     return fact
     
 
