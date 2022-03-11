@@ -36,8 +36,9 @@ def corrupt_parantheses(fact):
     # remove parentheses from the equation
     topop = []
     for k, v in open_close_dict.items():
-        if v-k<=4:
-            topop.append(k)
+        if v-k<=8:
+            if re.search('^\(-[0-9]+x\)$', fact[k:v+1]) or re.search('^\(-[0-9]+\)$', fact[k:v+1]):
+                topop.append(k)
     for k in topop:
         open_close_dict.pop(k)
     pars = [k for k, v in open_close_dict.items()] + [v for k, v in open_close_dict.items()] 
