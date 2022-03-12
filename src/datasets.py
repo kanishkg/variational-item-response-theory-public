@@ -1328,7 +1328,6 @@ class JSONDataset(torch.utils.data.Dataset):
         num_train = int(0.8 * len(self.response))
         split = slice(0, num_train) if train else slice(num_train, -1)
 
-        split = slice(0, len(self.response))
         self.response = np.expand_dims(
             self.response[split], axis=2).astype(np.float32)
         self.mask = np.expand_dims(
