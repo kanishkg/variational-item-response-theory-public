@@ -5,7 +5,7 @@ from sklearn.decomposition import dict_learning
 
 from src.datasets import *
 
-def create_pyirt_dataset(dataset, out_dir, file_name):
+def create_pyirt_dataset_eval(dataset, out_dir, file_name):
     responses = dataset.response.squeeze()
     mask = dataset.mask.squeeze()
     data = []
