@@ -13,7 +13,7 @@ def create_pyirt_dataset_eval(dataset, out_dir, file_name):
         for j in range(responses.shape[1]):
             if mask[i, j] == 1:
                 dict_line = {"subject_id": f"{int(i)}", "item_id": f"{int(j)}"}
-            data.append(dict_line)
+                data.append(dict_line)
 
     with open(os.path.join(out_dir, file_name), 'a') as f:
         f.write('\n'.join(json.dumps(i) for i in data))
