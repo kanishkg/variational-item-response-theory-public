@@ -19,7 +19,7 @@ def create_pyirt_dataset(dataset, out_dir, file_name):
 
 if __name__ == "__main__":
     # create py-irt dataset from vibo dataset
-    dataset_name = 'algebraai'
+    dataset_name = 'json'
     out_dir = os.path.join(DATA_DIR,'py_irt')
     train_dataset = load_dataset(dataset_name, train=True)
     test_dataset = load_dataset(dataset_name, train=False)
