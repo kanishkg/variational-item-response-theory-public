@@ -15,7 +15,7 @@ def create_pyirt_dataset(dataset, out_dir, file_name):
         data.append(dict_line)
 
     with open(os.path.join(out_dir, file_name), 'w') as f:
-        f.write(',\n'.join(json.dumps(i) for i in data))
+        f.write('\n'.join(json.dumps(i) for i in data))
 
 if __name__ == "__main__":
     # create py-irt dataset from vibo dataset
