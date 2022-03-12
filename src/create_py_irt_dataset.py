@@ -24,4 +24,3 @@ if __name__ == "__main__":
     train_dataset = load_dataset(dataset_name, train=True)
     test_dataset = load_dataset(dataset_name, train=False)
     create_pyirt_dataset(train_dataset, out_dir, f'{dataset_name}.json')
-    create_pyirt_dataset(test_dataset, out_dir, f'{dataset_name}.json')
