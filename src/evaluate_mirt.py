@@ -12,7 +12,6 @@ import torch.distributions.constraints as constraints
 
 import pyro
 import pyro.distributions as dist
-from pyro.infer import EmpiricalMarginal
 from pyro.infer import SVI, Trace_ELBO
 
 from py_irt.models.four_param_logistic import FourParamLog
