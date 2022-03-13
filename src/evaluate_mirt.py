@@ -60,7 +60,7 @@ def model_hierarchical(params, subjects, items, obs, num_person, dims=3):
         logits = multidim_logits.sum(axis=-1)
         pyro.sample("obs", dist.Bernoulli(logits=logits), obs=obs)
     
-def guide_hierarchical(subjects, items, obs, num_person, dims=3):
+def guide_hierarchical(subjects, items, obs, num_person=39, dims=3):
     loc_mu_theta_param = pyro.param("loc_mu_theta", torch.zeros(dims))
     scale_mu_theta_param = pyro.param(
         "scale_mu_theta",
