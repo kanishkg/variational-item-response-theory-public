@@ -181,8 +181,8 @@ if __name__ == "__main__":
             }
                 )
             svi = SVI(model_hierarchical, guide_hierarchical, scheduler, loss=Trace_ELBO())
-            _ = model_hierarchical(params, subjects, items, obs, train_dataset.num_person)
-            _ = guide_hierarchical(subjects, items, obs, train_dataset.num_person)
+            _ = model_hierarchical(subjects, items, obs, params, train_dataset.num_person)
+            _ = guide_hierarchical(subjects, items, obs, params, train_dataset.num_person)
 
             
             table = Table()
