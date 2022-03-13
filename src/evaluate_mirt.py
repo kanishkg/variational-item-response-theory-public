@@ -159,7 +159,7 @@ if __name__ == "__main__":
             if args.sample_choice == "random":
                 train_dataset_masked =  encoder_mask_fn(train_dataset_masked, num_encode, seed)
             else:
-                train_dataset_masked = encoder_mask_fn(train_dataset_masked, num_encode, item_param)
+                train_dataset_masked = encoder_mask_fn(train_dataset_masked, num_encode, item_param.sum(-1))
             
             # build inputs for mirt
             subjects = []
