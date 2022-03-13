@@ -124,8 +124,8 @@ if __name__ == "__main__":
     train_dataset = load_dataset('json', train=True)
 
     # join datasets
-    train_dataset.response = np.concatenate([train_dataset.response, test_dataset.response], dim=0)
-    train_dataset.mask = np.concatenate([train_dataset.mask, test_dataset.mask], dim=0)
+    train_dataset.response = np.concatenate([train_dataset.response, test_dataset.response], axis=0)
+    train_dataset.mask = np.concatenate([train_dataset.mask, test_dataset.mask], axis=0)
     train_dataset.num_person = train_dataset.num_person + test_dataset.num_person
 
 
