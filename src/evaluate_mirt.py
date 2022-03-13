@@ -109,6 +109,8 @@ if __name__ == "__main__":
 
     seed_array = list(range(args.num_seed-1)) + [42]
     del seed_array[1]
+    del seed_array[0]
+
 
     # number of samples for the encoder
     dataset_encode = list(range(1,11)) + [-1]
