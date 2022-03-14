@@ -71,7 +71,7 @@ def disc_encoder_mask(old_dataset, num_encode, item_disc):
         if cols.shape[0] < num_encode:
             continue
         item_disc_n = item_disc[cols]
-        items = item_disc_n.argsort()[-num_encode:][::-1]
+        items = item_disc_n.argsort()[:num_encode][::-1]
         encoder_mask[i, cols[items], 0] = 1
     dataset.encoder_mask = encoder_mask
     return dataset
