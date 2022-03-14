@@ -108,7 +108,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     seed_array = list(range(args.num_seed-1)) + [42]
-    seed_array = [16, 17, 18, 20, 21]
+    # seed_array = [1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 20, 21]
     # number of samples for the encoder
     dataset_encode = list(range(1,11)) + [-1]
 
