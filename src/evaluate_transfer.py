@@ -143,7 +143,7 @@ def sample_posterior_mean(model, loader, step=0):
             else:
                 _, ability_mu, ability_logvar, _, item_feat_mu, item_feat_logvar = \
                 model.encode(response, encoder_mask)
-            item_feat_mu[:, 0] = torch.abs(item_feat_mu[:, 0])
+            # item_feat_mu[:, 0] = torch.abs(item_feat_mu[:, 0])
             response_sample = model.decode(ability_mu, item_feat_mu).cpu()
             response_sample_set.append(response_sample.unsqueeze(0))
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     
     # load checkpoints 
     if not args.step:
-        vibo_all = torch.load(f'./out/VIBO_2pl_algebraai_bernoulli_irt_Noneperson_Noneitem_Nonemaxperson_Nonemaxitem_0.1maskperc_1ability_product__conditional_qseed1_encode{args.model_enc}/model_best.pth.tar',map_location=device)
+        vibo_all = torch.load(f'./out/VIBO_2pl_algebraai_bernoulli_irt_Noneperson_Noneitem_Nonemaxperson_Nonemaxitem_0.1maskperc_3ability_product__conditional_qseed5_encode{args.model_enc}/model_best.pth.tar',map_location=device)
     elif args.step:
         vibo_all = torch.load(f'./out/VIBO_2pl_algebraaistep_bernoulli_irt_Noneperson_Noneitem_Nonemaxperson_Nonemaxitem_0.1maskperc_1ability_product__conditional_qseed1_encode{args.model_enc}/model_best.pth.tar',map_location=device)
 
@@ -299,11 +299,12 @@ if __name__ == "__main__":
     model.load_state_dict(vibo_all['model_state_dict'])
     model.eval()
 
+    ability_dim = 3 
     # choose sampling strategy for the encoder
     if args.sample_choice == "disc":
         item_domain = torch.arange(788).unsqueeze(1).to(device)
         mu, _ = model.item_encoder(item_domain)
-        item_param = np.array([mu[i, 0].item() for i in range(788)])
+        item_param = np.array([mu[i, :ability_dim].sum(-1).item() for i in range(788)])
         encoder_mask_fn = disc_encoder_mask
     elif args.sample_choice == "random":
         item_param = None
@@ -311,7 +312,7 @@ if __name__ == "__main__":
     elif args.sample_choice == "difficulty":
         item_domain = torch.arange(788).unsqueeze(1).to(device)
         mu, _ = model.item_encoder(item_domain)
-        item_param = np.array([mu[i, 1].item() for i in range(788)])
+        item_param = np.array([mu[i, ability_dim:].sum(-1).item() for i in range(788)])
         encoder_mask_fn = diff_encoder_mask
 
     # calculate empirical ability
@@ -388,7 +389,7 @@ if __name__ == "__main__":
                             )
                 vibo_ability_train, vibo_item = get_infer_dict(train_loader, model, args.step)
                 vibo_ability_test, vibo_item = get_infer_dict(test_loader, model, args.step)
-                ability_predicted = torch.cat([vibo_ability_train[:, 0],vibo_ability_test[:, 0]]) .cpu().numpy()
+                ability_predicted = torch.cat([vibo_ability_train[:, :],vibo_ability_test[:, :]]) .cpu().numpy()
                 response_set_train = sample_posterior_mean(model, train_loader, args.step).squeeze()
                 response_set_test = sample_posterior_mean(model, test_loader, args.step).squeeze()
                 inferred_response_train = torch.round(response_set_train).cpu().numpy()
@@ -399,7 +400,7 @@ if __name__ == "__main__":
 
                 
             # calculate ability score
-            r = stats.stats.pearsonr(ability_predicted, empirical_ability)[0]
+            r = stats.stats.pearsonr(ability_predicted.sum(-1), empirical_ability)[0]
 
             # calculate accuracy, auROC, and F1
 
