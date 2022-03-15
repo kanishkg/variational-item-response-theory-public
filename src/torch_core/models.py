@@ -308,6 +308,7 @@ class VIBO_1PL(nn.Module):
 
         self._set_item_feat_dim()
         self._set_irt_num()
+        self.item_feat_dim = self.ability_dim
 
         if self.conditional_posterior:
             self.ability_encoder = ConditionalAbilityInferenceNetwork(
