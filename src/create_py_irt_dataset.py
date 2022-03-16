@@ -16,7 +16,7 @@ def create_pyirt_dataset_eval(dataset, out_dir, file_name):
                 data.append(dict_line)
 
     with open(os.path.join(out_dir, file_name), 'a') as f:
-        f.write('['+',\n'.join(json.dumps(i) for i in data)+']')
+        f.write('\n'.join(json.dumps(i) for i in data))
 
 def create_pyirt_dataset(dataset, out_dir, file_name):
     responses = dataset.response.squeeze()
@@ -28,14 +28,13 @@ def create_pyirt_dataset(dataset, out_dir, file_name):
         data.append(dict_line)
 
     with open(os.path.join(out_dir, file_name), 'a') as f:
-        f.write('['+',\n'.join(json.dumps(i) for i in data)+']')
-
+        f.write('\n'.join(json.dumps(i) for i in data))
 
 if __name__ == "__main__":
     # create py-irt dataset from vibo dataset
-    dataset_name = 'algebraai'
-    mode = 'train'
-    out_dir = os.path.join(DATA_DIR,'r_irt')
+    dataset_name = 'json'
+    mode = 'eval'
+    out_dir = os.path.join(DATA_DIR,'py_irt')
     train_dataset = load_dataset(dataset_name, train=True)
     test_dataset = load_dataset(dataset_name, train=False)
     if mode == 'train':
