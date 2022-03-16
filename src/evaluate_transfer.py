@@ -259,9 +259,10 @@ if __name__ == "__main__":
         
     # load model weights and initialize
     side_info_model = 'conpole_trajectory'
+    ability_dim = 3 
     if not args.step:
         model = VIBO_2PL(
-            1,
+            ability_dim,
             788,
             hidden_dim = 64,
             ability_merge = 'product',
@@ -299,7 +300,6 @@ if __name__ == "__main__":
     model.load_state_dict(vibo_all['model_state_dict'])
     model.eval()
 
-    ability_dim = 3 
     # choose sampling strategy for the encoder
     if args.sample_choice == "disc":
         item_domain = torch.arange(788).unsqueeze(1).to(device)
