@@ -16,7 +16,7 @@ from src.datasets import load_dataset, artificially_mask_dataset, collate_functi
 import environment
 import argparse
 
-sys.path.append('../../poesia_socratic/socratic-tutor/')
+sys.path.append('../../arithmetic-socratic/socratic-tutor/')
 
 signs = ['+', '-']
 symbols = ['(', ')', ' ']
