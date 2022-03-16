@@ -254,12 +254,13 @@ def rollout(model,
 
         ns = list(set([a.next_state for a in actions]) - seen)
         ns.sort(key=lambda s: s.value, reverse=True)
-        if random.uniform(0, 1) < corrupt:
-            corruption_results = [corrupt_state(s) for s in ns]
-            ns = [s for s, _ in corruption_results] 
-            corruption = [s for _, s in corruption_results] 
-            # TODO: if corruption is not successful, we don't want to change the response
-            is_corrupt = True 
+        corruption_results = []
+        for s in ns:
+            if random.uniform(0, 1) < corrupt:
+                corruption_results.append(corrupt_state(s)[0])
+            else:
+                corruption_results.append(s)
+        ns = [s for s in corruption_results] 
         ns = [filter_state(s) for s in ns]
         # ns = [environment.State([f], [], 0) for f in fin_fact]
         if debug:
@@ -312,7 +313,7 @@ def evaluate_solver(problems, checkpoint, beam_size, max_steps, corrupt=0., debu
 
     for state in pbar:
         total += 1
-        success, history = rollout(model, env, state,
+        success, history = model.rollout(env, state,
                                          max_steps, beam_size, corrupt, debug)
         histories.append(history[-1])
         if success:
