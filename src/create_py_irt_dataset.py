@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # create py-irt dataset from vibo dataset
     dataset_name = 'algebraai'
     mode = 'train'
-    out_dir = os.path.join(DATA_DIR,'py_irt')
+    out_dir = os.path.join(DATA_DIR,'r_irt')
     train_dataset = load_dataset(dataset_name, train=True)
     test_dataset = load_dataset(dataset_name, train=False)
     if mode == 'train':
