@@ -12,11 +12,11 @@ import copy
 import torch
 from urllib3 import Retry
 
+sys.path.append('/mnt/fs1/kanishkg/arithmetic-socratic/socratic-tutor/')
 from src.datasets import load_dataset, artificially_mask_dataset, collate_function_step, filter_problem, parse_parentheses
 import environment
 import argparse
 
-sys.path.append('/mnt/fs1/kanishkg/arithmetic-socratic/socratic-tutor/')
 
 signs = ['+', '-']
 symbols = ['(', ')', ' ']
