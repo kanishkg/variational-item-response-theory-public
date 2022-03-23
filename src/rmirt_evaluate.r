@@ -70,8 +70,8 @@ predict <- function(missing_indices, item_coeffs, predicted_ability){
         print(paste("missing indices: ", missing_indices[i, 1:2]))
         idx <- missing_indices[i, 1:2]
         print(paste("idx: ", idx[1]))
-        print(paste("predicted_ab: ", predicted_ability[1,1]))
-        ability <- predicted_ability[idx["row"], 1]
+        print(paste("predicted_ab: ", predicted_ability[30,1]))
+        ability <- predicted_ability[idx[1], 1]
         pars <- item_coeffs[idx[2]]
         pars <- pars[[names(pars)[1]]]
         predicted_response = predict_response(ability, pars)
