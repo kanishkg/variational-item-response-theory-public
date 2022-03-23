@@ -1,6 +1,7 @@
 library("mirt")
 library("mirtCAT")
 library("reticulate")
+library(gsubfn) 
 
 np <- import("numpy")
 
@@ -99,7 +100,7 @@ for (n in 1:11){
     for (s in 1:20){
         set.seed(s)
         # impute dataset
-        list(imputed_response, imputed_mask, missing_indices, missing_labels) <- artificially_mask_dataset(0.1, human_response, human_mask)
+        list[imputed_response, imputed_mask, missing_indices, missing_labels] <- artificially_mask_dataset(0.1, human_response, human_mask)
         # mask encoder
         if (n != 11) {
             masked_response <- mask_encoder(n, imputed_response)
