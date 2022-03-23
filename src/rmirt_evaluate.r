@@ -24,7 +24,7 @@ artificially_mask_dataset <- function(ratio, response, mask){
 
 mask_encoder <- function(n, response) {
     for (p in 1:nrow(response)) {
-        attempted <- which(!is.na(response[p, 1:ncol(reponse)]), arr.ind=TRUE)
+        attempted <- which(!is.na(response[p, 1:ncol(response)]), arr.ind=TRUE)
         num_attempted <- nrow(attempted)
         num_to_impute <- num_attempted - n
         print(paste("Number of attempted: ", num_attempted))
