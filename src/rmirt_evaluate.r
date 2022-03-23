@@ -63,7 +63,7 @@ predict <- function(missing_indices, item_coeffs, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
     for (i in 1:nrow(missing_indices)){
         idx <- missing_indices[i, 1:2]
-        ability <- predicted_ability[idx[1]]
+        ability <- predicted_ability[idx[1], 1]
         pars <- item_coeffs[idx[2]]
         pars <- pars[[names(pars)[1]]]
         predicted_response = predict_response(ability, pars)
