@@ -18,7 +18,7 @@ artificially_mask_dataset <- function(ratio, responses, mask){
         response[idx[1], idx[2]] <- NA
         mask[idx[1], idx[2]] <- 0 
     } 
-    return (response, mask, missing_indices, missing_labels)
+    return (list(response, mask, missing_indices, missing_labels))
 }
 
 mask_encoder <- function(n, responses) {
@@ -99,7 +99,7 @@ for (n in 1:11){
     for (s in 1:20){
         set.seed(s)
         # impute dataset
-        imputed_response, imputed_mask, missing_indices, missing_labels <- artificially_mask_dataset(0.1, human_response, human_mask)
+        list(imputed_response, imputed_mask, missing_indices, missing_labels) <- artificially_mask_dataset(0.1, human_response, human_mask)
         # mask encoder
         if (n != 11) {
             masked_response <- mask_encoder(n, imputed_response)
