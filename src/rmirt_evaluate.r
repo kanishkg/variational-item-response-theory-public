@@ -4,7 +4,7 @@ library("reticulate")
 
 np <- import("numpy")
 
-artificially_mask_dataset <- function(ratio, responses, mask){
+artificially_mask_dataset <- function(ratio, response, mask){
     attempted <- which(!is.na(response), arr.ind=TRUE)
     num_attempted <- nrow(attempted)
     num_to_impute <- round(ratio * num_attempted)
@@ -13,7 +13,7 @@ artificially_mask_dataset <- function(ratio, responses, mask){
     missing_labels <- rep(NA, num_to_impute)
     for (i in 1:num_to_impute){
         idx <- attempted[impute_idx[i], 1:2]
-        missing_labels[i] <- responses[idx[1], idx[2]]
+        missing_labels[i] <- response[idx[1], idx[2]]
         missing_indices[i, 1:2] <- idx
         response[idx[1], idx[2]] <- NA
         mask[idx[1], idx[2]] <- 0 
@@ -21,7 +21,7 @@ artificially_mask_dataset <- function(ratio, responses, mask){
     return (list(response, mask, missing_indices, missing_labels))
 }
 
-mask_encoder <- function(n, responses) {
+mask_encoder <- function(n, response) {
     attempted <- which(!is.na(response), arr.ind=TRUE)
     num_attempted <- nrow(attempted)
     impute_idx <- sample(1:n, n, replace = FALSE)
