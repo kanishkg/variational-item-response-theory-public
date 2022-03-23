@@ -112,13 +112,13 @@ for (n in 1:11){
         predicted_ability <- fscores(irt_params, response.pattern = masked_response)
         # get correlation
         corr <- cor(predicted_ability[1:nrow(predicted_ability), 1], empirical_ability, method = "pearson")
-        println(paste("corr: ", corr))
+        print(paste("corr: ", corr))
         # predict imputed responses
         predicted_response <- predict(missing_indices, item_coeffs, predicted_ability)
         # compute metrics
         cm <- as.matrix(table(Actual = missing_labels, Predicted = predicted_response))
         accuracy <- sum(diag(cm)) / sum(cm)
         auc <- getROC_AUC(predicted_response, missing_labels)
-        println(paste("n = ", n, ", s = ", s, ", corr = ", corr, ", accuracy = ", accuracy, ", auc = ", auc))
+        print(paste("n = ", n, ", s = ", s, ", corr = ", corr, ", accuracy = ", accuracy, ", auc = ", auc))
     }
 }
