@@ -27,8 +27,6 @@ mask_encoder <- function(n, response) {
         attempted <- which(!is.na(response[p, 1:ncol(response)]), arr.ind=TRUE)
         num_attempted <- nrow(attempted)
         num_to_impute <- num_attempted - n
-        print(paste("Number of attempted: ", num_attempted))
-        print(paste("Number of missing values: ", num_to_impute))
         impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
         for (i in 1:num_to_impute){
             idx <- attempted[impute_idx[i], 1:2]
@@ -71,8 +69,8 @@ predict <- function(missing_indices, item_coeffs, predicted_ability){
     for (i in 1:nrow(missing_indices)){
         print(paste("missing indices: ", missing_indices[i, 1:2]))
         idx <- missing_indices[i, 1:2]
-        print(paste("idx: ", idx))
-        print(paste("predicted_ab: ", predicted_ability))
+        print(paste("idx: ", idx[1]))
+        print(paste("predicted_ab: ", predicted_ability[0,1]))
         ability <- predicted_ability[idx[1], 1]
         pars <- item_coeffs[idx[2]]
         pars <- pars[[names(pars)[1]]]
