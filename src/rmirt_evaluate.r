@@ -10,7 +10,7 @@ artificially_mask_dataset <- function(ratio, response, mask){
     num_attempted <- nrow(attempted)
     num_to_impute <- round(ratio * num_attempted)
     impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
-    missing_indices = data.frame(matrix(NA, nrow = num_to_impute, ncol = 2))
+    missing_indices <- data.frame(matrix(NA, nrow = num_to_impute, ncol = 2))
     missing_labels <- rep(NA, num_to_impute)
     for (i in 1:num_to_impute){
         idx <- attempted[impute_idx[i], 1:2]
@@ -71,7 +71,7 @@ predict <- function(missing_indices, item_coeffs, predicted_ability){
         idx <- missing_indices[i, 1:2]
         print(paste("idx: ", idx[1]))
         print(paste("predicted_ab: ", predicted_ability[30,1]))
-        ability <- predicted_ability[idx[1], 1]
+        ability <- predicted_ability[idx[1,1],1]
         pars <- item_coeffs[idx[2]]
         pars <- pars[[names(pars)[1]]]
         predicted_response = predict_response(ability, pars)
