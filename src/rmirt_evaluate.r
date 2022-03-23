@@ -23,18 +23,21 @@ artificially_mask_dataset <- function(ratio, response, mask){
 }
 
 mask_encoder <- function(n, response) {
-    attempted <- which(!is.na(response), arr.ind=TRUE)
-    num_attempted <- nrow(attempted)
-    print(paste("Number of attempted: ", num_attempted))
-    num_to_impute <- num_attempted - n
-    print(paste("Number of missing values: ", num_to_impute))
+    for (p in 1:nrow(response)) {
+        attempted <- which(!is.na(response[p, 1:nol(reponse)]), arr.ind=TRUE)
+        num_attempted <- nrow(attempted)
+        num_to_impute <- num_attempted - n
+        print(paste("Number of attempted: ", num_attempted))
+        print(paste("Number of missing values: ", num_to_impute))
+        impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
+        for (i in 1:num_to_impute){
+            idx <- attempted[impute_idx[i], 1:2]
+            response[p, idx[2]] <- NA
+        } 
 
-    impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
+    }
 
-    for (i in 1:num_to_impute){
-        idx <- attempted[impute_idx[i], 1:2]
-        response[idx[1], idx[2]] <- NA
-    } 
+
     return (response)
 }
 
@@ -104,7 +107,7 @@ irt_params <- mirt(data = machine_response, model = 1, itemtype='2PL')
 item_coeffs <- coef(irt_params)
 
 
-for (n in 2:11){
+for (n in 1:11){
     for (s in 1:20){
         set.seed(s)
         # impute dataset
