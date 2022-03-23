@@ -100,7 +100,8 @@ empirical_ability <- num_correct / num_attempted
 irt_params <- mirt(data = machine_response, model = 1, itemtype='2PL')
 item_coeffs <- coef(irt_params)
 
-for (n in 1:11){
+
+for (n in 2:11){
     for (s in 1:20){
         set.seed(s)
         # impute dataset
