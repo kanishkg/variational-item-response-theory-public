@@ -25,9 +25,10 @@ artificially_mask_dataset <- function(ratio, response, mask){
 mask_encoder <- function(n, response) {
     attempted <- which(!is.na(response), arr.ind=TRUE)
     num_attempted <- nrow(attempted)
-    impute_idx <- sample(1:n, n, replace = FALSE)
+    num_to_impute <- num_attempted - n
+    impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
 
-    for (i in 1:n){
+    for (i in 1:num_to_impute){
         idx <- attempted[impute_idx[i], 1:2]
         response[idx[1], idx[2]] <- NA
     } 
@@ -62,8 +63,10 @@ predict_response <- function(ability, pars){
 predict <- function(missing_indices, item_coeffs, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
     for (i in 1:nrow(missing_indices)){
+        print(paste("missing indices: ", missing_indices[i, 1:2]))
         idx <- missing_indices[i, 1:2]
         print(paste("idx: ", idx))
+        print(paste("predicted_ab: ", predicted_ability))
         ability <- predicted_ability[idx[1], 1]
         pars <- item_coeffs[idx[2]]
         pars <- pars[[names(pars)[1]]]
