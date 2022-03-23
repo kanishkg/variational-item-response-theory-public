@@ -1,7 +1,6 @@
 library("mirt")
 library("mirtCAT")
 library("reticulate")
-library(gsubfn) 
 
 np <- import("numpy")
 
