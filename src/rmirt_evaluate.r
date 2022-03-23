@@ -11,7 +11,7 @@ artificially_mask_dataset <- function(ratio, responses, mask){
     impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
     missing_indices = data.frame(matrix(NA, nrow = num_to_impute, ncol = 2))
     missing_labels <- rep(NA, num_to_impute)
-    for i in range(1:num_to_impute){
+    for (i in 1:num_to_impute){
         idx <- attempted[impute_idx[i], 1:2]
         missing_labels[i] <- responses[idx[1], idx[2]]
         missing_indices[i, 1:2] <- idx
@@ -26,7 +26,7 @@ mask_encoder <- function(n, responses) {
     num_attempted <- nrow(attempted)
     impute_idx <- sample(1:n, n, replace = FALSE)
 
-    for i in range(1:num_to_impute){
+    for (i in 1:num_to_impute){
         idx <- attempted[impute_idx[i], 1:2]
         response[idx[1], idx[2]] <- NA
     } 
@@ -60,7 +60,7 @@ predict_response <- function(ability, pars){
 
 predict <- function(missing_indices, item_coeffs, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
-    for i in range(1:nrow(missing_indices)){
+    for (i in 1:nrow(missing_indices)){
         idx <- missing_indices[i, 1:2]
         ability <- predicted_ability[idx[1]]
         pars <- item_coeffs[idx[2]]
@@ -95,8 +95,8 @@ empirical_ability <- num_correct / num_attempted
 irt_params <- mirt(data = machine_response, model = 1, itemtype='2PL')
 item_coeffs <- coef(irt_params)
 
-for n in 1:11{
-    for s in 1:20 {
+for (n in 1:11){
+    for (s in 1:20){
         set.seed(s)
         # impute dataset
         imputed_response, imputed_mask, missing_indices, missing_labels <- artificially_mask_dataset(0.1, human_response, human_mask)
