@@ -27,7 +27,7 @@ mask_encoder <- function(n, response) {
     num_attempted <- nrow(attempted)
     impute_idx <- sample(1:n, n, replace = FALSE)
 
-    for (i in 1:num_to_impute){
+    for (i in 1:n){
         idx <- attempted[impute_idx[i], 1:2]
         response[idx[1], idx[2]] <- NA
     } 
