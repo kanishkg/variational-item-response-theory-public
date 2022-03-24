@@ -61,6 +61,7 @@ predict_response <- function(ability, pars){
     theta = ability
     logit <- a*theta + d
     pred <- g + (u-g/(1+exp(-logit)))
+    pred <- round(pred)
     return (pred)
 }
 
@@ -78,6 +79,12 @@ predict <- function(missing_indices, item_coeffs, predicted_ability){
         predicted_labels[i] <- predicted_response
     }
     return (predicted_labels)
+}
+
+get_accuracy <- function(predicted_labels, true_labels){
+    correct_predictions <- sum(predicted_labels == true_labels)
+    accuracy <- correct_predictions/nrow(true_labels)
+    return (accuracy)
 }
 
 # read files
@@ -124,9 +131,8 @@ for (n in 1:11){
         # predict imputed responses
         predicted_response <- predict(missing_indices, item_coeffs, predicted_ability)
         # compute metrics
-        cm <- as.matrix(table(Actual = missing_labels, Predicted = predicted_response))
-        accuracy <- sum(diag(cm)) / sum(cm)
-        auc <- getROC_AUC(predicted_response, missing_labels)
+        accuracy <- get_accuracy(predicted_response, missing_labels)
+        auc <- 0
         print(paste("n = ", n, ", s = ", s, ", corr = ", corr, ", accuracy = ", accuracy, ", auc = ", auc))
     }
 }
