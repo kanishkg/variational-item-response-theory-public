@@ -89,6 +89,7 @@ get_accuracy <- function(predicted_labels, true_labels){
         }
     }
     accuracy <- count/nrow(true_labels)
+    print(paste("accuracy: ", accuracy, ", count: ", count, ", nrow(true_labels): ", nrow(true_labels)))
     return (accuracy)
 }
 
