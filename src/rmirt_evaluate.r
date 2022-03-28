@@ -11,6 +11,8 @@ artificially_mask_dataset <- function(ratio, response, mask, seed){
     num_attempted <- nrow(attempted)
     num_to_impute <- round(ratio * num_attempted)
     impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
+    print(paste("Impute ", num_to_impute, " of ", num_attempted, " rows"))
+    print(paste("Impute ", impute_idx))
     missing_indices <- data.frame(matrix(NA, nrow = num_to_impute, ncol = 2))
     missing_labels <- rep(NA, num_to_impute)
     for (i in 1:num_to_impute){
@@ -64,7 +66,7 @@ predict_response <- function(ability, pars){
     logit <- a*theta + d
     pred <- g + (u-g/(1+exp(-logit)))
     pred <- round(pred)
-    print(paste("pred: ", pred, ", theta: ", theta, ", a: ", a, ", d: ", d))
+    # print(paste("pred: ", pred, ", theta: ", theta, ", a: ", a, ", d: ", d))
     return (pred)
 }
 
@@ -89,7 +91,7 @@ get_accuracy <- function(predicted_labels, true_labels){
         }
     }
     accuracy <- count/length(predicted_labels)
-    print(paste("accuracy: ", accuracy, ", count: ", count, ", nrow(true_labels): ", length(predicted_labels)))
+    # print(paste("accuracy: ", accuracy, ", count: ", count, ", nrow(true_labels): ", length(predicted_labels)))
     return (accuracy)
 }
 
