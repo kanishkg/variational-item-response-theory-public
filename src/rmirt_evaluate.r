@@ -115,6 +115,8 @@ empirical_ability <- num_correct / num_attempted
 irt_params <- mirt(data = machine_response, model = 1, itemtype='2PL')
 item_coeffs <- coef(irt_params)
 
+results <- data.frame(matrix(NA, nrow = 11*20, ncol = 6))
+
 
 for (n in 1:11){
     for (s in 1:20){
@@ -137,6 +139,14 @@ for (n in 1:11){
         # compute metrics
         accuracy <- get_accuracy(predicted_response, missing_labels)
         auc <- 0
+        f1 <- 0
+        results[(n-1)*20 + s, 1] <- n
+        results[(n-1)*20 + s, 2] <- s
+        results[(n-1)*20 + s, 3] <- corr
+        results[(n-1)*20 + s, 4] <- accuracy
+        results[(n-1)*20 + s, 5] <- auc
+        results[(n-1)*20 + s, 6] <- f1
         print(paste("n = ", n, ", s = ", s, ", corr = ", corr, ", accuracy = ", accuracy, ", auc = ", auc))
     }
 }
+write.csv(x=results, file="data/r_irt/results.csv")
