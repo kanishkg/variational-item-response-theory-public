@@ -83,7 +83,7 @@ predict <- function(missing_indices, item_coeffs, predicted_ability){
 
 get_accuracy <- function(predicted_labels, true_labels){
     count <- 0.0
-    for (i in nrow(predicted_labels)){
+    for (i in 1:nrow(predicted_labels)){
         if (predicted_labels[i] == true_labels[i]){
             count <- count + 1
         }
