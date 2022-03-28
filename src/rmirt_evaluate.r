@@ -5,7 +5,8 @@ library("gsubfn")
 
 np <- import("numpy")
 
-artificially_mask_dataset <- function(ratio, response, mask){
+artificially_mask_dataset <- function(ratio, response, mask, seed){
+    set.seed(seed)
     attempted <- which(!is.na(response), arr.ind=TRUE)
     num_attempted <- nrow(attempted)
     num_to_impute <- round(ratio * num_attempted)
@@ -22,7 +23,8 @@ artificially_mask_dataset <- function(ratio, response, mask){
     return (list(response, mask, missing_indices, missing_labels))
 }
 
-mask_encoder <- function(n, response) {
+mask_encoder <- function(n, response, seed) {
+    set.seed(seed)
     for (p in 1:nrow(response)) {
         attempted <- which(!is.na(response[p, 1:ncol(response)]), arr.ind=TRUE)
         num_attempted <- nrow(attempted)
@@ -122,10 +124,10 @@ for (n in 1:11){
     for (s in 1:20){
         set.seed(s)
         # impute dataset
-        list[imputed_response, imputed_mask, missing_indices, missing_labels] <- artificially_mask_dataset(0.1, human_response, human_mask)
+        list[imputed_response, imputed_mask, missing_indices, missing_labels] <- artificially_mask_dataset(0.1, human_response, human_mask, s)
         # mask encoder
         if (n != 11) {
-            masked_response <- mask_encoder(n, imputed_response)
+            masked_response <- mask_encoder(n, imputed_response, s)
         } else {
             masked_response <- imputed_response
         }
