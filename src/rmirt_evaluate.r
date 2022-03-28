@@ -70,14 +70,12 @@ predict_response <- function(ability, pars){
     return (pred)
 }
 
-predict <- function(missing_indices, item_coeffs, predicted_ability){
+predict <- function(missing_indices, irt, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
     for (i in 1:nrow(missing_indices)){
         idx <- missing_indices[i, 1:2]
         ability <- predicted_ability[idx[1,1],1]
-        pars <- item_coeffs[idx[1,2]]
-        pars <- pars[[names(pars)[1]]]
-        predicted_response = predict_response(ability, pars)
+        predicted_response <- expected.test(irt, ability, which.items = idx[1,2]:idx[1,2])
         predicted_labels[i] <- predicted_response
     }
     return (predicted_labels)
@@ -139,7 +137,7 @@ for (n in 1:11){
         corr <- cor(predicted_ability[1:nrow(predicted_ability), 1], empirical_ability, method = "pearson")
         print(paste("corr: ", corr))
         # predict imputed responses
-        predicted_response <- predict(missing_indices, item_coeffs, predicted_ability)
+        predicted_response <- predict(missing_indices, irt_params, predicted_ability)
         # compute metrics
         accuracy <- get_accuracy(predicted_response, missing_labels)
         auc <- 0
