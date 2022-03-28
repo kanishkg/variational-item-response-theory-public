@@ -10,7 +10,7 @@ artificially_mask_dataset <- function(ratio, response, mask, seed){
     attempted <- which(!is.na(response), arr.ind=TRUE)
     num_attempted <- nrow(attempted)
     num_to_impute <- round(ratio * num_attempted)
-    impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
+    impute_idx <- sample(1:num_attempted, num_to_impute, replace = FALSE)
     print(paste("Impute ", num_to_impute, " of ", num_attempted, " rows"))
     print(paste("Impute ", impute_idx))
     missing_indices <- data.frame(matrix(NA, nrow = num_to_impute, ncol = 2))
@@ -31,7 +31,7 @@ mask_encoder <- function(n, response, seed) {
         attempted <- which(!is.na(response[p, 1:ncol(response)]), arr.ind=TRUE)
         num_attempted <- nrow(attempted)
         num_to_impute <- num_attempted - n
-        impute_idx <- sample(1:num_to_impute, num_to_impute, replace = FALSE)
+        impute_idx <- sample(1:num_attempted, num_to_impute, replace = FALSE)
         for (i in 1:num_to_impute){
             idx <- attempted[impute_idx[i], 1:2]
             response[p, idx[2]] <- NA
