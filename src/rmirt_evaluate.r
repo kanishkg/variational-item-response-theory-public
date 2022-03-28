@@ -62,16 +62,14 @@ predict_response <- function(ability, pars){
     logit <- a*theta + d
     pred <- g + (u-g/(1+exp(-logit)))
     pred <- round(pred)
+    print(paste("pred: ", pred, ", theta: ", theta, ", a: ", a, ", d: ", d))
     return (pred)
 }
 
 predict <- function(missing_indices, item_coeffs, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
     for (i in 1:nrow(missing_indices)){
-        print(paste("missing indices: ", missing_indices[i, 1:2]))
         idx <- missing_indices[i, 1:2]
-        print(paste("idx: ", idx[1]))
-        print(paste("predicted_ab: ", predicted_ability[30,1]))
         ability <- predicted_ability[idx[1,1],1]
         pars <- item_coeffs[idx[1,2]]
         pars <- pars[[names(pars)[1]]]
