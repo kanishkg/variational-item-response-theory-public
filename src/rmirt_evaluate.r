@@ -124,18 +124,6 @@ results <- data.frame(matrix(NA, nrow = 11*20, ncol = 6))
 
 for (n in 1:11){
     for (s in 1:20){
-        human_response <- np$load("data/r_irt/human_response.npy")
-        human_response <- as.data.frame(human_response)
-        human_mask <- np$load("data/r_irt/human_mask.npy")
-        human_mask <- as.data.frame(human_mask)
-        # mask responses
-        for (i in 1:nrow(human_response)) {
-            for (j in 1:ncol(human_response)) {
-                if (human_mask[i, j] == 0) {
-                    human_response[i, j] <- NA
-                }
-            }
-        } 
         set.seed(s)
         # impute dataset
         list[imputed_response, imputed_mask, missing_indices, missing_labels] <- artificially_mask_dataset(0.1, human_response, human_mask, s)
