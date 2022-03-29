@@ -11,8 +11,6 @@ artificially_mask_dataset <- function(ratio, response, mask, seed){
     num_attempted <- nrow(attempted)
     num_to_impute <- round(ratio * num_attempted)
     impute_idx <- sample(1:num_attempted, num_to_impute, replace = FALSE)
-    print(paste("Impute ", num_to_impute, " of ", num_attempted, " rows"))
-    print(paste("Impute ", impute_idx))
     missing_indices <- data.frame(matrix(NA, nrow = num_to_impute, ncol = 2))
     missing_labels <- rep(NA, num_to_impute)
     for (i in 1:num_to_impute){
@@ -56,20 +54,6 @@ getROC_AUC = function(probs, true_Y){
     return(auc)
 }
 
-predict_response <- function(ability, pars){
-    # $$P(x = 1|\theta, \psi) = g + \frac{(u - g)}{ 1 + exp(-(a_1 * \theta_1 + a_2 * \theta_2 + d))}$$
-    a = pars[1]
-    d = pars[2]
-    g = pars[3]
-    u = pars[4]
-    theta = ability
-    logit <- a*theta + d
-    pred <- g + (u-g/(1+exp(-logit)))
-    pred <- round(pred)
-    # print(paste("pred: ", pred, ", theta: ", theta, ", a: ", a, ", d: ", d))
-    return (pred)
-}
-
 predict <- function(missing_indices, irt_params, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
     predict_response <- matrix(NA, nrow = nrow(predicted_ability), ncol = 717)
@@ -77,7 +61,9 @@ predict <- function(missing_indices, irt_params, predicted_ability){
         predict_response[,i] <- round(expected.test(irt_params, predicted_ability, which.items=i:i))
     }
     for (i in 1:nrow(missing_indices)){
+        print(paste("predicting for ", i, " of ", nrow(missing_indices)))
         idx <- missing_indices[i, 1:2]
+        print(paste("idx: ", idx))
         predicted_labels[i] <- predicted_response[idx[1,1], idx[1,2]]
     }
     return (predicted_labels)
