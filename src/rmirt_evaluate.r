@@ -64,7 +64,7 @@ predict <- function(missing_indices, irt_params, predicted_ability){
         print(paste("predicting for ", i, " of ", nrow(missing_indices)))
         idx <- missing_indices[i, 1:2]
         print(paste("idx: ", idx))
-        predicted_labels[i] <- predicted_response[idx[1], idx[2]]
+        predicted_labels[i] <- predict_response[idx[1,1], idx[1,2]]
     }
     return (predicted_labels)
 }
