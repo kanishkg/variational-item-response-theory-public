@@ -2,6 +2,8 @@ library("mirt")
 library("mirtCAT")
 library("reticulate")
 library("gsubfn")
+library("pROC")
+
 
 np <- import("numpy")
 
@@ -142,15 +144,15 @@ for (n in 1:11){
         print(paste("corr: ", corr))
         # compute metrics
         accuracy <- get_accuracy(predicted_response, missing_labels)
-        auc <- 0
+        auroc <- auc(missing_labels, predicted_response)
         f1 <- 0
         results[(n-1)*20 + s, 1] <- n
         results[(n-1)*20 + s, 2] <- s
         results[(n-1)*20 + s, 3] <- corr
         results[(n-1)*20 + s, 4] <- accuracy
-        results[(n-1)*20 + s, 5] <- auc
+        results[(n-1)*20 + s, 5] <- auroc[1]
         results[(n-1)*20 + s, 6] <- f1
-        print(paste("n = ", n, ", s = ", s, ", corr = ", corr, ", accuracy = ", accuracy, ", auc = ", auc))
+        print(paste("n = ", n, ", s = ", s, ", corr = ", corr, ", accuracy = ", accuracy, ", auc = ", auroc[1]))
     }
 }
 write.csv(x=results, file="data/r_irt/results.csv")
