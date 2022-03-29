@@ -74,7 +74,6 @@ predict <- function(missing_indices, irt_params, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
     predict_response <- matrix(NA, nrow = nrow(predicted_ability), ncol = 717)
     for (i in 1:717){
-        print(paste("Predicting response for user ", i))
         predict_response[,i] <- round(expected.test(irt_params, predicted_ability, which.items=i:i))
     }
     for (i in 1:nrow(missing_indices)){
