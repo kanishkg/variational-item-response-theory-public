@@ -79,9 +79,7 @@ predict <- function(missing_indices, irt_params, predicted_ability){
     }
     for (i in 1:nrow(missing_indices)){
         idx <- missing_indices[i, 1:2]
-        ability <- predicted_ability[idx[1,1],1]
-        predicted_response <- expected.test(irt, ability, which.items = idx[1,2]:idx[1,2])
-        predicted_labels[i] <- predicted_response
+        predicted_labels[i] <- predicted_response[idx[1,1], idx[1,2]]
     }
     return (predicted_labels)
 }
