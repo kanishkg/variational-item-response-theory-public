@@ -72,6 +72,10 @@ predict_response <- function(ability, pars){
 
 predict <- function(missing_indices, irt, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
+    predict_response <- matrix(NA, nrow = nrow(predicted_ability), ncol = 717)
+    for (i in 1:717){
+        predict_response <- expected.test(irt, predicted_ability, which,items=i:i)
+    }
     for (i in 1:nrow(missing_indices)){
         idx <- missing_indices[i, 1:2]
         ability <- predicted_ability[idx[1,1],1]
