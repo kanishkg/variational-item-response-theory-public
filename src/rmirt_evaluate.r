@@ -36,8 +36,22 @@ mask_encoder <- function(n, response, seed) {
         } 
 
     }
+    return (response)
+}
 
+mask_disc_encoder <- function(n, response, pars) {
+    set.seed(seed)
+    for (p in 1:nrow(response)) {
+        attempted <- which(!is.na(response[p, 1:ncol(response)]), arr.ind=TRUE)
+        num_attempted <- nrow(attempted)
+        num_to_impute <- num_attempted - n
+        impute_idx <- sample(1:num_attempted, num_to_impute, replace = FALSE)
+        for (i in 1:num_to_impute){
+            idx <- attempted[impute_idx[i], 1:2]
+            response[p, idx[2]] <- NA
+        } 
 
+    }
     return (response)
 }
 
@@ -56,8 +70,8 @@ getROC_AUC = function(probs, true_Y){
 
 predict <- function(missing_indices, irt_params, predicted_ability){
     predicted_labels <- rep(NA, nrow(missing_indices))
-    predict_response <- matrix(NA, nrow = nrow(predicted_ability), ncol = 717)
-    for (i in 1:717){
+    predict_response <- matrix(NA, nrow = nrow(predicted_ability), ncol = 723)
+    for (i in 1:723){
         predict_response[,i] <- round(expected.test(irt_params, predicted_ability, which.items=i:i))
     }
     for (i in 1:nrow(missing_indices)){
